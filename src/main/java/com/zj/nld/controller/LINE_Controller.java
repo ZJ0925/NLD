@@ -1,6 +1,6 @@
 package com.zj.nld.controller;
 
-import com.zj.nld.service.LINE_Service;
+import com.zj.nld.service.LineService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -8,20 +8,17 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/line")
 public class LINE_Controller {
     @Autowired
-    private LINE_Service lineService;
+    private LineService lineService;
 
 
-    public static void main(String[] args) {
-        // TODO Auto-generated method stub
-    }
 
+    //取得用戶回覆
     @PostMapping("/callwebback")
     public String callwebback(@RequestBody String requestBody) {
         System.out.println("🔹 收到 LINE Webhook: " + requestBody);
         return lineService.processWebhook(requestBody);
 
     }
-
 
 
 }

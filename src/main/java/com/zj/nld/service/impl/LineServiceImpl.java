@@ -1,12 +1,11 @@
 package  com.zj.nld.service.impl;
 
-import  com.zj.nld.service.LINE_Service;
+import com.zj.nld.service.LineService;
 
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.HttpEntity;
@@ -16,11 +15,12 @@ import org.springframework.http.MediaType;
 import java.util.*;
 
 @Service
-@Component
-public class LINE_ServiceImpl implements LINE_Service {
+public class LineServiceImpl implements LineService {
 
-    private static final String Channel_Access_Token = "PWSjC+f6Id6azivlM+Gcff99o/i8MrOhfkz94RG037SesKvUqZL2qk+C3bHicUtZiSv1+r54w2KfnC9pfMjR1MnvuGOeAezNrzT040PZhVX/XYGMffMYY8M1Och+4dL7lCIvRYj/13rZ1T0NnRCcagdB04t89/1O/w1cDnyilFU=";
-    private static final String REPLY_URL = "https://api.line.me/v2/bot/message/reply";
+    //LINE token
+    private final String Channel_Access_Token = "PWSjC+f6Id6azivlM+Gcff99o/i8MrOhfkz94RG037SesKvUqZL2qk+C3bHicUtZiSv1+r54w2KfnC9pfMjR1MnvuGOeAezNrzT040PZhVX/XYGMffMYY8M1Och+4dL7lCIvRYj/13rZ1T0NnRCcagdB04t89/1O/w1cDnyilFU=";
+
+
     private boolean checkGO = false;
     public boolean checkGOwhere = false;
 
@@ -28,6 +28,8 @@ public class LINE_ServiceImpl implements LINE_Service {
     //自動回複訊息
     @Override
     public void responseTOuser(String replyToken, String messageText) {
+        //傳送回覆訊息API
+        String REPLY_URL = "https://api.line.me/v2/bot/message/reply";
         //透過RestTemplate請求自動轉為massage(像是JDBCTemplat可以轉成sql的功能一樣)
         RestTemplate restTemplate = new RestTemplate();
         //設定header
@@ -105,6 +107,7 @@ public class LINE_ServiceImpl implements LINE_Service {
         // 發送 POST 請求到 LINE Messaging API 來回覆用戶
         restTemplate.postForObject(REPLY_URL, entity, String.class);
     }
+
     //取得用戶回覆的訊息
     @Override
     public String processWebhook(String requestBody) {
@@ -134,6 +137,8 @@ public class LINE_ServiceImpl implements LINE_Service {
 
                         // 取得發送訊息的群組 ID
                         String groupId = event.getJSONObject("source").getString("groupId");
+                        //顯示群組所有用戶ID
+                        getGroupUsersId(groupId);
                         // 取得發送訊息的用戶 ID
                         String userId = event.getJSONObject("source").getString("userId");
 
@@ -148,7 +153,7 @@ public class LINE_ServiceImpl implements LINE_Service {
                             // 取得文字訊息
                             String messageText = message.getString("text");
                             // 發送回應訊息
-                            responseTOuser(replyToken, messageText);
+//                            responseTOuser(replyToken, messageText);
                         } else {
                             System.out.println("不合法傳入, 請傳 image 及 text");
                         }
@@ -162,5 +167,12 @@ public class LINE_ServiceImpl implements LINE_Service {
             System.err.println("❌ 解析 LINE Webhook 失敗：" + e.getMessage());
         }
         return "OK";
+    }
+
+    //取得群組成員ID
+    @Override
+    public void getGroupUsersId(String groupId) {
+        System.out.println("🔹 收到 LINE Webhook，開始尋找所有用戶ID" );
+
     }
 }
