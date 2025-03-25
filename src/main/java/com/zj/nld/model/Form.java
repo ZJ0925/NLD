@@ -10,7 +10,7 @@ import java.util.Date;
 public class Form {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "form_id")
+    @Column(name = "id")
     private Integer formId;
 
     @Column(name = "hospital")

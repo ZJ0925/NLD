@@ -36,7 +36,15 @@ public class Form_Controller {
         Integer formId = formService.submitForm(formRequest);
         Form form = formService.getFormById(formId);
         return ResponseEntity.status(HttpStatus.CREATED).body(form);
-
-
+    }
+    @PutMapping("/update/{formId}")
+    public ResponseEntity<Form> updateForm(@PathVariable Integer formId, @RequestBody @Validated FormRequest formRequest) {
+        Form form = formService.getFormById(formId);
+        if (form == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        formService.updateForm(formId,formRequest);
+        Form updatedForm = formService.getFormById(formId);
+        return ResponseEntity.status(HttpStatus.OK).body(updatedForm);
     }
 }
