@@ -19,100 +19,13 @@ public class LineServiceImpl implements LineService {
 
     //LINE token
     private final String Channel_Access_Token = "PWSjC+f6Id6azivlM+Gcff99o/i8MrOhfkz94RG037SesKvUqZL2qk+C3bHicUtZiSv1+r54w2KfnC9pfMjR1MnvuGOeAezNrzT040PZhVX/XYGMffMYY8M1Och+4dL7lCIvRYj/13rZ1T0NnRCcagdB04t89/1O/w1cDnyilFU=";
-
-
-    private boolean checkGO = false;
-    public boolean checkGOwhere = false;
-
-
-    //自動回複訊息
-    @Override
-    public void responseTOuser(String replyToken, String messageText) {
-        //傳送回覆訊息API
-        String REPLY_URL = "https://api.line.me/v2/bot/message/reply";
-        //透過RestTemplate請求自動轉為massage(像是JDBCTemplat可以轉成sql的功能一樣)
-        RestTemplate restTemplate = new RestTemplate();
-        //設定header
-        HttpHeaders headers = new HttpHeaders();
-        //設定ContentType為JSON格式
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        //LINE用Bearer Token 進行身份驗證
-        headers.setBearerAuth(Channel_Access_Token);
-        //json格式為String,Object
-        Map<String, Object> requestBody = new HashMap<>();
-        //擷取用戶端replyToken
-        requestBody.put("replyToken",replyToken);
-
-        //建立List可以發送多組訊息
-        List<Map<String, String>> messages = new ArrayList<>();
-
-
-        //將訊息的body加入到list，再把list包裝到requestBody變成json格式
-        if(checkGO == true){
-            switch(messageText){
-                case "1":
-                    Map<String, String> home = new HashMap<>();
-                    home.put("type","text");
-                    home.put("text","首頁");
-                    messages.add(home);
-                    checkGO = false;
-                    checkGOwhere = true;
-                    break;
-                case "2":
-                    Map<String, String> doctor = new HashMap<>();
-                    doctor.put("type","text");
-                    doctor.put("text","請輸入醫生姓名");
-                    messages.add(doctor);
-                    checkGO = false;
-                    checkGOwhere = true;
-                    break;
-                case "3":
-                    Map<String, String> ClinicName = new HashMap<>();
-                    ClinicName.put("type","text");
-                    ClinicName.put("text","請輸入診所名稱");
-                    messages.add(ClinicName);
-                    checkGO = false;
-                    checkGOwhere = true;
-                    break;
-                case "4":
-                    Map<String, String> PatientsName = new HashMap<>();
-                    PatientsName.put("type","text");
-                    PatientsName.put("text","輸入患者名稱");
-                    messages.add(PatientsName);
-                    checkGO = false;
-                    checkGOwhere = true;
-                    break;
-            }
-            //如果使用者回覆go，跳到功能選單
-        }else if(messageText.equals("go")){
-            Map<String, String> go = new HashMap<>();
-            go.put("type","text");
-            go.put("text","1. 首頁\n" + "2. 輸入醫生姓名\n" + "3. 輸入診所名稱\n" + "4. 輸入患者名稱");
-            messages.add(go);
-            checkGO = true;
-        }else {
-            Map<String, String> textMessage1 = new HashMap<>();
-            textMessage1.put("type", "text");
-            textMessage1.put("text", messageText);
-            messages.add(textMessage1);
-        }
-
-
-        requestBody.put("messages",messages);
-
-        //先建立http請求再發送
-        // 建立 HTTP 請求物件，包含 JSON Body 和 Headers
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-
-        // 發送 POST 請求到 LINE Messaging API 來回覆用戶
-        restTemplate.postForObject(REPLY_URL, entity, String.class);
-    }
+    // 記錄 userId → 狀態，例如："waiting_hospital_name"
+    private final Map<String, String> userStateMap = new HashMap<>();
 
     //取得用戶回覆的訊息
     @Override
     public String processWebhook(String requestBody) {
         System.out.println("🔹 收到 LINE Webhook: " + requestBody);
-
         try {
             // 解析 JSON
             JSONObject jsonObject = JSON.parseObject(requestBody);
@@ -153,7 +66,8 @@ public class LineServiceImpl implements LineService {
                             // 取得文字訊息
                             String messageText = message.getString("text");
                             // 發送回應訊息
-//                            responseTOuser(replyToken, messageText);
+                            String response = keyword(userId,messageText);
+                            responseTOuser(replyToken, response);
                         } else {
                             System.out.println("不合法傳入, 請傳 image 及 text");
                         }
@@ -168,6 +82,116 @@ public class LineServiceImpl implements LineService {
         }
         return "OK";
     }
+
+
+    //自動回複訊息
+    @Override
+    public void responseTOuser(String replyToken, String response) {
+        //傳送回覆訊息API
+        String REPLY_URL = "https://api.line.me/v2/bot/message/reply";
+        //透過RestTemplate請求自動轉為massage(像是JDBCTemplat可以轉成sql的功能一樣)
+        RestTemplate restTemplate = new RestTemplate();
+
+
+        //設定header
+        HttpHeaders headers = new HttpHeaders();
+        //設定ContentType為JSON格式
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        //LINE用Bearer Token 進行身份驗證
+        headers.setBearerAuth(Channel_Access_Token);
+        //json格式為String,Object
+        Map<String, Object> requestBody = new HashMap<>();
+        //擷取用戶端replyToken
+        requestBody.put("replyToken",replyToken);
+
+        //建立List可以發送多組訊息
+        List<Map<String, String>> messages = new ArrayList<>();
+
+
+        Map<String, String> textMessage1 = new HashMap<>();
+        textMessage1.put("type", "text");
+        textMessage1.put("text", response);
+        messages.add(textMessage1);
+
+        //將messages裡的東西放到requestBody，才能回覆
+        requestBody.put("messages", messages); //
+        //先建立http請求再發送
+        // 建立 HTTP 請求物件，包含 JSON Body 和 Headers
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+        // 發送 POST 請求到 LINE Messaging API 來回覆用戶
+        restTemplate.postForObject(REPLY_URL, entity, String.class);
+    }
+
+
+
+    //判斷是不是為關鍵字，!!!要加入查詢有沒有此人或醫院的功能
+    public String keyword(String userId, String messageText) {
+        String replystring = "";
+
+        // 先看目前使用者的狀態
+        String currentState = userStateMap.getOrDefault(userId, "");
+
+        // === 狀態 1：輸入了「查詢資料」 ===
+        if (messageText.equals("查詢資料")) {
+            userStateMap.put(userId, "waiting_for_option");
+            return "請輸入數字選項：\n1. 醫院\n2. 醫師\n3. 病患";
+
+        }
+
+        // === 狀態 2：使用者剛輸入選項 1/2/3 ===
+        if ("waiting_for_option".equals(currentState)) {
+            switch (messageText) {
+                case "1":
+                    userStateMap.put(userId, "waiting_hospital_name");
+                    return "請輸入醫院名稱";
+                case "2":
+                    userStateMap.put(userId, "waiting_doctor_name");
+                    return "請輸入醫師名稱";
+                case "3":
+                    userStateMap.put(userId, "waiting_patient_name");
+                    return "請輸入病患名稱";
+                default:
+                    return "請輸入有效選項：1、2 或 3";
+            }
+        }
+
+        // === 狀態 3：使用者輸入了 醫院名稱 ===
+        if ("waiting_hospital_name".equals(currentState)) {
+            // 根據輸入的醫院名稱，組出連結
+            String hospitalName = messageText.trim();
+            String hospitalUrl = "https://your-domain.com/hospital/" ;//+ URLEncoder.encode(hospitalName, StandardCharsets.UTF_8)
+
+            // 清除狀態
+            userStateMap.remove(userId);
+
+            return "請點擊以下連結查看醫院資訊：\n" + hospitalUrl;
+        }
+
+        // === 狀態 4：使用者輸入了 醫師名稱 ===
+        if ("waiting_doctor_name".equals(currentState)) {
+            String doctorName = messageText.trim();
+            String doctorUrl = "https://your-domain.com/doctor/";//+ URLEncoder.encode(doctorName, StandardCharsets.UTF_8)
+
+            userStateMap.remove(userId);
+
+            return "請點擊以下連結查看醫師資訊：\n" + doctorUrl;
+        }
+
+        // === 狀態 5：使用者輸入了 病患名稱 ===
+        if ("waiting_patient_name".equals(currentState)) {
+            String patientName = messageText.trim();
+            String patientUrl = "https://your-domain.com/patient/" ;//+ URLEncoder.encode(patientName, StandardCharsets.UTF_8)
+
+            userStateMap.remove(userId);
+
+            return "請點擊以下連結查看病患資訊：\n" + patientUrl;
+        }
+
+        // === 預設 ===
+        return replystring;
+    }
+
 
     //取得群組成員ID
     @Override

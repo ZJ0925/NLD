@@ -1,5 +1,7 @@
 package com.zj.nld.DataTransferObject;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import org.antlr.v4.runtime.misc.NotNull;
 
@@ -17,6 +19,8 @@ public class FormRequest {
     private String patient;
 
     @NotNull
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
+    @JsonProperty("nextvisit") // 如果前端欄位是 "nextVisit"
     private Date nextvisit;
 
 

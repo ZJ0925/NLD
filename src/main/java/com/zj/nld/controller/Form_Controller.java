@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/form")
+@CrossOrigin(origins = "http://localhost:63342")/// 這裡到時候需要刪掉
 public class Form_Controller {
 
     @Autowired

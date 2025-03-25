@@ -34,17 +34,17 @@
                 <!--基本資料-->
                 <li class="basic-info"  id="id_73" data-css-selector="id_73"><label id="label_73"  aria-hidden="false"> 基本資料 </label></li>
                 <div class="ReservationGroup">
-                    <li class="Reservation"  id="id_121" data-css-selector="id_121"><label  id="label_121" for="input_121" aria-hidden="true"> </label>
+                    <li class="Reservation"  id="id_121" data-css-selector="id_121"><label  id="label_121" for="input_121" aria-hidden="true" > </label>
                         <!--醫院-->
-                        <div id="cid_121" class="form-input"> <span class="hospital" ><input type="text" id="input_121" name="q122_input121" data-type="input-textbox" class="form-textbox-info" data-defaultvalue="" data-component="textbox" aria-labelledby="label_121 sublabel_input_121" value=""><label class="form-sub-label" for="input_121" id="sublabel_input_121">醫院</label></span> </div>
+                        <div id="cid_121" class="form-input"> <span class="hospital" ><input type="text" id="input_121" name="q122_input121" data-type="input-textbox" class="form-textbox-info" data-defaultvalue="" data-component="textbox" aria-labelledby="label_121 sublabel_input_121" value="" required ><label class="form-sub-label" for="input_121" id="sublabel_input_121">醫院</label></span> </div>
                     </li>
                     <li class="Reservation"  id="id_122" data-css-selector="id_122"><label  id="label_122" for="input_122" aria-hidden="true"> </label>
                         <!--醫生-->
-                        <div id="cid_122" class="form-input"> <span class="form-sub-label-container" ><input type="text" id="input_122" name="doctor" data-type="input-textbox" class="form-textbox-info" data-defaultvalue=""  data-component="textbox" aria-labelledby="label_122 sublabel_input_122" value=""><label class="form-sub-label" for="input_122" id="sublabel_input_122">醫師</label></span> </div>
+                        <div id="cid_122" class="form-input"> <span class="form-sub-label-container" ><input type="text" id="input_122" name="doctor" data-type="input-textbox" class="form-textbox-info" data-defaultvalue=""  data-component="textbox" aria-labelledby="label_122 sublabel_input_122" value="" required ><label class="form-sub-label" for="input_122" id="sublabel_input_122">醫師</label></span> </div>
                     </li>
                     <li class="Reservation"  id="id_123" data-css-selector="id_123"><label id="label_123" for="input_123" aria-hidden="true"> </label>
                         <!--病患-->
-                        <div id="cid_123" class="form-input"> <span class="form-sub-label-container"><input type="text" id="input_123" name="patient" data-type="input-textbox" class="form-textbox-info" data-defaultvalue="" data-component="textbox" aria-labelledby="label_123 sublabel_input_123" value=""><label class="form-sub-label" for="input_123" id="sublabel_input_123">患者</label></span> </div>
+                        <div id="cid_123" class="form-input"> <span class="form-sub-label-container"><input type="text" id="input_123" name="patient" data-type="input-textbox" class="form-textbox-info" data-defaultvalue="" data-component="textbox" aria-labelledby="label_123 sublabel_input_123" value="" required><label class="form-sub-label" for="input_123" id="sublabel_input_123">患者</label></span> </div>
                     </li>
                 </div>
 
@@ -52,7 +52,7 @@
                 <li class="DATE" data-type="control_widget" id="id_61">
                     <label class="dtae-text" for="input_61"> 下次約診日 </label>
                     <div id="cid_61" class="form-input">
-                        <input type="date" id="input_61" name="nextvisit" class="date-form-textbox">
+                        <input type="date" id="input_61" name="nextvisit" class="date-form-textbox" required>
                     </div>
                     <div id="cid_77" class="date-table">
                         <div class="divider" data-component="divider"></div>
@@ -508,7 +508,7 @@
         <script src="NLD.js"></script>
         <script src="NLD2.js"></script>
         <script src="NLD3.js"></script>
-        <script src="NLDpost.js"></script>
+        <script src="NLD_formSubmit.js"></script>
     </form>
 </body>
 </html>
