@@ -96,7 +96,7 @@ public class LineServiceImpl implements LineService {
 
         // 🟡 尚未開始填寫流程時
         if ("idle".equals(state)) {
-            if ("查詢表單".equals(text.trim())) {
+            if ("表單查詢".equals(text.trim())) {
                 userState.put(userId, "waiting_hospital");
                 return "請輸入醫院名稱：";
             } else {

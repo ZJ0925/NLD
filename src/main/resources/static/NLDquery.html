@@ -11,6 +11,9 @@
 </head>
 <body>
     <form class="jotform-form" action="/form/query" method="UPDATE" id="fromInfo">
+        <p>表單編號：<span id="formId"></span></p>
+        <p>表單最後更新時間：<span id="lastmodifiedDate"></span></p>
+
         <div role="main" class="form-all">
             <!--form-section=表單區塊   page-sectio=葉面段落 role="presentation表示不會將它解釋為一個清單 (列表) -->
             <ul class="form-section page-section">
@@ -52,7 +55,7 @@
                 <li class="DATE" data-type="control_widget" id="id_61">
                     <label class="dtae-text" for="input_61"> 下次約診日 </label>
                     <div id="cid_61" class="form-input">
-                        <input type="date" id="input_61" name="nextvisit" class="date-form-textbox" required>
+                        <input type="date" id="input_61" readonly name="nextvisit" class="date-form-textbox" required>
                     </div>
                     <div id="cid_77" class="date-table">
                         <div class="divider" data-component="divider"></div>

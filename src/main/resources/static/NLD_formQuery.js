@@ -18,6 +18,11 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('input_122').value = data.doctor;
             document.getElementById('input_123').value = data.patient;
             document.getElementById('input_61').value = data.nextvisit;
+
+            // 將 formId 顯示出來
+            document.getElementById('formId').innerText = data.formId;
+            //將建立時間顯示出來
+            document.getElementById('lastmodifiedDate').innerText = data.lastmodifiedDate;
         })
         .catch(err => {
             alert("查詢錯誤：" + err.message);

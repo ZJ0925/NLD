@@ -1,5 +1,6 @@
 package com.zj.nld.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -28,10 +29,13 @@ public class Form {
 
     @Column(name = "created_date")
     @CreationTimestamp//自動建立時間(建立表單當下)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Taipei")
     private Date createdDate;
+
 
     @Column(name = "last_modified_date")
     @CreationTimestamp//自動建立時間(建立表單當下)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Taipei")
     private Date lastmodifiedDate;
 
     public Integer getFormId() {
