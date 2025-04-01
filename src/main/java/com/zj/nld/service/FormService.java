@@ -9,5 +9,6 @@ public interface FormService {
     Form getFormById(Integer formId);
     Integer submitForm(FormRequest formRequest);
     void updateForm(Integer formId,FormRequest formRequest);
+    Form findForm(String hospital, String doctor, String patient);
 
 }

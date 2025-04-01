@@ -23,6 +23,12 @@ public class FormServiceImpl implements FormService {
         return formRepository.findByFormId(formId);
     }
 
+
+    @Override
+    public Form findForm(String hospital, String doctor, String patient) {
+        return formRepository.findByHospitalAndDoctorAndPatient(hospital, doctor, patient);
+    }
+
     // 保存新的表單
     public Integer submitForm(FormRequest formRequest) {
         //建立新的form物件

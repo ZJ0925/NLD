@@ -10,15 +10,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/form")
 @CrossOrigin(origins = "http://localhost:63342")/// 這裡到時候需要刪掉
 public class Form_Controller {
+    //網頁控制提交、更新、(刪除)功能
+
+
 
     @Autowired
     private FormService formService;
 
 
+    //透過formId找form
     @GetMapping("/{formId}")
     public ResponseEntity<Form> getFormById(@PathVariable Integer formId) {
         Form form = formService.getFormById(formId);
@@ -29,6 +36,21 @@ public class Form_Controller {
         }
 
     }
+
+    //透過醫院、醫師、病患找form
+    @GetMapping("/getform")
+    public ResponseEntity<Form> getForm(@RequestParam String hospital,
+                                            @RequestParam String doctor,
+                                            @RequestParam String patient) {
+        Form form = formService.findForm(hospital, doctor, patient);
+        if(form == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }else{
+            return ResponseEntity.status(HttpStatus.OK).body(form);
+        }
+    }
+
+
     // 接收表單數據並保存到資料庫
     @PostMapping("/submit")
     public ResponseEntity<Form> submitForm(@RequestBody @Validated FormRequest formRequest) {
@@ -47,4 +69,6 @@ public class Form_Controller {
         Form updatedForm = formService.getFormById(formId);
         return ResponseEntity.status(HttpStatus.OK).body(updatedForm);
     }
+
+
 }

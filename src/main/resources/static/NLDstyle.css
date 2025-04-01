@@ -6,7 +6,7 @@ body{
 /*頁面*/
 .jotform-form {
     background:white;
-    width: 1000px;
+    width: 900px;
     margin: auto;
     position: relative;
     border: 2px solid #a1d3d8; /* 顯示外框 */
@@ -175,7 +175,7 @@ ul{
     justify-content:center;
     text-align: center;
     margin: 5% 5% 10% 5%;
-    gap: 15%;
+    gap: 5%;
     font-size: 25px;
 }
 /*齒類下拉選單*/

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import org.antlr.v4.runtime.misc.NotNull;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 public class FormRequest {
@@ -21,7 +22,7 @@ public class FormRequest {
     @NotNull
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
     @JsonProperty("nextvisit") // 如果前端欄位是 "nextVisit"
-    private Date nextvisit;
+    private LocalDate nextvisit;
 
 
     private Date createDate;
@@ -53,11 +54,11 @@ public class FormRequest {
         this.patient = patient;
     }
 
-    public Date getNextvisit() {
+    public LocalDate  getNextvisit() {
         return nextvisit;
     }
 
-    public void setNextvisit(Date nextvisit) {
+    public void setNextvisit(LocalDate  nextvisit) {
         this.nextvisit = nextvisit;
     }
 

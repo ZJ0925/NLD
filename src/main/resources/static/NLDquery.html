@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>牙科指示單(新生)</title>
+    <title>牙科查詢指示單(新生)</title>
     <!--css樣式表為stylesheet，路徑為NLDstyle.css -->
     <link rel="stylesheet" href="NLDstyle.css">
 
 </head>
 <body>
-    <form class="jotform-form" action="/form/submit" method="POST" id="fromInfo">
+    <form class="jotform-form" action="/form/query" method="UPDATE" id="fromInfo">
         <div role="main" class="form-all">
             <!--form-section=表單區塊   page-sectio=葉面段落 role="presentation表示不會將它解釋為一個清單 (列表) -->
             <ul class="form-section page-section">
@@ -36,15 +36,15 @@
                 <div class="ReservationGroup">
                     <li class="Reservation"  id="id_121" data-css-selector="id_121"><label  id="label_121" for="input_121" aria-hidden="true" > </label>
                         <!--醫院-->
-                        <div id="cid_121" class="form-input"> <span class="hospital" ><input type="text" id="input_121" name="hospital" data-type="input-textbox" class="form-textbox-info" data-defaultvalue="" data-component="textbox" aria-labelledby="label_121 sublabel_input_121" value="" required ><label class="form-sub-label" for="input_121" id="sublabel_input_121">醫院</label></span> </div>
+                        <div id="cid_121" class="form-input"> <span class="hospital" ><input type="text" id="input_121" readonly name="hospital" data-type="input-textbox" class="form-textbox-info" data-defaultvalue="" data-component="textbox" aria-labelledby="label_121 sublabel_input_121" value="" required ><label class="form-sub-label" for="input_121" id="sublabel_input_121">醫院</label></span> </div>
                     </li>
                     <li class="Reservation"  id="id_122" data-css-selector="id_122"><label  id="label_122" for="input_122" aria-hidden="true"> </label>
                         <!--醫生-->
-                        <div id="cid_122" class="form-input"> <span class="form-sub-label-container" ><input type="text" id="input_122" name="doctor" data-type="input-textbox" class="form-textbox-info" data-defaultvalue=""  data-component="textbox" aria-labelledby="label_122 sublabel_input_122" value="" required ><label class="form-sub-label" for="input_122" id="sublabel_input_122">醫師</label></span> </div>
+                        <div id="cid_122" class="form-input"> <span class="form-sub-label-container" ><input type="text" id="input_122" readonly name="doctor" data-type="input-textbox" class="form-textbox-info" data-defaultvalue=""  data-component="textbox" aria-labelledby="label_122 sublabel_input_122" value="" required ><label class="form-sub-label" for="input_122" id="sublabel_input_122">醫師</label></span> </div>
                     </li>
                     <li class="Reservation"  id="id_123" data-css-selector="id_123"><label id="label_123" for="input_123" aria-hidden="true"> </label>
                         <!--病患-->
-                        <div id="cid_123" class="form-input"> <span class="form-sub-label-container"><input type="text" id="input_123" name="patient" data-type="input-textbox" class="form-textbox-info" data-defaultvalue="" data-component="textbox" aria-labelledby="label_123 sublabel_input_123" value="" required><label class="form-sub-label" for="input_123" id="sublabel_input_123">患者</label></span> </div>
+                        <div id="cid_123" class="form-input"> <span class="form-sub-label-container"><input type="text" id="input_123" readonly name="patient" data-type="input-textbox" class="form-textbox-info" data-defaultvalue="" data-component="textbox" aria-labelledby="label_123 sublabel_input_123" value="" required><label class="form-sub-label" for="input_123" id="sublabel_input_123">患者</label></span> </div>
                     </li>
                 </div>
 
@@ -493,14 +493,7 @@
 
 
 
-                <!--送出-->
-                <li class="form-line" data-type="control_button" id="id_2" data-css-selector="id_2">
-                    <div id="cid_2" class="form-input-wide">
-                        <div data-align="center" class="form-buttons-wrapper form-buttons-center jsTest-button-wrapperField">
-                            <button id="input_2" type="submit" class="form-submit-button submit-button custom-submit-button" data-component="button" data-content="" aria-live="polite">送出</button>
-                        </div>
-                    </div>
-                </li>
+
                 <li style="clear:both"></li>
                 <li style="display:none">Should be Empty: <input type="text" name="website" value=""></li>
             </ul>
@@ -508,7 +501,8 @@
         <script src="NLD_toothcategory.js"></script>
         <script src="NLD_toothcolor.js"></script>
         <script src="NLD_fileinput.js"></script>
-        <script src="NLD_formSubmit.js"></script>
+        <script src="NLD_formQuery.js"></script>
+
     </form>
 </body>
 </html>

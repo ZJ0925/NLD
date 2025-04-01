@@ -3,6 +3,7 @@ package com.zj.nld.model;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
@@ -23,7 +24,7 @@ public class Form {
     private String patient;
 
     @Column(name = "next_visit_date")
-    private Date nextvisit;
+    private LocalDate nextvisit;
 
     @Column(name = "created_date")
     @CreationTimestamp//自動建立時間(建立表單當下)
@@ -65,11 +66,11 @@ public class Form {
         this.patient = patient;
     }
 
-    public Date getNextvisit() {
+    public LocalDate  getNextvisit() {
         return nextvisit;
     }
 
-    public void setNextvisit(Date nextvisit) {
+    public void setNextvisit(LocalDate  nextvisit) {
         this.nextvisit = nextvisit;
     }
 

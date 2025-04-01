@@ -12,4 +12,5 @@ public interface FormRepository extends JpaRepository<Form, Integer> {
 
     Form findByFormId(Integer formId);
     Integer save(FormRequest formRequest);
+    Form findByHospitalAndDoctorAndPatient(String hospital, String doctor, String patient);
 }
