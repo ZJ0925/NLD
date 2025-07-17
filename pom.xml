@@ -39,6 +39,14 @@
             <version>1.2.83</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/com.microsoft.sqlserver/mssql-jdbc -->
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <version>12.10.0.jre11</version>
+            <scope>compile</scope>
+        </dependency>
+
         <!--local date-->
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
