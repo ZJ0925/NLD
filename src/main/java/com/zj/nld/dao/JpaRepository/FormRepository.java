@@ -1,6 +1,6 @@
 package com.zj.nld.dao.JpaRepository;
 
-import com.zj.nld.DataTransferObject.FormRequest;
+import com.zj.nld.dto.FormRequest;
 import com.zj.nld.model.Form;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;

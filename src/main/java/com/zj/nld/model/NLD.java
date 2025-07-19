@@ -1,9 +1,6 @@
 package com.zj.nld.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.util.Date;
 import java.util.UUID;
@@ -13,245 +10,245 @@ import java.util.UUID;
 public class NLD {
 
     @Id
-    private UUID ExternalID;
+    @Column(name = "ExternalID")
+    private UUID externalID;
 
     @Column(name = "NO1_DH")
-    private String WorkOrderNum; // 1.技工單號
+    private String workOrderNum; // 1.技工單號
 
     @Column(name = "CUN1_DH")
-    private String ClinicName; // 2.診所名稱
+    private String clinicName; // 2.診所名稱
 
     @Column(name = "DOC1_DH")
-    private String DocName; // 3.醫師名稱
+    private String docName; // 3.醫師名稱
 
     @Column(name = "SNAM_DH")
-    private String PatientName; // 4.患者名稱
+    private String patientName; // 4.患者名稱
 
     @Column(name = "DAT_1_DH")
-    private Date ReceivedDate;  // 5.收件日
+    private Date receivedDate;  // 5.收件日
 
     @Column(name = "DAT_4_DH")
-    private Date DeliveryDate; // 6.完成交件日
+    private Date deliveryDate; // 6.完成交件日
 
     @Column(name = "SALE_DH")
-    private String SalesIdNum; // 7.業務身分證字號
+    private String salesIdNum; // 7.業務身分證字號
 
     @Column(name = "TEENO_D")
-    private String ToothPosition; //
+    private String toothPosition; // 8.齒位
 
     @Column(name = "MITEM_D")
-    private String ProdItem; // 9-1.製作項目
+    private String prodItem; // 9-1.製作項目
 
     @Column(name = "PRO_D")
-    private String ProdName; // 9-2. 產品名稱日
+    private String prodName; // 9-2. 產品名稱日
 
     @Column(name = "DAT_5_DH")
-    private Date TryInDate; // 10.試戴交件
+    private Date tryInDate; // 10.試戴交件
 
     @Column(name = "DAT_3_DH")
-    private Date EstFinishDate; // 11.預計完成日
+    private Date estFinishDate; // 11.預計完成日
 
     @Column(name = "PREC_D")
-    private String WorkOrderStatus; // 13.派工別;
+    private String workOrderStatus; // 13.派工別;
 
     @Column(name = "DAT_2_DH")
-    private Date EstTryInDate; // 14.預計試戴日
+    private Date estTryInDate; // 14.預計試戴日
 
     @Column(name = "UNA_D")
-    private Integer Price; // 15.單價
+    private Integer price; // 15.單價
 
     @Column(name = "UN3E_DH")
-    private boolean IsRemake; // 16.重製
+    private boolean isRemake; // 16.重製
 
     @Column(name = "CRM_DH")
-    private Boolean IsNoCharge; // 17.不計價
+    private Boolean isNoCharge; // 17.不計價
 
     @Column(name = "UN3_DH")
-    private Boolean IsPaused; // 18.暫停
+    private Boolean isPaused; // 18.暫停
 
     @Column(name = "UN2_DH")
-    private Boolean IsVoided; // 19.作廢
+    private Boolean isVoided; // 19.作廢
 
     @Column(name = "DAT_22_DH")
-    private Date TryInReceivedDate; // 20.試戴收件日
+    private Date tryInReceivedDate; // 20.試戴收件日
 
     @Column(name = "RR__DH")
-    private String Remarks; // 21.備註
-
+    private String remarks; // 21.備註
 
     public UUID getExternalID() {
-        return ExternalID;
+        return externalID;
     }
 
     public void setExternalID(UUID externalID) {
-        ExternalID = externalID;
+        this.externalID = externalID;
     }
 
     public String getWorkOrderNum() {
-        return WorkOrderNum;
+        return workOrderNum;
     }
 
     public void setWorkOrderNum(String workOrderNum) {
-        WorkOrderNum = workOrderNum;
+        this.workOrderNum = workOrderNum;
     }
 
     public String getClinicName() {
-        return ClinicName;
+        return clinicName;
     }
 
     public void setClinicName(String clinicName) {
-        ClinicName = clinicName;
+        this.clinicName = clinicName;
     }
 
     public String getDocName() {
-        return DocName;
+        return docName;
     }
 
     public void setDocName(String docName) {
-        DocName = docName;
+        this.docName = docName;
     }
 
     public String getPatientName() {
-        return PatientName;
+        return patientName;
     }
 
     public void setPatientName(String patientName) {
-        PatientName = patientName;
+        this.patientName = patientName;
     }
 
     public Date getReceivedDate() {
-        return ReceivedDate;
+        return receivedDate;
     }
 
     public void setReceivedDate(Date receivedDate) {
-        ReceivedDate = receivedDate;
+        this.receivedDate = receivedDate;
     }
 
     public Date getDeliveryDate() {
-        return DeliveryDate;
+        return deliveryDate;
     }
 
     public void setDeliveryDate(Date deliveryDate) {
-        DeliveryDate = deliveryDate;
+        this.deliveryDate = deliveryDate;
     }
 
     public String getSalesIdNum() {
-        return SalesIdNum;
+        return salesIdNum;
     }
 
     public void setSalesIdNum(String salesIdNum) {
-        SalesIdNum = salesIdNum;
+        this.salesIdNum = salesIdNum;
     }
 
     public String getToothPosition() {
-        return ToothPosition;
+        return toothPosition;
     }
 
     public void setToothPosition(String toothPosition) {
-        ToothPosition = toothPosition;
+        this.toothPosition = toothPosition;
     }
 
     public String getProdItem() {
-        return ProdItem;
+        return prodItem;
     }
 
     public void setProdItem(String prodItem) {
-        ProdItem = prodItem;
+        this.prodItem = prodItem;
     }
 
     public String getProdName() {
-        return ProdName;
+        return prodName;
     }
 
     public void setProdName(String prodName) {
-        ProdName = prodName;
+        this.prodName = prodName;
     }
 
     public Date getTryInDate() {
-        return TryInDate;
+        return tryInDate;
     }
 
     public void setTryInDate(Date tryInDate) {
-        TryInDate = tryInDate;
+        this.tryInDate = tryInDate;
     }
 
     public Date getEstFinishDate() {
-        return EstFinishDate;
+        return estFinishDate;
     }
 
     public void setEstFinishDate(Date estFinishDate) {
-        EstFinishDate = estFinishDate;
+        this.estFinishDate = estFinishDate;
     }
 
     public String getWorkOrderStatus() {
-        return WorkOrderStatus;
+        return workOrderStatus;
     }
 
     public void setWorkOrderStatus(String workOrderStatus) {
-        WorkOrderStatus = workOrderStatus;
+        this.workOrderStatus = workOrderStatus;
     }
 
     public Date getEstTryInDate() {
-        return EstTryInDate;
+        return estTryInDate;
     }
 
     public void setEstTryInDate(Date estTryInDate) {
-        EstTryInDate = estTryInDate;
+        this.estTryInDate = estTryInDate;
     }
 
     public Integer getPrice() {
-        return Price;
+        return price;
     }
 
     public void setPrice(Integer price) {
-        Price = price;
+        this.price = price;
     }
 
     public boolean isRemake() {
-        return IsRemake;
+        return isRemake;
     }
 
     public void setRemake(boolean remake) {
-        IsRemake = remake;
+        isRemake = remake;
     }
 
     public Boolean getNoCharge() {
-        return IsNoCharge;
+        return isNoCharge;
     }
 
     public void setNoCharge(Boolean noCharge) {
-        IsNoCharge = noCharge;
+        isNoCharge = noCharge;
     }
 
     public Boolean getPaused() {
-        return IsPaused;
+        return isPaused;
     }
 
     public void setPaused(Boolean paused) {
-        IsPaused = paused;
+        isPaused = paused;
     }
 
     public Boolean getVoided() {
-        return IsVoided;
+        return isVoided;
     }
 
     public void setVoided(Boolean voided) {
-        IsVoided = voided;
+        isVoided = voided;
     }
 
     public Date getTryInReceivedDate() {
-        return TryInReceivedDate;
+        return tryInReceivedDate;
     }
 
     public void setTryInReceivedDate(Date tryInReceivedDate) {
-        TryInReceivedDate = tryInReceivedDate;
+        this.tryInReceivedDate = tryInReceivedDate;
     }
 
     public String getRemarks() {
-        return Remarks;
+        return remarks;
     }
 
     public void setRemarks(String remarks) {
-        Remarks = remarks;
+        this.remarks = remarks;
     }
 }

@@ -1,6 +1,6 @@
 package com.zj.nld.service.impl;
 
-import com.zj.nld.DataTransferObject.FormRequest;
+import com.zj.nld.dto.FormRequest;
 import com.zj.nld.dao.JpaRepository.FormRepository;
 import com.zj.nld.model.Form;
 import com.zj.nld.service.FormService;

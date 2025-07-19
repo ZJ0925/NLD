@@ -1,8 +1,7 @@
-package com.zj.nld.DataTransferObject;
+package com.zj.nld.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Column;
 import org.antlr.v4.runtime.misc.NotNull;
 
 import java.time.LocalDate;

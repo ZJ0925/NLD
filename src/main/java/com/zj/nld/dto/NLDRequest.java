@@ -1,238 +1,238 @@
-package com.zj.nld.DataTransferObject;
+package com.zj.nld.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
+import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.Date;
 import java.util.UUID;
 
 public class NLDRequest {
 
-    private UUID ExternalID; //全域唯一值
+    @NotNull
+    private UUID externalID; //全域唯一值
 
-    private String WorkOrderNum; // 1.技工單號
+    private String workOrderNum; // 1.技工單號
 
-    private String ClinicName; // 2.診所名稱
+    private String clinicName; // 2.診所名稱
 
-    private String DocName; // 3.醫師名稱
+    private String docName; // 3.醫師名稱
 
-    private String PatientName; // 4.患者名稱
-
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date ReceivedDate;  // 5.收件日
+    private String patientName; // 4.患者名稱
 
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date DeliveryDate; // 6.完成交件日
-
-    private String SalesIdNum; // 7.業務身分證字號
-
-    private String ToothPosition; //
-
-    private String ProdItem; // 9-1.製作項目
-
-    private String ProdName; // 9-2. 產品名稱日
+    private Date receivedDate;  // 5.收件日
 
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date TryInDate; // 10.試戴交件
+    private Date deliveryDate; // 6.完成交件日
+
+    private String salesIdNum; // 7.業務身分證字號
+
+    private String toothPosition; //
+
+    private String prodItem; // 9-1.製作項目
+
+    private String prodName; // 9-2. 產品名稱日
 
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date EstFinishDate; // 11.預計完成日
-
-    private String WorkOrderStatus; // 13.派工別;
+    private Date tryInDate; // 10.試戴交件
 
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date EstTryInDate; // 14.預計試戴日
+    private Date estFinishDate; // 11.預計完成日
 
-    private Integer Price; // 15.單價
-
-    private Boolean IsRemake; // 16.重製
-
-    private Boolean IsNoCharge; // 17.不計價
-
-    private Boolean IsPaused; // 18.暫停
-
-    private Boolean IsVoided; // 19.作廢
+    private String workOrderStatus; // 13.派工別;
 
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date TryInReceivedDate; // 20.試戴收件日
+    private Date estTryInDate; // 14.預計試戴日
 
-    private String Remarks; // 21.備註
+    private Integer price; // 15.單價
+
+    private Boolean isRemake; // 16.重製
+
+    private Boolean isNoCharge; // 17.不計價
+
+    private Boolean isPaused; // 18.暫停
+
+    private Boolean isVoided; // 19.作廢
+
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
+    private Date tryInReceivedDate; // 20.試戴收件日
+
+    private String remarks; // 21.備註
 
 
     public UUID getExternalID() {
-        return ExternalID;
+        return externalID;
     }
 
     public void setExternalID(UUID externalID) {
-        ExternalID = externalID;
+        this.externalID = externalID;
     }
 
     public String getWorkOrderNum() {
-        return WorkOrderNum;
+        return workOrderNum;
     }
 
     public void setWorkOrderNum(String workOrderNum) {
-        WorkOrderNum = workOrderNum;
+        this.workOrderNum = workOrderNum;
     }
 
     public String getClinicName() {
-        return ClinicName;
+        return clinicName;
     }
 
     public void setClinicName(String clinicName) {
-        ClinicName = clinicName;
+        this.clinicName = clinicName;
     }
 
     public String getDocName() {
-        return DocName;
+        return docName;
     }
 
     public void setDocName(String docName) {
-        DocName = docName;
+        this.docName = docName;
     }
 
     public String getPatientName() {
-        return PatientName;
+        return patientName;
     }
 
     public void setPatientName(String patientName) {
-        PatientName = patientName;
+        this.patientName = patientName;
     }
 
     public Date getReceivedDate() {
-        return ReceivedDate;
+        return receivedDate;
     }
 
     public void setReceivedDate(Date receivedDate) {
-        ReceivedDate = receivedDate;
+        this.receivedDate = receivedDate;
     }
 
     public Date getDeliveryDate() {
-        return DeliveryDate;
+        return deliveryDate;
     }
 
     public void setDeliveryDate(Date deliveryDate) {
-        DeliveryDate = deliveryDate;
+        this.deliveryDate = deliveryDate;
     }
 
     public String getSalesIdNum() {
-        return SalesIdNum;
+        return salesIdNum;
     }
 
     public void setSalesIdNum(String salesIdNum) {
-        SalesIdNum = salesIdNum;
+        this.salesIdNum = salesIdNum;
     }
 
     public String getToothPosition() {
-        return ToothPosition;
+        return toothPosition;
     }
 
     public void setToothPosition(String toothPosition) {
-        ToothPosition = toothPosition;
+        this.toothPosition = toothPosition;
     }
 
     public String getProdItem() {
-        return ProdItem;
+        return prodItem;
     }
 
     public void setProdItem(String prodItem) {
-        ProdItem = prodItem;
+        this.prodItem = prodItem;
     }
 
     public String getProdName() {
-        return ProdName;
+        return prodName;
     }
 
     public void setProdName(String prodName) {
-        ProdName = prodName;
+        this.prodName = prodName;
     }
 
     public Date getTryInDate() {
-        return TryInDate;
+        return tryInDate;
     }
 
     public void setTryInDate(Date tryInDate) {
-        TryInDate = tryInDate;
+        this.tryInDate = tryInDate;
     }
 
     public Date getEstFinishDate() {
-        return EstFinishDate;
+        return estFinishDate;
     }
 
     public void setEstFinishDate(Date estFinishDate) {
-        EstFinishDate = estFinishDate;
+        this.estFinishDate = estFinishDate;
     }
 
     public String getWorkOrderStatus() {
-        return WorkOrderStatus;
+        return workOrderStatus;
     }
 
     public void setWorkOrderStatus(String workOrderStatus) {
-        WorkOrderStatus = workOrderStatus;
+        this.workOrderStatus = workOrderStatus;
     }
 
     public Date getEstTryInDate() {
-        return EstTryInDate;
+        return estTryInDate;
     }
 
     public void setEstTryInDate(Date estTryInDate) {
-        EstTryInDate = estTryInDate;
+        this.estTryInDate = estTryInDate;
     }
 
     public Integer getPrice() {
-        return Price;
+        return price;
     }
 
     public void setPrice(Integer price) {
-        Price = price;
+        this.price = price;
     }
 
-    public boolean isRemake() {
-        return IsRemake;
+    public Boolean getRemake() {
+        return isRemake;
     }
 
-    public void setRemake(boolean remake) {
-        IsRemake = remake;
+    public void setRemake(Boolean remake) {
+        isRemake = remake;
     }
 
     public Boolean getNoCharge() {
-        return IsNoCharge;
+        return isNoCharge;
     }
 
     public void setNoCharge(Boolean noCharge) {
-        IsNoCharge = noCharge;
+        isNoCharge = noCharge;
     }
 
     public Boolean getPaused() {
-        return IsPaused;
+        return isPaused;
     }
 
     public void setPaused(Boolean paused) {
-        IsPaused = paused;
+        isPaused = paused;
     }
 
     public Boolean getVoided() {
-        return IsVoided;
+        return isVoided;
     }
 
     public void setVoided(Boolean voided) {
-        IsVoided = voided;
+        isVoided = voided;
     }
 
     public Date getTryInReceivedDate() {
-        return TryInReceivedDate;
+        return tryInReceivedDate;
     }
 
     public void setTryInReceivedDate(Date tryInReceivedDate) {
-        TryInReceivedDate = tryInReceivedDate;
+        this.tryInReceivedDate = tryInReceivedDate;
     }
 
     public String getRemarks() {
-        return Remarks;
+        return remarks;
     }
 
     public void setRemarks(String remarks) {
-        Remarks = remarks;
+        this.remarks = remarks;
     }
 }

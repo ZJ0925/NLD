@@ -1,17 +1,13 @@
 package com.zj.nld.controller;
 
-import com.zj.nld.DataTransferObject.FormRequest;
+import com.zj.nld.dto.FormRequest;
 import com.zj.nld.model.Form;
 import com.zj.nld.service.FormService;
-import jakarta.persistence.criteria.From;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/form")
