@@ -50,7 +50,7 @@ public class NLD {
     private Date estFinishDate; // 11.預計完成日
 
     @Column(name = "PREC_D")
-    private String workOrderStatus; // 13.派工別;
+    private String workOrderStatus; // 13.工單現況;
 
     @Column(name = "DAT_2_DH")
     private Date estTryInDate; // 14.預計試戴日
@@ -62,13 +62,13 @@ public class NLD {
     private boolean isRemake; // 16.重製
 
     @Column(name = "CRM_DH")
-    private Boolean isNoCharge; // 17.不計價
+    private boolean isNoCharge; // 17.不計價
 
     @Column(name = "UN3_DH")
-    private Boolean isPaused; // 18.暫停
+    private boolean isPaused; // 18.暫停
 
     @Column(name = "UN2_DH")
-    private Boolean isVoided; // 19.作廢
+    private boolean isVoided; // 19.作廢
 
     @Column(name = "DAT_22_DH")
     private Date tryInReceivedDate; // 20.試戴收件日
@@ -212,27 +212,27 @@ public class NLD {
         isRemake = remake;
     }
 
-    public Boolean getNoCharge() {
+    public boolean getNoCharge() {
         return isNoCharge;
     }
 
-    public void setNoCharge(Boolean noCharge) {
+    public void setNoCharge(boolean noCharge) {
         isNoCharge = noCharge;
     }
 
-    public Boolean getPaused() {
+    public boolean getPaused() {
         return isPaused;
     }
 
-    public void setPaused(Boolean paused) {
+    public void setPaused(boolean paused) {
         isPaused = paused;
     }
 
-    public Boolean getVoided() {
+    public boolean getVoided() {
         return isVoided;
     }
 
-    public void setVoided(Boolean voided) {
+    public void setVoided(boolean voided) {
         isVoided = voided;
     }
 

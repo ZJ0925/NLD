@@ -6,10 +6,7 @@ import org.antlr.v4.runtime.misc.NotNull;
 import java.util.Date;
 import java.util.UUID;
 
-public class NLDRequest {
-
-    @NotNull
-    private UUID externalID; //全域唯一值
+public class NldSalesRequest {
 
     private String workOrderNum; // 1.技工單號
 
@@ -25,9 +22,7 @@ public class NLDRequest {
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
     private Date deliveryDate; // 6.完成交件日
 
-    private String salesIdNum; // 7.業務身分證字號
-
-    private String toothPosition; //
+    private String toothPosition; //8.齒位
 
     private String prodItem; // 9-1.製作項目
 
@@ -60,13 +55,52 @@ public class NLDRequest {
     private String remarks; // 21.備註
 
 
-    public UUID getExternalID() {
-        return externalID;
+    //建立constructor讓JPA函式可以讀取
+    public NldSalesRequest(
+            String workOrderNum,
+            String clinicName,
+            String docName,
+            String patientName,
+            Date receivedDate,
+            Date deliveryDate,
+            String toothPosition,
+            String prodItem,
+            String prodName,
+            Date tryInDate,
+            Date estFinishDate,
+            String workOrderStatus,
+            Date estTryInDate,
+            Integer price,
+            boolean isRemake,
+            boolean isNoCharge,
+            boolean isPaused,
+            boolean isVoided,
+            Date tryInReceivedDate,
+            String remarks
+    ) {
+        this.workOrderNum = workOrderNum;
+        this.clinicName = clinicName;
+        this.docName = docName;
+        this.patientName = patientName;
+        this.receivedDate = receivedDate;
+        this.deliveryDate = deliveryDate;
+        this.toothPosition = toothPosition;
+        this.prodItem = prodItem;
+        this.prodName = prodName;
+        this.tryInDate = tryInDate;
+        this.estFinishDate = estFinishDate;
+        this.workOrderStatus = workOrderStatus;
+        this.estTryInDate = estTryInDate;
+        this.price = price;
+        this.isRemake = isRemake;
+        this.isNoCharge = isNoCharge;
+        this.isPaused = isPaused;
+        this.isVoided = isVoided;
+        this.tryInReceivedDate = tryInReceivedDate;
+        this.remarks = remarks;
     }
 
-    public void setExternalID(UUID externalID) {
-        this.externalID = externalID;
-    }
+
 
     public String getWorkOrderNum() {
         return workOrderNum;
@@ -116,13 +150,6 @@ public class NLDRequest {
         this.deliveryDate = deliveryDate;
     }
 
-    public String getSalesIdNum() {
-        return salesIdNum;
-    }
-
-    public void setSalesIdNum(String salesIdNum) {
-        this.salesIdNum = salesIdNum;
-    }
 
     public String getToothPosition() {
         return toothPosition;
@@ -236,3 +263,5 @@ public class NLDRequest {
         this.remarks = remarks;
     }
 }
+
+

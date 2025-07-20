@@ -6,10 +6,7 @@ import org.antlr.v4.runtime.misc.NotNull;
 import java.util.Date;
 import java.util.UUID;
 
-public class NLDRequest {
-
-    @NotNull
-    private UUID externalID; //全域唯一值
+public class NLDProdUntiRequest {
 
     private String workOrderNum; // 1.技工單號
 
@@ -27,9 +24,7 @@ public class NLDRequest {
 
     private String salesIdNum; // 7.業務身分證字號
 
-    private String toothPosition; //
-
-    private String prodItem; // 9-1.製作項目
+    private String toothPosition; // 8.齒位
 
     private String prodName; // 9-2. 產品名稱日
 
@@ -39,12 +34,13 @@ public class NLDRequest {
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
     private Date estFinishDate; // 11.預計完成日
 
+    //目前無12派工別--------------------------------------------------------------------------------
+
     private String workOrderStatus; // 13.工單現況;
 
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
     private Date estTryInDate; // 14.預計試戴日
 
-    private Integer price; // 15.單價
 
     private boolean isRemake; // 16.重製
 
@@ -57,15 +53,45 @@ public class NLDRequest {
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
     private Date tryInReceivedDate; // 20.試戴收件日
 
-    private String remarks; // 21.備註
-
-
-    public UUID getExternalID() {
-        return externalID;
-    }
-
-    public void setExternalID(UUID externalID) {
-        this.externalID = externalID;
+    //目前無12派工別--------------------------------------------------------------------------------
+    public NLDProdUntiRequest(
+            String workOrderNum,
+            String clinicName,
+            String docName,
+            String patientName,
+            Date receivedDate,
+            Date deliveryDate,
+            String salesIdNum,
+            String toothPosition,
+            String prodName,
+            Date tryInDate,
+            Date estFinishDate,
+            String workOrderStatus,
+            Date estTryInDate,
+            boolean isRemake,
+            boolean isNoCharge,
+            boolean isPaused,
+            boolean isVoided,
+            Date tryInReceivedDate
+    ) {
+        this.workOrderNum = workOrderNum;
+        this.clinicName = clinicName;
+        this.docName = docName;
+        this.patientName = patientName;
+        this.receivedDate = receivedDate;
+        this.deliveryDate = deliveryDate;
+        this.salesIdNum = salesIdNum;
+        this.toothPosition = toothPosition;
+        this.prodName = prodName;
+        this.tryInDate = tryInDate;
+        this.estFinishDate = estFinishDate;
+        this.workOrderStatus = workOrderStatus;
+        this.estTryInDate = estTryInDate;
+        this.isRemake = isRemake;
+        this.isNoCharge = isNoCharge;
+        this.isPaused = isPaused;
+        this.isVoided = isVoided;
+        this.tryInReceivedDate = tryInReceivedDate;
     }
 
     public String getWorkOrderNum() {
@@ -132,14 +158,6 @@ public class NLDRequest {
         this.toothPosition = toothPosition;
     }
 
-    public String getProdItem() {
-        return prodItem;
-    }
-
-    public void setProdItem(String prodItem) {
-        this.prodItem = prodItem;
-    }
-
     public String getProdName() {
         return prodName;
     }
@@ -178,14 +196,6 @@ public class NLDRequest {
 
     public void setEstTryInDate(Date estTryInDate) {
         this.estTryInDate = estTryInDate;
-    }
-
-    public Integer getPrice() {
-        return price;
-    }
-
-    public void setPrice(Integer price) {
-        this.price = price;
     }
 
     public boolean getRemake() {
@@ -228,11 +238,4 @@ public class NLDRequest {
         this.tryInReceivedDate = tryInReceivedDate;
     }
 
-    public String getRemarks() {
-        return remarks;
-    }
-
-    public void setRemarks(String remarks) {
-        this.remarks = remarks;
-    }
 }
