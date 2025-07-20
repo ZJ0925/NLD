@@ -1,5 +1,8 @@
 package com.zj.nld.controller;
 
+import com.zj.nld.dto.NLDProdUntiRequest;
+import com.zj.nld.dto.NldClientRequest;
+import com.zj.nld.dto.NldSalesRequest;
 import com.zj.nld.model.NLD;
 import com.zj.nld.service.FormService;
 import com.zj.nld.service.NLDService;
@@ -34,6 +37,46 @@ public class NLD_Controller {
     @GetMapping("/getAll")
     public ResponseEntity <List<NLD>> getAllNLD(){
         List<NLD> nldList = nldService.getAllNLD();
+        if(!nldList.isEmpty()){
+            return ResponseEntity.ok(nldList);
+        }else{
+            return ResponseEntity.status(404).body(null);
+        }
+    }
+
+    @GetMapping("/getClientSearch")
+    public ResponseEntity<List<NldClientRequest>> getNLDByClient(){
+        List<NldClientRequest> nldList = nldService.getNLDByClient();
+        if(!nldList.isEmpty()){
+            return ResponseEntity.ok(nldList);
+        }else{
+            return ResponseEntity.status(404).body(null);
+        }
+    }
+
+    @GetMapping("/getSalesSearch")
+    public ResponseEntity<List<NldSalesRequest>> getNLDBySales(){
+        List<NldSalesRequest> nldList = nldService.getNLDBySales();
+        if(!nldList.isEmpty()){
+            return ResponseEntity.ok(nldList);
+        }else{
+            return ResponseEntity.status(404).body(null);
+        }
+    }
+
+    @GetMapping("/getProdUntiSearch")
+    public ResponseEntity<List<NLDProdUntiRequest>> getNLDByProdUnti(){
+        List<NLDProdUntiRequest> nldList = nldService.getNLDByProdUnti();
+        if(!nldList.isEmpty()){
+            return ResponseEntity.ok(nldList);
+        }else{
+            return ResponseEntity.status(404).body(null);
+        }
+    }
+
+    @GetMapping("/getRole/{role}")
+    public ResponseEntity<List<?>> getNLDByRole(@PathVariable String role){
+        List<?> nldList = nldService.getNLDByRole(role);
         if(!nldList.isEmpty()){
             return ResponseEntity.ok(nldList);
         }else{

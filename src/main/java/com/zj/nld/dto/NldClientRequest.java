@@ -32,23 +32,9 @@ public class NldClientRequest {
 
     private boolean isVoided; // 19.作廢
 
+    private String remarks; // 21.備註
 
-
-    //建立constructor讓JPA函式可以讀取
-    public NldClientRequest(
-            String workOrderNum,
-            String docName,
-            String patientName,
-            Date deliveryDate,
-            String toothPosition,
-            String prodName,
-            Date tryInDate,
-            String workOrderStatus,
-            boolean isRemake,
-            boolean isNoCharge,
-            boolean isPaused,
-            boolean isVoided
-    ) {
+    public NldClientRequest(String workOrderNum, String docName, String patientName, Date deliveryDate, String toothPosition, String prodName, Date tryInDate, String workOrderStatus, boolean isRemake, boolean isNoCharge, boolean isPaused, boolean isVoided, String remarks) {
         this.workOrderNum = workOrderNum;
         this.docName = docName;
         this.patientName = patientName;
@@ -61,9 +47,8 @@ public class NldClientRequest {
         this.isNoCharge = isNoCharge;
         this.isPaused = isPaused;
         this.isVoided = isVoided;
+        this.remarks = remarks;
     }
-
-
 
     public String getWorkOrderNum() {
         return workOrderNum;
@@ -72,8 +57,6 @@ public class NldClientRequest {
     public void setWorkOrderNum(String workOrderNum) {
         this.workOrderNum = workOrderNum;
     }
-
-
 
     public String getDocName() {
         return docName;
@@ -91,7 +74,6 @@ public class NldClientRequest {
         this.patientName = patientName;
     }
 
-
     public Date getDeliveryDate() {
         return deliveryDate;
     }
@@ -100,7 +82,6 @@ public class NldClientRequest {
         this.deliveryDate = deliveryDate;
     }
 
-
     public String getToothPosition() {
         return toothPosition;
     }
@@ -108,7 +89,6 @@ public class NldClientRequest {
     public void setToothPosition(String toothPosition) {
         this.toothPosition = toothPosition;
     }
-
 
     public String getProdName() {
         return prodName;
@@ -134,7 +114,7 @@ public class NldClientRequest {
         this.workOrderStatus = workOrderStatus;
     }
 
-    public boolean getRemake() {
+    public boolean isRemake() {
         return isRemake;
     }
 
@@ -142,7 +122,7 @@ public class NldClientRequest {
         isRemake = remake;
     }
 
-    public boolean getNoCharge() {
+    public boolean isNoCharge() {
         return isNoCharge;
     }
 
@@ -150,7 +130,7 @@ public class NldClientRequest {
         isNoCharge = noCharge;
     }
 
-    public boolean getPaused() {
+    public boolean isPaused() {
         return isPaused;
     }
 
@@ -158,12 +138,20 @@ public class NldClientRequest {
         isPaused = paused;
     }
 
-    public boolean getVoided() {
+    public boolean isVoided() {
         return isVoided;
     }
 
     public void setVoided(boolean voided) {
         isVoided = voided;
+    }
+
+    public String getRemarks() {
+        return remarks;
+    }
+
+    public void setRemarks(String remarks) {
+        this.remarks = remarks;
     }
 }
 

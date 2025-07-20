@@ -53,27 +53,12 @@ public class NLDProdUntiRequest {
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
     private Date tryInReceivedDate; // 20.試戴收件日
 
+    private String remarks; // 21.備註
+
     //目前無12派工別--------------------------------------------------------------------------------
-    public NLDProdUntiRequest(
-            String workOrderNum,
-            String clinicName,
-            String docName,
-            String patientName,
-            Date receivedDate,
-            Date deliveryDate,
-            String salesIdNum,
-            String toothPosition,
-            String prodName,
-            Date tryInDate,
-            Date estFinishDate,
-            String workOrderStatus,
-            Date estTryInDate,
-            boolean isRemake,
-            boolean isNoCharge,
-            boolean isPaused,
-            boolean isVoided,
-            Date tryInReceivedDate
-    ) {
+
+
+    public NLDProdUntiRequest(String workOrderNum, String clinicName, String docName, String patientName, Date receivedDate, Date deliveryDate, String salesIdNum, String toothPosition, String prodName, Date tryInDate, Date estFinishDate, String workOrderStatus, Date estTryInDate, boolean isRemake, boolean isNoCharge, boolean isPaused, boolean isVoided, Date tryInReceivedDate, String remarks) {
         this.workOrderNum = workOrderNum;
         this.clinicName = clinicName;
         this.docName = docName;
@@ -92,6 +77,7 @@ public class NLDProdUntiRequest {
         this.isPaused = isPaused;
         this.isVoided = isVoided;
         this.tryInReceivedDate = tryInReceivedDate;
+        this.remarks = remarks;
     }
 
     public String getWorkOrderNum() {
@@ -198,7 +184,7 @@ public class NLDProdUntiRequest {
         this.estTryInDate = estTryInDate;
     }
 
-    public boolean getRemake() {
+    public boolean isRemake() {
         return isRemake;
     }
 
@@ -206,7 +192,7 @@ public class NLDProdUntiRequest {
         isRemake = remake;
     }
 
-    public boolean getNoCharge() {
+    public boolean isNoCharge() {
         return isNoCharge;
     }
 
@@ -214,7 +200,7 @@ public class NLDProdUntiRequest {
         isNoCharge = noCharge;
     }
 
-    public boolean getPaused() {
+    public boolean isPaused() {
         return isPaused;
     }
 
@@ -222,7 +208,7 @@ public class NLDProdUntiRequest {
         isPaused = paused;
     }
 
-    public boolean getVoided() {
+    public boolean isVoided() {
         return isVoided;
     }
 
@@ -238,4 +224,11 @@ public class NLDProdUntiRequest {
         this.tryInReceivedDate = tryInReceivedDate;
     }
 
+    public String getRemarks() {
+        return remarks;
+    }
+
+    public void setRemarks(String remarks) {
+        this.remarks = remarks;
+    }
 }

@@ -1,6 +1,9 @@
 package com.zj.nld.service.impl;
 
 import com.zj.nld.dao.JpaRepository.NLDRepository;
+import com.zj.nld.dto.NLDProdUntiRequest;
+import com.zj.nld.dto.NldClientRequest;
+import com.zj.nld.dto.NldSalesRequest;
 import com.zj.nld.model.NLD;
 import com.zj.nld.service.NLDService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,5 +29,37 @@ public class NLDServiceImpl implements NLDService {
     @Override
     public List<NLD> getAllNLD() {
         return nldRepository.findAll();
+    }
+
+    //客戶可取得的資料
+    @Override
+    public List<NldClientRequest> getNLDByClient() {
+        return nldRepository.ClientSearch();
+    }
+    //業務可取得的資料
+    @Override
+    public List<NldSalesRequest> getNLDBySales() {
+        return nldRepository.SalesSearch();
+    }
+
+    //生產單位可取得的資料
+    @Override
+    public List<NLDProdUntiRequest> getNLDByProdUnti() {
+        return nldRepository.ProdUntiSearch();
+    }
+
+    //根據權限回傳可取得的資料
+    @Override
+    public List<?> getNLDByRole(String role) {
+        switch (role) {
+            case "Client":
+                return nldRepository.ClientSearch();
+            case "Sales":
+                return nldRepository.SalesSearch();
+            case "ProdUnti":
+                return nldRepository.ProdUntiSearch();
+            default:
+                return null;
+        }
     }
 }
