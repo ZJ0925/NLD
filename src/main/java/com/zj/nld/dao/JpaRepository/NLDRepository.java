@@ -46,6 +46,7 @@ public interface NLDRepository extends JpaRepository<NLD, UUID> {
             "n.isPaused, n.isVoided, n.tryInReceivedDate, n.remarks) FROM NLD n")
     List<NLDProdUntiRequest> ProdUntiSearch();
 
+    @org.springframework.lang.NonNull
     List<NLD> findAll();
 
 }

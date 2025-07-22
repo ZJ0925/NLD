@@ -1,10 +1,7 @@
 package com.zj.nld.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import org.antlr.v4.runtime.misc.NotNull;
-
 import java.util.Date;
-import java.util.UUID;
 
 public class NLDProdUntiRequest {
 
