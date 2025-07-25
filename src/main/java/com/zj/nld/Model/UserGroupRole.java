@@ -5,13 +5,15 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "UserGroupRole")
 public class UserGroupRole {
 
     @Id
     @Column(name = "ExternalID")
-    private String externalID; // 全域唯一值
+    private UUID externalID; // 全域唯一值
 
     @Column(name = "LineID")
     private String lineID; // LINE ID
@@ -25,11 +27,11 @@ public class UserGroupRole {
     @Column(name = "RoleID")
     private int roleID;
 
-    public String getExternalID() {
+    public UUID getExternalID() {
         return externalID;
     }
 
-    public void setExternalID(String externalID) {
+    public void setExternalID(UUID externalID) {
         this.externalID = externalID;
     }
 

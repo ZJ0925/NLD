@@ -20,6 +20,7 @@ public interface NLDRepository extends JpaRepository<NLD, UUID> {
     NLD findByExternalID(UUID externalID);
 
 
+    //回傳業務可查看的資料
     @Query("SELECT new com.zj.nld.DTO.NldSalesRequest(" +
             "n.workOrderNum, n.clinicName, n.docName, " +
             "n.patientName, n.receivedDate, n.deliveryDate, " +
@@ -30,6 +31,7 @@ public interface NLDRepository extends JpaRepository<NLD, UUID> {
             "FROM NLD n")
     List<NldSalesRequest> SalesSearch();
 
+    //回傳客戶可查看的資料
     @Query("SELECT new com.zj.nld.DTO.NldClientRequest(" +
             "n.workOrderNum, n.docName, n.patientName, " +
             "n.deliveryDate, n.toothPosition, n.prodName, " +
@@ -37,6 +39,7 @@ public interface NLDRepository extends JpaRepository<NLD, UUID> {
             "n.isNoCharge, n.isPaused, n.isVoided, n.remarks) FROM NLD n")
     List<NldClientRequest> ClientSearch();
 
+    //回傳生產單位可查看的資料
     @Query("SELECT new com.zj.nld.DTO.NLDProdUntiRequest(" +
             "n.workOrderNum, n.clinicName, n.docName, " +
             "n.patientName, n.receivedDate, n.deliveryDate, " +

@@ -8,21 +8,17 @@ import jakarta.persistence.*;
 public class doctor {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "Id")
-    private Integer doctorId;
+    @Column(name = "NUM")
+    private String doctorId;
 
-    @Column(name = "name")
+    @Column(name = "NAM_4")
     private String  doctorName;
 
-    @Column(name = "hospital_id")
-    private String hospitalId;
-
-    public Integer getDoctorId() {
+    public String getDoctorId() {
         return doctorId;
     }
 
-    public void setDoctorId(Integer doctorId) {
+    public void setDoctorId(String doctorId) {
         this.doctorId = doctorId;
     }
 
@@ -32,13 +28,5 @@ public class doctor {
 
     public void setDoctorName(String doctorName) {
         this.doctorName = doctorName;
-    }
-
-    public String getHospitalId() {
-        return hospitalId;
-    }
-
-    public void setHospitalId(String hospitalId) {
-        this.hospitalId = hospitalId;
     }
 }

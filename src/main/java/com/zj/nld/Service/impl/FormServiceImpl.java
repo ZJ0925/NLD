@@ -12,7 +12,6 @@ import java.util.Date;
 
 
 @Service
-@Component
 public class FormServiceImpl implements FormService {
 
     @Autowired

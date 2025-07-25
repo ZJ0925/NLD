@@ -3,11 +3,12 @@ package com.zj.nld.Service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.zj.nld.Repository.JpaRepository.FormRepository;
 import com.zj.nld.Model.Form;
+import com.zj.nld.Model.UserGroupRole;
+import com.zj.nld.Service.FormService;
 import com.zj.nld.Service.JwtService;
 import com.zj.nld.Service.LineService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.zj.nld.Service.PermissionService;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -19,23 +20,26 @@ import java.util.*;
 @Service
 public class LineServiceImpl implements LineService {
 
-    // form的資料庫交互
-    private final FormRepository formRepository;
 
+    private final FormService formService;
+
+    // JWT服務
     private final JwtService jwtService;
 
+    //權限服務
+    private final PermissionService permissionService;
 
-    public LineServiceImpl(FormRepository formRepository, JwtService jwtService) {
-        this.formRepository = formRepository;
+
+
+    public LineServiceImpl(FormService formService, JwtService jwtService, PermissionService permissionService) {
+        this.formService = formService;
         this.jwtService = jwtService;
+        this.permissionService = permissionService;
     }
 
     // LINE 的存取權杖（請換成你自己的）
     private final String TOKEN = "PWSjC+f6Id6azivlM+Gcff99o/i8MrOhfkz94RG037SesKvUqZL2qk+C3bHicUtZiSv1+r54w2KfnC9pfMjR1MnvuGOeAezNrzT040PZhVX/XYGMffMYY8M1Och+4dL7lCIvRYj/13rZ1T0NnRCcagdB04t89/1O/w1cDnyilFU=";
-    // 儲存每個使用者的輸入資料
-    private final Map<String, Map<String, String>> userInput = new HashMap<>();
-    // 儲存每個使用者目前的輸入狀態
-    private final Map<String, String> userState = new HashMap<>();
+
 
     @Override
     public String processWebhook(String requestBody) {
@@ -75,7 +79,7 @@ public class LineServiceImpl implements LineService {
 
                         } else if ("text".equals(msgOrPic)) {
                             String messageText = event.getJSONObject("message").getString("text");
-                            String response = handleUserInput(userId, messageText);
+                            String response = handleUserInput(userId, groupId, messageText);
                             sendReply(replyToken, response);
                         } else {
                             System.out.println("不合法傳入, 請傳 image 及 text");
@@ -92,61 +96,17 @@ public class LineServiceImpl implements LineService {
         return "OK";
     }
 
-    private String handleUserInput(String userId, String text) {
-        userInput.putIfAbsent(userId, new HashMap<>());
-        String state = userState.getOrDefault(userId, "idle");
+    private String handleUserInput(String userId, String groupId, String text) {
+        if (text.equals("表單查詢"))
+        {
+            int roleID = permissionService.getRoleId(userId, groupId).getRoleID();
 
-
-        // 新增「取消查詢」邏輯
-        if ("取消查詢".equals(text.trim())) {
-            userInput.remove(userId);
-            userState.remove(userId);
-            return "已取消查詢流程，如需重新開始，請輸入「查詢表單」。";
-        }
-
-        // 🟡 尚未開始填寫流程時
-        if ("idle".equals(state)) {
-            if ("表單查詢".equals(text.trim())) {
-                userState.put(userId, "waiting_hospital");
-                return "請輸入醫院名稱：";
-            } else {
-                return null;
-            }
-        }
-
-        // 🔁 三步驟流程
-        switch (state) {
-            case "waiting_hospital":
-                userInput.get(userId).put("hospital", text.trim());
-                userState.put(userId, "waiting_doctor");
-                return "請輸入醫師姓名：";
-
-            case "waiting_doctor":
-                userInput.get(userId).put("doctor", text.trim());
-                userState.put(userId, "waiting_patient");
-                return "請輸入病患姓名：";
-
-            case "waiting_patient":
-                userInput.get(userId).put("patient", text.trim());
-                userState.remove(userId);
-                Map<String, String> data = userInput.remove(userId);
-
-                String url = String.format(
-                        "http://localhost:8080/NLDquery.html?hospital=%s&doctor=%s&patient=%s",
-                        encode(data.get("hospital")),
-                        encode(data.get("doctor")),
-                        encode(data.get("patient"))
-                );
-                Form form = formRepository.findByHospitalAndDoctorAndPatient(data.get("hospital"), data.get("doctor"), data.get("patient"));
-                if(form == null){
-                    return "查無此表單";
-                }else{
-                    return "請點擊以下連結查詢表單：\n" + url;
-            }
-            default:
-                return null;
+            return Integer.toString(roleID);
+        }else{
+            return null;
         }
     }
+
 
     private String encode(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8);

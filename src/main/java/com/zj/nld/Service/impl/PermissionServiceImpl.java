@@ -3,7 +3,9 @@ package com.zj.nld.Service.impl;
 import com.zj.nld.Model.UserGroupRole;
 import com.zj.nld.Repository.JpaRepository.UserGroupRoleRepository;
 import com.zj.nld.Service.PermissionService;
+import org.springframework.stereotype.Service;
 
+@Service
 public class PermissionServiceImpl implements PermissionService {
 
     private final UserGroupRoleRepository userGroupRoleRepository;
@@ -12,8 +14,10 @@ public class PermissionServiceImpl implements PermissionService {
         this.userGroupRoleRepository = userGroupRoleRepository;
     }
 
-    public Integer getRoleId(String lineId, String groupId) {
-        UserGroupRole userGroupRole = userGroupRoleRepository.findByLineIDAndGroupID(lineId, groupId);
-        return userGroupRole.getRoleID();
+    // 根據lineID與groupID取得對應的權限ID
+    public UserGroupRole getRoleId(String lineId, String groupId) {
+        return  userGroupRoleRepository.findByLineIDAndGroupID(lineId, groupId);
     }
+
+
 }

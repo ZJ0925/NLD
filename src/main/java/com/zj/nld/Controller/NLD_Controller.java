@@ -1,11 +1,11 @@
-package com.zj.nld.controller;
+package com.zj.nld.Controller;
 
-import com.zj.nld.dto.NLDProdUntiRequest;
-import com.zj.nld.dto.NldClientRequest;
-import com.zj.nld.dto.NldSalesRequest;
-import com.zj.nld.model.NLD;
-import com.zj.nld.service.FormService;
-import com.zj.nld.service.NLDService;
+import com.zj.nld.DTO.NLDProdUntiRequest;
+import com.zj.nld.DTO.NldClientRequest;
+import com.zj.nld.DTO.NldSalesRequest;
+import com.zj.nld.Model.NLD;
+import com.zj.nld.Service.FormService;
+import com.zj.nld.Service.NLDService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
