@@ -8,6 +8,8 @@ public class NldClientRequest {
 
     private String workOrderNum; // 1.技工單號
 
+    private String clinicName; // 2.診所名稱
+
     private String docName; // 3.醫師名稱
 
     private String patientName; // 4.患者名稱
@@ -34,8 +36,9 @@ public class NldClientRequest {
 
     private String remarks; // 21.備註
 
-    public NldClientRequest(String workOrderNum, String docName, String patientName, Date deliveryDate, String toothPosition, String prodName, Date tryInDate, String workOrderStatus, boolean isRemake, boolean isNoCharge, boolean isPaused, boolean isVoided, String remarks) {
+    public NldClientRequest(String workOrderNum, String clinicName, String docName, String patientName, Date deliveryDate, String toothPosition, String prodName, Date tryInDate, String workOrderStatus, boolean isRemake, boolean isNoCharge, boolean isPaused, boolean isVoided, String remarks) {
         this.workOrderNum = workOrderNum;
+        this.clinicName = clinicName;
         this.docName = docName;
         this.patientName = patientName;
         this.deliveryDate = deliveryDate;
@@ -56,6 +59,14 @@ public class NldClientRequest {
 
     public void setWorkOrderNum(String workOrderNum) {
         this.workOrderNum = workOrderNum;
+    }
+
+    public String getClinicName() {
+        return clinicName;
+    }
+
+    public void setClinicName(String clinicName) {
+        this.clinicName = clinicName;
     }
 
     public String getDocName() {

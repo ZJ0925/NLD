@@ -51,6 +51,7 @@ public class JwtServiceImpl implements JwtService {
                 .compact(); // 14.最後產出 JWT 字串
     }
 
+
     // 15.解析出 Claims（Payload 內容）
     public Claims parseToken(String token) {
         return Jwts.parserBuilder()

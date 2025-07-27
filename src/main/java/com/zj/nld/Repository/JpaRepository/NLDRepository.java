@@ -30,13 +30,21 @@ public interface NLDRepository extends JpaRepository<NLD, UUID> {
             "FROM NLD n")
     List<NldSalesRequest> SalesSearch();
 
-    //回傳客戶可查看的資料
+    //回傳客戶可查看的資料(診所)
     @Query("SELECT new com.zj.nld.DTO.NldClientRequest(" +
-            "n.workOrderNum, n.docName, n.patientName, " +
+            "n.workOrderNum, n.clinicName, n.docName, n.patientName, " +
             "n.deliveryDate, n.toothPosition, n.prodName, " +
             "n.tryInDate, n.workOrderStatus, n.isRemake, " +
-            "n.isNoCharge, n.isPaused, n.isVoided, n.remarks) FROM NLD n")
-    List<NldClientRequest> ClientSearch();
+            "n.isNoCharge, n.isPaused, n.isVoided, n.remarks) FROM NLD n WHERE n.clinicName = :clientName")
+    List<NldClientRequest> ClientSearch(String clientName);
+
+    //回傳客戶可查看的資料(診所)
+    @Query("SELECT new com.zj.nld.DTO.NldClientRequest(" +
+            "n.workOrderNum, n.clinicName, n.docName, n.patientName, " +
+            "n.deliveryDate, n.toothPosition, n.prodName, " +
+            "n.tryInDate, n.workOrderStatus, n.isRemake, " +
+            "n.isNoCharge, n.isPaused, n.isVoided, n.remarks) FROM NLD n WHERE n.clinicName = :clientName AND n.docName = :docName")
+    List<NldClientRequest> ClientForDocSearch(String clientName, String docName);
 
     //回傳生產單位可查看的資料
     @Query("SELECT new com.zj.nld.DTO.NLDProdUntiRequest(" +

@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -45,8 +44,8 @@ public class NLDServiceImpl implements NLDService {
 
     //客戶可取得的資料
     @Override
-    public List<NldClientRequest> getNLDByClient() {
-        return nldRepository.ClientSearch();
+    public List<NldClientRequest> getNLDByClient(String client) {
+        return nldRepository.ClientSearch(client);
     }
     //業務可取得的資料
     @Override
@@ -68,6 +67,7 @@ public class NLDServiceImpl implements NLDService {
         String lineId = claims.get("lineId", String.class);
         //從token讀取groupId
         String groupId = claims.get("groupId", String.class);
+
         //從token讀取roleId
         int roleId = claims.get("roleId", Integer.class);
 
@@ -77,26 +77,32 @@ public class NLDServiceImpl implements NLDService {
         // 找到該user所在的group可使用的權限
         UserGroupRole userGroupRole = permissionService.getRoleId(lineId, groupId);
 
-        if((groupRole.getRoleID() == userGroupRole.getRoleID() &&
-                (userGroupRole.getRoleID() == roleId) &&
-                (groupRole.getRoleID() == roleId)))
+
+
+        if (((groupId == null) && (userGroupRole.getRoleID() == roleId)) ||
+            ((groupRole.getRoleID() == userGroupRole.getRoleID()) &&
+            (userGroupRole.getRoleID() == roleId) &&
+            (groupRole.getRoleID() == roleId)))
         {
-            switch(roleId){
+            return switch (roleId) {
                 // 管理者
-                case 1:
-                    return nldRepository.findAll();
+                case 1 -> nldRepository.findAll();
                 // 客戶(需做診所篩選)
-                case 2:
-                    return nldRepository.ClientSearch();
+                case 2 -> {
+                    if(groupId != null)
+                    {
+                        yield nldRepository.ClientSearch(groupRole.getGroupName());
+
+                    }else {
+                        yield nldRepository.ClientForDocSearch(groupRole.getGroupName(), userGroupRole.getUserName());
+                    }
+                }
                 // 業務
-                case 3:
-                    return nldRepository.SalesSearch();
+                case 3 -> nldRepository.SalesSearch();
                 // 生產單位
-                case 4:
-                    return nldRepository.ProdUntiSearch();
-                default:
-                    return null;
-            }
+                case 4 -> nldRepository.ProdUntiSearch();
+                default -> null;
+            };
         }
         throw new RuntimeException("驗證失敗");
     }

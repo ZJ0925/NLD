@@ -11,4 +11,7 @@ public interface PermissionService {
     // 根據lineID與groupID取得對應的GroupRole
     GroupRole getGroupRoleByGroupID(String groupID);
 
+    //根據LINE ID找到權限資料
+    UserGroupRole findByLineID(String lineID);
+
 }

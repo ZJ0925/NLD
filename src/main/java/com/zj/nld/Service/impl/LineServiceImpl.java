@@ -3,9 +3,7 @@ package com.zj.nld.Service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.zj.nld.Model.Form;
 import com.zj.nld.Model.UserGroupRole;
-import com.zj.nld.Service.FormService;
 import com.zj.nld.Service.JwtService;
 import com.zj.nld.Service.LineService;
 import com.zj.nld.Service.PermissionService;
@@ -99,9 +97,21 @@ public class LineServiceImpl implements LineService {
     private String handleUserInput(String userId, String groupId, String text) {
         if (text.equals("表單查詢"))
         {
-
-            int roleID = permissionService.getRoleId(userId, groupId).getRoleID();
-            return url + (jwtService.generateToken(userId, groupId, roleID));
+            //透過userId, groupId查看在資料庫有無資料
+            UserGroupRole userGroupRole = permissionService.getRoleId(userId, groupId);
+            //透過userId查看在資料庫有無資料
+            UserGroupRole userGroupRoleByLineId = permissionService.findByLineID(userId);
+            if (userGroupRole != null){
+                //針對群組回覆回傳資料
+                return url + (jwtService.generateToken(userId, groupId, permissionService.getRoleId(userId, groupId).getRoleID()));
+            }else if(userGroupRoleByLineId != null){
+                //針對私訊機器人回傳資料
+                return url + (jwtService.generateToken(
+                        userId, permissionService.findByLineID(userId).getGroupID(), permissionService.findByLineID(userId).getRoleID()));
+            }else{
+                //沒有找到代表沒有權限查看
+                return "尚無權限";
+            }
         }else{
             return null;
         }

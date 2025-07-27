@@ -22,14 +22,31 @@ public class PermissionServiceImpl implements PermissionService {
 
     // 在UserGroupRole根據lineID與groupID取得對應的權限ID
     public UserGroupRole getRoleId(String lineId, String groupId) {
-        return  userGroupRoleRepository.findByLineIDAndGroupID(lineId, groupId);
+        UserGroupRole userGroupRole = userGroupRoleRepository.findByLineIDAndGroupID(lineId, groupId);
+        if (userGroupRole != null) {
+            return userGroupRole;
+        }else {
+            return null;
+        }
     }
 
+    // 在UserGroupRole根據lineID與groupID取得對應的權限ID
+    public UserGroupRole findByLineID(String lineId) {
+        UserGroupRole userGroupRole = userGroupRoleRepository.findByLineID(lineId);
+        if (userGroupRole != null) {
+            return userGroupRole;
+        }else {
+            return null;
+        }
+    }
+
+    // // 在GroupRole根據groupID取得對應的權限ID
     public GroupRole getGroupRoleByGroupID(String groupID) {
-        return groupRoleRepositoroy.findGroupRoleByGroupID(groupID);
+        GroupRole groupRole = groupRoleRepositoroy.findGroupRoleByGroupID(groupID);
+        if (groupRole != null) {
+            return groupRole;
+        }else{
+            return null;
+        }
     }
-
-
-
-
 }

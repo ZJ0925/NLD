@@ -17,7 +17,7 @@ public interface NLDService {
     List<NLD> getAllNLD();
 
     //取得客戶NLD
-    List<NldClientRequest> getNLDByClient();
+    List<NldClientRequest> getNLDByClient(String client);
 
     //取得業務NLD
     List<NldSalesRequest> getNLDBySales();
