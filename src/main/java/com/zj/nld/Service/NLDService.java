@@ -4,6 +4,7 @@ import com.zj.nld.DTO.NLDProdUntiRequest;
 import com.zj.nld.DTO.NldClientRequest;
 import com.zj.nld.DTO.NldSalesRequest;
 import com.zj.nld.Model.NLD;
+import io.jsonwebtoken.Claims;
 
 import java.util.List;
 import java.util.UUID;
@@ -24,5 +25,5 @@ public interface NLDService {
      //取得生產單位NLD
     List<NLDProdUntiRequest> getNLDByProdUnti();
 
-    List<?> getNLDByRole(String role);
+    List<?> getNLDByToken(String token);
 }

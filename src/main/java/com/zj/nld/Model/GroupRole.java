@@ -19,6 +19,9 @@ public class GroupRole {
     @Column(name = "Description")
     private String description; // 群組描述
 
+    @Column(name = "RoleID")
+    private Integer roleID;
+
 
     public String getGroupID() {
         return groupID;
@@ -42,5 +45,13 @@ public class GroupRole {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Integer getRoleID() {
+        return roleID;
+    }
+
+    public void setRoleID(Integer roleID) {
+        this.roleID = roleID;
     }
 }

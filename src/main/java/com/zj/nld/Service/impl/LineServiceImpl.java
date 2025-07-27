@@ -21,18 +21,17 @@ import java.util.*;
 public class LineServiceImpl implements LineService {
 
 
-    private final FormService formService;
-
     // JWT服務
     private final JwtService jwtService;
 
     //權限服務
     private final PermissionService permissionService;
 
+    // 表單網址
+    private final String url = "http://localhost:8080/NLD/token/";
 
 
-    public LineServiceImpl(FormService formService, JwtService jwtService, PermissionService permissionService) {
-        this.formService = formService;
+    public LineServiceImpl(JwtService jwtService, PermissionService permissionService) {
         this.jwtService = jwtService;
         this.permissionService = permissionService;
     }
@@ -96,12 +95,13 @@ public class LineServiceImpl implements LineService {
         return "OK";
     }
 
+    // 使用者輸入查詢表單，根據權限回傳相對網址+token
     private String handleUserInput(String userId, String groupId, String text) {
         if (text.equals("表單查詢"))
         {
-            int roleID = permissionService.getRoleId(userId, groupId).getRoleID();
 
-            return Integer.toString(roleID);
+            int roleID = permissionService.getRoleId(userId, groupId).getRoleID();
+            return url + (jwtService.generateToken(userId, groupId, roleID));
         }else{
             return null;
         }

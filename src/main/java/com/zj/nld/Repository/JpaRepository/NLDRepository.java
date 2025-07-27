@@ -19,7 +19,6 @@ public interface NLDRepository extends JpaRepository<NLD, UUID> {
     //找單筆NLD
     NLD findByExternalID(UUID externalID);
 
-
     //回傳業務可查看的資料
     @Query("SELECT new com.zj.nld.DTO.NldSalesRequest(" +
             "n.workOrderNum, n.clinicName, n.docName, " +

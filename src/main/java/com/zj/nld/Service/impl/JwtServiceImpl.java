@@ -6,6 +6,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -38,18 +39,19 @@ public class JwtServiceImpl implements JwtService {
     private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
 
     // 6.使用者觸發查詢，呼叫此方法建立 token
-    public String generateToken(String lineId, String groupId) {
+    public String generateToken(String lineId, String groupId, Integer roleId) {
         return Jwts.builder()
                 .setSubject("NLD-Access") // 7.設定 token 主題
                 .claim("lineId", lineId)  // 8.加入自定義欄位：LINE ID
                 .claim("groupId", groupId) // 9.加入自定義欄位：群組 ID
+                .claim("roleId", roleId)
                 .setIssuedAt(new Date()) // 11.設定 token 發出時間
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_MILLIS)) // 12.設定 token 過期時間
                 .signWith(key, SignatureAlgorithm.HS256) // 13.使用密鑰和演算法簽名
                 .compact(); // 14.最後產出 JWT 字串
     }
 
-    // 15.驗證 JWT，解析出 Claims（Payload 內容）
+    // 15.解析出 Claims（Payload 內容）
     public Claims parseToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key) // 設定驗證用的金鑰
@@ -58,7 +60,7 @@ public class JwtServiceImpl implements JwtService {
                 .getBody(); // 回傳 payload 的內容（Claims）
     }
 
-    //  從已驗證的 Token 中提取資訊
+    // 驗證資訊
     public boolean isTokenValid(String token) {
         try {
             parseToken(token); // 嘗試解析 token
