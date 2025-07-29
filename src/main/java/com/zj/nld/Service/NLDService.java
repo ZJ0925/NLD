@@ -1,6 +1,6 @@
 package com.zj.nld.Service;
 
-import com.zj.nld.DTO.NLDProdUntiRequest;
+import com.zj.nld.DTO.NLDProdUnitRequest;
 import com.zj.nld.DTO.NldClientRequest;
 import com.zj.nld.DTO.NldSalesRequest;
 import com.zj.nld.Model.NLD;
@@ -23,7 +23,7 @@ public interface NLDService {
     List<NldSalesRequest> getNLDBySales();
 
      //取得生產單位NLD
-    List<NLDProdUntiRequest> getNLDByProdUnti();
+    List<NLDProdUnitRequest> getNLDByProdUnit();
 
     List<?> getNLDByToken(String token);
 }

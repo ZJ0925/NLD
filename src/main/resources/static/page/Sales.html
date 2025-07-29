@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8" />
+    <title>管理員技工單查詢</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar {
+            width: 300px;
+            background-color: #eee;
+            padding: 10px;
+            box-sizing: border-box;
+            min-height: 100vh;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        .sidebar label {
+            display: block;
+            margin-top: 8px;
+            font-weight: bold;
+        }
+        .sidebar input, .sidebar select {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-sizing: border-box;
+            margin-top: 3px;
+        }
+        .date-range {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 3px;
+        }
+        .date-range input {
+            width: auto;
+            flex: 1;
+        }
+        .age-range {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 3px;
+        }
+        .age-range input {
+            width: 60px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 8px;
+        }
+        .checkbox-item input {
+            width: auto;
+        }
+        .checkbox-item label {
+            margin: 0;
+            font-weight: normal;
+        }
+        .button-section {
+            margin-top: 15px;
+            text-align: center;
+        }
+        .button-section button {
+            padding: 8px 20px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        #filterBtn {
+            background-color: #009688;
+            color: white;
+        }
+        #filterBtn:hover {
+            background-color: #00796b;
+        }
+        #resetBtn {
+            background-color: #666;
+            color: white;
+        }
+        #resetBtn:hover {
+            background-color: #555;
+        }
+        .main {
+            flex-grow: 1;
+            padding: 10px;
+        }
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid #ccc;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            min-width: 1700px;
+        }
+        thead {
+            background-color: #009688;
+            color: white;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+            white-space: nowrap;
+            min-width: 80px;
+        }
+        th {
+            text-align: center;
+        }
+        tbody {
+            background-color: white;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .status-tags {
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+<!-- 左側搜尋區 -->
+<div class="sidebar">
+    <label>技工單號：
+        <input type="text" id="jobId" />
+    </label>
+    <label>醫院：
+        <input type="text" id="hospital" />
+    </label>
+    <label>醫生：
+        <input type="text" id="doctor" />
+    </label>
+    <label>業務員：
+        <input type="text" id="sales" />
+    </label>
+    <label>患者姓名：
+        <input type="text" id="patientName" />
+    </label>
+    <label>年齡：
+        <div class="age-range">
+            <input type="number" id="ageMin" /> 到 <input type="number" id="ageMax" />
+        </div>
+    </label>
+    <label>性別：
+        <select id="gender">
+            <option value="">全部</option>
+            <option value="M">男</option>
+            <option value="F">女</option>
+        </select>
+    </label>
+    <label>收件日期：
+        <div class="date-range">
+            <input type="date" id="receiveStart" /> 至 <input type="date" id="receiveEnd" />
+        </div>
+    </label>
+    <label>預計試戴日：
+        <div class="date-range">
+            <input type="date" id="testStart" /> 至 <input type="date" id="testEnd" />
+        </div>
+    </label>
+    <label>預計完成日：
+        <div class="date-range">
+            <input type="date" id="expectedStart" /> 至 <input type="date" id="expectedEnd" />
+        </div>
+    </label>
+    <label>試戴收件日：
+        <div class="date-range">
+            <input type="date" id="productStart" /> 至 <input type="date" id="productEnd" />
+        </div>
+    </label>
+    <label>件別：
+        <select id="itemType">
+            <option value="">全部</option>
+            <option value="一般">一般</option>
+            <option value="梅脂牙">梅脂牙</option>
+            <option value="矯正">矯正</option>
+        </select>
+    </label>
+    <label>組別：
+        <select id="groupType">
+            <option value="">全部</option>
+            <option value="A">A 組</option>
+            <option value="B">B 組</option>
+            <option value="C">C 組</option>
+        </select>
+    </label>
+
+    <div class="checkbox-item">
+        <input type="checkbox" id="remake" />
+        <label for="remake">重製工單</label>
+    </div>
+    <div class="checkbox-item">
+        <input type="checkbox" id="noCharge" />
+        <label for="noCharge">不計價</label>
+    </div>
+    <div class="checkbox-item">
+        <input type="checkbox" id="modify" />
+        <label for="modify">修改單</label>
+    </div>
+    <div class="checkbox-item">
+        <input type="checkbox" id="pause" />
+        <label for="pause">暫停</label>
+    </div>
+    <div class="checkbox-item">
+        <input type="checkbox" id="cancel" />
+        <label for="cancel">作廢</label>
+    </div>
+    <div class="checkbox-item">
+        <input type="checkbox" id="listAll" />
+        <label for="listAll">全部列出</label>
+    </div>
+    <div class="checkbox-item">
+        <input type="checkbox" id="personal" />
+        <label for="personal">個人帳</label>
+    </div>
+
+    <div class="button-section">
+        <button id="filterBtn">查詢</button>
+        <button id="resetBtn">重設</button>
+    </div>
+</div>
+
+<!-- 右側表格區 -->
+<div class="main">
+    <div class="table-container">
+        <table>
+            <thead>
+            <tr>
+                <th>技工單號</th>
+                <th>醫院名稱</th>
+                <th>醫生姓名</th>
+                <th>患者姓名</th>
+                <th>收件日</th>
+                <th>完成交件</th>
+                <th>齒位</th>
+                <th>產品名稱</th>
+                <th>試戴交件</th>
+                <th>預計完成日</th>
+                <th>派工別</th>
+                <th>工單現況</th>
+                <th>預計試戴日</th>
+                <th>單價</th>
+                <th>試戴收件日</th>
+                <th>備註</th>
+            </tr>
+            </thead>
+            <tbody id="dataBody">
+            <tr><td colspan="18" class="loading">資料載入中...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="/page/script/SalesRequest.js"></script>
+</body>
+</html>

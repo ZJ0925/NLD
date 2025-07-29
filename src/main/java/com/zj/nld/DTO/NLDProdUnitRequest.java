@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import java.util.Date;
 
 
-public class NLDProdUntiRequest {
+public class NLDProdUnitRequest {
 
     private String workOrderNum; // 1.技工單號
 
@@ -20,7 +20,7 @@ public class NLDProdUntiRequest {
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
     private Date deliveryDate; // 6.完成交件日
 
-    private String salesIdNum; // 7.業務身分證字號
+    private String salesIdNum; // 7.業務名稱
 
     private String toothPosition; // 8.齒位
 
@@ -56,7 +56,7 @@ public class NLDProdUntiRequest {
     //目前無12派工別--------------------------------------------------------------------------------
 
 
-    public NLDProdUntiRequest(String workOrderNum, String clinicName, String docName, String patientName, Date receivedDate, Date deliveryDate, String salesIdNum, String toothPosition, String prodName, Date tryInDate, Date estFinishDate, String workOrderStatus, Date estTryInDate, boolean isRemake, boolean isNoCharge, boolean isPaused, boolean isVoided, Date tryInReceivedDate, String remarks) {
+    public NLDProdUnitRequest(String workOrderNum, String clinicName, String docName, String patientName, Date receivedDate, Date deliveryDate, String salesIdNum, String toothPosition, String prodName, Date tryInDate, Date estFinishDate, String workOrderStatus, Date estTryInDate, boolean isRemake, boolean isNoCharge, boolean isPaused, boolean isVoided, Date tryInReceivedDate, String remarks) {
         this.workOrderNum = workOrderNum;
         this.clinicName = clinicName;
         this.docName = docName;

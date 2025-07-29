@@ -26,7 +26,7 @@ public class LineServiceImpl implements LineService {
     private final PermissionService permissionService;
 
     // 表單網址
-    private final String url = "http://localhost:8080/NLD/token/";
+    private final String url = "http://localhost:8080/route/index.html?";
 
 
     public LineServiceImpl(JwtService jwtService, PermissionService permissionService) {

@@ -1,13 +1,8 @@
 package com.zj.nld.Controller;
 
-import com.zj.nld.DTO.NLDProdUntiRequest;
-import com.zj.nld.DTO.NldClientRequest;
-import com.zj.nld.DTO.NldSalesRequest;
 import com.zj.nld.Model.NLD;
-import com.zj.nld.Service.FormService;
 import com.zj.nld.Service.JwtService;
 import com.zj.nld.Service.NLDService;
-import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -51,8 +46,8 @@ public class NLD_Controller {
     }
 
     // 根據權限取得NLD
-    @GetMapping("token/{token}")
-    public ResponseEntity<?> getNLDByToken(@PathVariable String token){
+    @GetMapping("token/{type}/{token}")
+    public ResponseEntity<?> getNLDByToken(@PathVariable String type,@PathVariable String token){
         return ResponseEntity.ok(nldService.getNLDByToken(token));
     }
 }

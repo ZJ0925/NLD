@@ -3,7 +3,7 @@ package com.zj.nld.Service.impl;
 import com.zj.nld.Model.GroupRole;
 import com.zj.nld.Model.UserGroupRole;
 import com.zj.nld.Repository.JpaRepository.NLDRepository;
-import com.zj.nld.DTO.NLDProdUntiRequest;
+import com.zj.nld.DTO.NLDProdUnitRequest;
 import com.zj.nld.DTO.NldClientRequest;
 import com.zj.nld.DTO.NldSalesRequest;
 import com.zj.nld.Model.NLD;
@@ -55,8 +55,8 @@ public class NLDServiceImpl implements NLDService {
 
     //生產單位可取得的資料
     @Override
-    public List<NLDProdUntiRequest> getNLDByProdUnti() {
-        return nldRepository.ProdUntiSearch();
+    public List<NLDProdUnitRequest> getNLDByProdUnit() {
+        return nldRepository.ProdUnitSearch();
     }
 
     @Override
@@ -100,7 +100,7 @@ public class NLDServiceImpl implements NLDService {
                 // 業務
                 case 3 -> nldRepository.SalesSearch();
                 // 生產單位
-                case 4 -> nldRepository.ProdUntiSearch();
+                case 4 -> nldRepository.ProdUnitSearch();
                 default -> null;
             };
         }

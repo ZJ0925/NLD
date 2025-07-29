@@ -13,7 +13,7 @@ public class NLDRequest {
 
     private String workOrderNum; // 1.技工單號
 
-    private String clinicName; // 2.診所名稱
+    private String clinicName; // 2.醫院名稱
 
     private String docName; // 3.醫師名稱
 
@@ -25,9 +25,9 @@ public class NLDRequest {
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
     private Date deliveryDate; // 6.完成交件日
 
-    private String salesIdNum; // 7.業務身分證字號
+    private String salesIdNum; // 7.業務名稱
 
-    private String toothPosition; //
+    private String toothPosition; // 8.齒位
 
     private String prodItem; // 9-1.製作項目
 
@@ -57,7 +57,7 @@ public class NLDRequest {
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
     private Date tryInReceivedDate; // 20.試戴收件日
 
-    private String remarks; // 21.備註
+    private String remarks; // 21.試戴收件日
 
 
     public UUID getExternalID() {

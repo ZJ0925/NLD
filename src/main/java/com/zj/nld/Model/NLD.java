@@ -32,7 +32,7 @@ public class NLD {
     private Date deliveryDate; // 6.完成交件日
 
     @Column(name = "SALE_DH")
-    private String salesIdNum; // 7.業務身分證字號
+    private String salesIdNum; // 7.業務名稱
 
     @Column(name = "TEENO_D")
     private String toothPosition; // 8.齒位

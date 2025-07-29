@@ -1,6 +1,6 @@
 package com.zj.nld.Repository.JpaRepository;
 
-import com.zj.nld.DTO.NLDProdUntiRequest;
+import com.zj.nld.DTO.NLDProdUnitRequest;
 import com.zj.nld.DTO.NldClientRequest;
 import com.zj.nld.DTO.NldSalesRequest;
 import com.zj.nld.Model.NLD;
@@ -47,14 +47,14 @@ public interface NLDRepository extends JpaRepository<NLD, UUID> {
     List<NldClientRequest> ClientForDocSearch(String clientName, String docName);
 
     //回傳生產單位可查看的資料
-    @Query("SELECT new com.zj.nld.DTO.NLDProdUntiRequest(" +
+    @Query("SELECT new com.zj.nld.DTO.NLDProdUnitRequest(" +
             "n.workOrderNum, n.clinicName, n.docName, " +
             "n.patientName, n.receivedDate, n.deliveryDate, " +
             "n.salesIdNum, n.toothPosition, n.prodName, " +
             "n.tryInDate, n.estFinishDate, n.workOrderStatus, " +
             "n.estTryInDate, n.isRemake, n.isNoCharge, " +
             "n.isPaused, n.isVoided, n.tryInReceivedDate, n.remarks) FROM NLD n")
-    List<NLDProdUntiRequest> ProdUntiSearch();
+    List<NLDProdUnitRequest> ProdUnitSearch();
 
     @org.springframework.lang.NonNull
     List<NLD> findAll();
