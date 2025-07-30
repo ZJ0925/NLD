@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8" />
-    <title>管理員技工單查詢</title>
+    <title>業務技工單查詢</title>
     <style>
         body {
             font-family: sans-serif;
@@ -41,15 +41,6 @@
         .date-range input {
             width: auto;
             flex: 1;
-        }
-        .age-range {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-top: 3px;
-        }
-        .age-range input {
-            width: 60px;
         }
         .checkbox-item {
             display: flex;
@@ -101,7 +92,7 @@
         table {
             border-collapse: collapse;
             width: 100%;
-            min-width: 1700px;
+            min-width: 1500px;
         }
         thead {
             background-color: #009688;
@@ -137,38 +128,34 @@
     <label>技工單號：
         <input type="text" id="jobId" />
     </label>
-    <label>醫院：
+    <label>醫院名稱：
         <input type="text" id="hospital" />
     </label>
-    <label>醫生：
+    <label>醫生姓名：
         <input type="text" id="doctor" />
-    </label>
-    <label>業務員：
-        <input type="text" id="sales" />
     </label>
     <label>患者姓名：
         <input type="text" id="patientName" />
     </label>
-    <label>年齡：
-        <div class="age-range">
-            <input type="number" id="ageMin" /> 到 <input type="number" id="ageMax" />
-        </div>
-    </label>
-    <label>性別：
-        <select id="gender">
-            <option value="">全部</option>
-            <option value="M">男</option>
-            <option value="F">女</option>
-        </select>
-    </label>
-    <label>收件日期：
+    <label>收件日：
         <div class="date-range">
             <input type="date" id="receiveStart" /> 至 <input type="date" id="receiveEnd" />
         </div>
     </label>
-    <label>預計試戴日：
+    <label>完成交件：
         <div class="date-range">
-            <input type="date" id="testStart" /> 至 <input type="date" id="testEnd" />
+            <input type="date" id="deliveryStart" /> 至 <input type="date" id="deliveryEnd" />
+        </div>
+    </label>
+    <label>齒位：
+        <input type="text" id="toothPosition" />
+    </label>
+    <label>產品名稱：
+        <input type="text" id="productName" />
+    </label>
+    <label>試戴交件：
+        <div class="date-range">
+            <input type="date" id="tryInStart" /> 至 <input type="date" id="tryInEnd" />
         </div>
     </label>
     <label>預計完成日：
@@ -176,39 +163,33 @@
             <input type="date" id="expectedStart" /> 至 <input type="date" id="expectedEnd" />
         </div>
     </label>
-    <label>試戴收件日：
+    <label>派工別：
+        <input type="text" id="workOrderStatus" />
+    </label>
+    <label>工單現況：
+        <input type="text" id="currentStatus" />
+    </label>
+    <label>預計試戴日：
         <div class="date-range">
-            <input type="date" id="productStart" /> 至 <input type="date" id="productEnd" />
+            <input type="date" id="estTryInStart" /> 至 <input type="date" id="estTryInEnd" />
         </div>
     </label>
-    <label>件別：
-        <select id="itemType">
-            <option value="">全部</option>
-            <option value="一般">一般</option>
-            <option value="梅脂牙">梅脂牙</option>
-            <option value="矯正">矯正</option>
-        </select>
+    <label>試戴收件日：
+        <div class="date-range">
+            <input type="date" id="tryInReceivedStart" /> 至 <input type="date" id="tryInReceivedEnd" />
+        </div>
     </label>
-    <label>組別：
-        <select id="groupType">
-            <option value="">全部</option>
-            <option value="A">A 組</option>
-            <option value="B">B 組</option>
-            <option value="C">C 組</option>
-        </select>
+    <label>備註：
+        <input type="text" id="remarks" />
     </label>
 
     <div class="checkbox-item">
         <input type="checkbox" id="remake" />
-        <label for="remake">重製工單</label>
+        <label for="remake">重製</label>
     </div>
     <div class="checkbox-item">
         <input type="checkbox" id="noCharge" />
         <label for="noCharge">不計價</label>
-    </div>
-    <div class="checkbox-item">
-        <input type="checkbox" id="modify" />
-        <label for="modify">修改單</label>
     </div>
     <div class="checkbox-item">
         <input type="checkbox" id="pause" />
@@ -217,14 +198,6 @@
     <div class="checkbox-item">
         <input type="checkbox" id="cancel" />
         <label for="cancel">作廢</label>
-    </div>
-    <div class="checkbox-item">
-        <input type="checkbox" id="listAll" />
-        <label for="listAll">全部列出</label>
-    </div>
-    <div class="checkbox-item">
-        <input type="checkbox" id="personal" />
-        <label for="personal">個人帳</label>
     </div>
 
     <div class="button-section">
@@ -249,7 +222,6 @@
                 <th>產品名稱</th>
                 <th>試戴交件</th>
                 <th>預計完成日</th>
-                <th>派工別</th>
                 <th>工單現況</th>
                 <th>預計試戴日</th>
                 <th>單價</th>
@@ -258,7 +230,7 @@
             </tr>
             </thead>
             <tbody id="dataBody">
-            <tr><td colspan="18" class="loading">資料載入中...</td></tr>
+            <tr><td colspan="17" class="loading">資料載入中...</td></tr>
             </tbody>
         </table>
     </div>

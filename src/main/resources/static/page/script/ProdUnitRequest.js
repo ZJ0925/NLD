@@ -30,6 +30,7 @@ function renderRow(dto) {
             <td>${dto.patientName || ''}</td>
             <td>${formatDate(dto.receivedDate)}</td>
             <td>${formatDate(dto.deliveryDate)}</td>
+            <td>${dto.salesIdNum || ''}</td>
             <td>${dto.toothPosition || ''}</td>
             <td>${dto.prodName || ''}</td>
             <td>${formatDate(dto.tryInDate)}</td>
@@ -37,7 +38,6 @@ function renderRow(dto) {
             <td>${dto.workOrderStatus || ''}</td>
             <td>${dto.currentStatus || ''}</td>
             <td>${formatDate(dto.estTryInDate)}</td>
-            <td>${dto.price ? dto.price.toLocaleString() : ''}</td>
             <td>${formatDate(dto.tryInReceivedDate)}</td>
             <td>${dto.remarks || ''}</td>
             <td class="status-tags">${statusTags}</td>
@@ -49,7 +49,7 @@ function renderRow(dto) {
 function renderTable(dataList) {
     const tbody = document.getElementById("dataBody");
     if (!dataList || dataList.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="18" style="text-align:center;">查無資料</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="17" style="text-align:center;">查無資料</td></tr>`;
     } else {
         tbody.innerHTML = dataList.map(renderRow).join('');
     }
@@ -75,28 +75,29 @@ function filterData() {
         jobId: document.getElementById('jobId').value.toLowerCase(),
         hospital: document.getElementById('hospital').value.toLowerCase(),
         doctor: document.getElementById('doctor').value.toLowerCase(),
-        sales: document.getElementById('sales').value.toLowerCase(),
         patientName: document.getElementById('patientName').value.toLowerCase(),
-        ageMin: document.getElementById('ageMin').value,
-        ageMax: document.getElementById('ageMax').value,
-        gender: document.getElementById('gender').value,
         receiveStart: document.getElementById('receiveStart').value,
         receiveEnd: document.getElementById('receiveEnd').value,
-        testStart: document.getElementById('testStart').value,
-        testEnd: document.getElementById('testEnd').value,
+        deliveryStart: document.getElementById('deliveryStart').value,
+        deliveryEnd: document.getElementById('deliveryEnd').value,
+        salesPerson: document.getElementById('salesPerson').value.toLowerCase(),
+        toothPosition: document.getElementById('toothPosition').value.toLowerCase(),
+        productName: document.getElementById('productName').value.toLowerCase(),
+        tryInStart: document.getElementById('tryInStart').value,
+        tryInEnd: document.getElementById('tryInEnd').value,
         expectedStart: document.getElementById('expectedStart').value,
         expectedEnd: document.getElementById('expectedEnd').value,
-        productStart: document.getElementById('productStart').value,
-        productEnd: document.getElementById('productEnd').value,
-        itemType: document.getElementById('itemType').value,
-        groupType: document.getElementById('groupType').value,
+        workOrderStatus: document.getElementById('workOrderStatus').value.toLowerCase(),
+        currentStatus: document.getElementById('currentStatus').value.toLowerCase(),
+        estTryInStart: document.getElementById('estTryInStart').value,
+        estTryInEnd: document.getElementById('estTryInEnd').value,
+        tryInReceivedStart: document.getElementById('tryInReceivedStart').value,
+        tryInReceivedEnd: document.getElementById('tryInReceivedEnd').value,
+        remarks: document.getElementById('remarks').value.toLowerCase(),
         remake: document.getElementById('remake').checked,
         noCharge: document.getElementById('noCharge').checked,
-        modify: document.getElementById('modify').checked,
         pause: document.getElementById('pause').checked,
-        cancel: document.getElementById('cancel').checked,
-        listAll: document.getElementById('listAll').checked,
-        personal: document.getElementById('personal').checked
+        cancel: document.getElementById('cancel').checked
     };
 
     filteredData = originalData.filter(item => {
@@ -104,25 +105,21 @@ function filterData() {
         if (filters.jobId && !item.workOrderNum?.toLowerCase().includes(filters.jobId)) return false;
         if (filters.hospital && !item.clinicName?.toLowerCase().includes(filters.hospital)) return false;
         if (filters.doctor && !item.docName?.toLowerCase().includes(filters.doctor)) return false;
-        if (filters.sales && !item.salesIdNum?.toLowerCase().includes(filters.sales)) return false;
         if (filters.patientName && !item.patientName?.toLowerCase().includes(filters.patientName)) return false;
-
-        // 性別過濾
-        if (filters.gender && item.gender !== filters.gender) return false;
-
-        // 年齡過濾
-        if (filters.ageMin && item.age < parseInt(filters.ageMin)) return false;
-        if (filters.ageMax && item.age > parseInt(filters.ageMax)) return false;
+        if (filters.salesPerson && !item.salesIdNum?.toLowerCase().includes(filters.salesPerson)) return false;
+        if (filters.toothPosition && !item.toothPosition?.toLowerCase().includes(filters.toothPosition)) return false;
+        if (filters.productName && !item.prodName?.toLowerCase().includes(filters.productName)) return false;
+        if (filters.workOrderStatus && !item.workOrderStatus?.toLowerCase().includes(filters.workOrderStatus)) return false;
+        if (filters.currentStatus && !item.currentStatus?.toLowerCase().includes(filters.currentStatus)) return false;
+        if (filters.remarks && !item.remarks?.toLowerCase().includes(filters.remarks)) return false;
 
         // 日期範圍過濾
         if (!isDateInRange(item.receivedDate, filters.receiveStart, filters.receiveEnd)) return false;
-        if (!isDateInRange(item.estTryInDate, filters.testStart, filters.testEnd)) return false;
+        if (!isDateInRange(item.deliveryDate, filters.deliveryStart, filters.deliveryEnd)) return false;
+        if (!isDateInRange(item.tryInDate, filters.tryInStart, filters.tryInEnd)) return false;
         if (!isDateInRange(item.estFinishDate, filters.expectedStart, filters.expectedEnd)) return false;
-        if (!isDateInRange(item.tryInReceivedDate, filters.productStart, filters.productEnd)) return false;
-
-        // 件別和組別過濾
-        if (filters.itemType && item.itemType !== filters.itemType) return false;
-        if (filters.groupType && item.groupType !== filters.groupType) return false;
+        if (!isDateInRange(item.estTryInDate, filters.estTryInStart, filters.estTryInEnd)) return false;
+        if (!isDateInRange(item.tryInReceivedDate, filters.tryInReceivedStart, filters.tryInReceivedEnd)) return false;
 
         // 狀態過濾
         if (filters.remake && !item.isRemake) return false;
@@ -156,7 +153,7 @@ function initializeData() {
     const raw = localStorage.getItem("nldData");
     if (!raw) {
         document.getElementById("dataBody").innerHTML =
-            `<tr><td colspan="18" style="text-align:center; color: red;">找不到資料，請重新登入</td></tr>`;
+            `<tr><td colspan="17" style="text-align:center; color: red;">找不到資料，請重新登入</td></tr>`;
         return;
     }
 
@@ -169,7 +166,7 @@ function initializeData() {
     } catch (e) {
         console.error("資料格式錯誤:", e);
         document.getElementById("dataBody").innerHTML =
-            `<tr><td colspan="18" style="text-align:center; color: red;">資料格式錯誤，請重新登入</td></tr>`;
+            `<tr><td colspan="17" style="text-align:center; color: red;">資料格式錯誤，請重新登入</td></tr>`;
     }
 }
 

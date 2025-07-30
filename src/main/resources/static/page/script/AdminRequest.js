@@ -22,6 +22,9 @@ function renderRow(dto) {
         dto.isVoided && '作廢'
     ].filter(Boolean).join('、');
 
+    // 將狀態標籤加到備註中
+    const remarksWithStatus = [dto.remarks, statusTags].filter(Boolean).join(' ');
+
     return `
         <tr>
             <td>${dto.workOrderNum || ''}</td>
@@ -40,8 +43,7 @@ function renderRow(dto) {
             <td>${formatDate(dto.estTryInDate)}</td>
             <td>${dto.price ? dto.price.toLocaleString() : ''}</td>
             <td>${formatDate(dto.tryInReceivedDate)}</td>
-            <td>${dto.remarks || ''}</td>
-            <td class="status-tags">${statusTags}</td>
+            <td><span class="status-tags">${remarksWithStatus}</span></td>
         </tr>
     `;
 }
@@ -50,7 +52,7 @@ function renderRow(dto) {
 function renderTable(dataList) {
     const tbody = document.getElementById("dataBody");
     if (!dataList || dataList.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="18" style="text-align:center;">查無資料</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="17" style="text-align:center;">查無資料</td></tr>`;
     } else {
         tbody.innerHTML = dataList.map(renderRow).join('');
     }
@@ -73,57 +75,109 @@ function isDateInRange(dateStr, startDate, endDate) {
 // 過濾功能
 function filterData() {
     const filters = {
+        // 文字欄位
         jobId: document.getElementById('jobId').value.toLowerCase(),
         hospital: document.getElementById('hospital').value.toLowerCase(),
         doctor: document.getElementById('doctor').value.toLowerCase(),
-        sales: document.getElementById('sales').value.toLowerCase(),
         patientName: document.getElementById('patientName').value.toLowerCase(),
-        ageMin: document.getElementById('ageMin').value,
-        ageMax: document.getElementById('ageMax').value,
-        gender: document.getElementById('gender').value,
+        sales: document.getElementById('sales').value.toLowerCase(),
+        toothPosition: document.getElementById('toothPosition').value.toLowerCase(),
+        productName: document.getElementById('productName').value.toLowerCase(),
+        currentStatus: document.getElementById('currentStatus').value.toLowerCase(),
+        remarks: document.getElementById('remarks').value.toLowerCase(),
+
+        // 單價範圍
+        priceMin: document.getElementById('priceMin').value,
+        priceMax: document.getElementById('priceMax').value,
+
+        // 日期範圍
         receiveStart: document.getElementById('receiveStart').value,
         receiveEnd: document.getElementById('receiveEnd').value,
-        testStart: document.getElementById('testStart').value,
-        testEnd: document.getElementById('testEnd').value,
+        deliveryStart: document.getElementById('deliveryStart').value,
+        deliveryEnd: document.getElementById('deliveryEnd').value,
+        tryInStart: document.getElementById('tryInStart').value,
+        tryInEnd: document.getElementById('tryInEnd').value,
         expectedStart: document.getElementById('expectedStart').value,
         expectedEnd: document.getElementById('expectedEnd').value,
+        testStart: document.getElementById('testStart').value,
+        testEnd: document.getElementById('testEnd').value,
         productStart: document.getElementById('productStart').value,
         productEnd: document.getElementById('productEnd').value,
-        itemType: document.getElementById('itemType').value,
-        groupType: document.getElementById('groupType').value,
+
+        // 下拉選項
+        workOrderStatus: document.getElementById('workOrderStatus').value,
+
+        // 複選框
         remake: document.getElementById('remake').checked,
         noCharge: document.getElementById('noCharge').checked,
-        modify: document.getElementById('modify').checked,
         pause: document.getElementById('pause').checked,
-        cancel: document.getElementById('cancel').checked,
-        listAll: document.getElementById('listAll').checked,
-        personal: document.getElementById('personal').checked
+        cancel: document.getElementById('cancel').checked
     };
 
     filteredData = originalData.filter(item => {
-        // 文字欄位過濾
+        // 技工單號過濾
         if (filters.jobId && !item.workOrderNum?.toLowerCase().includes(filters.jobId)) return false;
+
+        // 醫院名稱過濾
         if (filters.hospital && !item.clinicName?.toLowerCase().includes(filters.hospital)) return false;
+
+        // 醫生姓名過濾
         if (filters.doctor && !item.docName?.toLowerCase().includes(filters.doctor)) return false;
-        if (filters.sales && !item.salesIdNum?.toLowerCase().includes(filters.sales)) return false;
+
+        // 患者姓名過濾
         if (filters.patientName && !item.patientName?.toLowerCase().includes(filters.patientName)) return false;
 
-        // 性別過濾
-        if (filters.gender && item.gender !== filters.gender) return false;
+        // 業務人員過濾
+        if (filters.sales && !item.salesIdNum?.toLowerCase().includes(filters.sales)) return false;
 
-        // 年齡過濾
-        if (filters.ageMin && item.age < parseInt(filters.ageMin)) return false;
-        if (filters.ageMax && item.age > parseInt(filters.ageMax)) return false;
+        // 齒位過濾
+        if (filters.toothPosition && !item.toothPosition?.toLowerCase().includes(filters.toothPosition)) return false;
 
-        // 日期範圍過濾
+        // 產品名稱過濾（包含 prodItem 和 prodName）
+        if (filters.productName) {
+            const productText = (item.prodItem + ' ' + (item.prodName || '')).toLowerCase();
+            if (!productText.includes(filters.productName)) return false;
+        }
+
+        // 工單現況過濾
+        if (filters.currentStatus && !item.currentStatus?.toLowerCase().includes(filters.currentStatus)) return false;
+
+        // 備註過濾（包含狀態標籤）
+        if (filters.remarks) {
+            const statusTags = [
+                item.isRemake && '重製',
+                item.isNoCharge && '不計價',
+                item.isPaused && '暫停',
+                item.isVoided && '作廢'
+            ].filter(Boolean).join('、');
+            const remarksText = ((item.remarks || '') + ' ' + statusTags).toLowerCase();
+            if (!remarksText.includes(filters.remarks)) return false;
+        }
+
+        // 單價過濾
+        if (filters.priceMin && item.price < parseFloat(filters.priceMin)) return false;
+        if (filters.priceMax && item.price > parseFloat(filters.priceMax)) return false;
+
+        // 收件日期過濾
         if (!isDateInRange(item.receivedDate, filters.receiveStart, filters.receiveEnd)) return false;
-        if (!isDateInRange(item.estTryInDate, filters.testStart, filters.testEnd)) return false;
+
+        // 完成交件日期過濾
+        if (!isDateInRange(item.deliveryDate, filters.deliveryStart, filters.deliveryEnd)) return false;
+
+        // 試戴交件日期過濾
+        if (!isDateInRange(item.tryInDate, filters.tryInStart, filters.tryInEnd)) return false;
+
+        // 預計完成日過濾
         if (!isDateInRange(item.estFinishDate, filters.expectedStart, filters.expectedEnd)) return false;
+
+        // 預計試戴日過濾
+        if (!isDateInRange(item.estTryInDate, filters.testStart, filters.testEnd)) return false;
+
+        // 試戴收件日過濾
         if (!isDateInRange(item.tryInReceivedDate, filters.productStart, filters.productEnd)) return false;
 
-        // 件別和組別過濾
-        if (filters.itemType && item.itemType !== filters.itemType) return false;
-        if (filters.groupType && item.groupType !== filters.groupType) return false;
+        // 派工別過濾
+        if (filters.workOrderStatus && item.workOrderStatus !== filters.workOrderStatus) return false;
 
         // 狀態過濾
         if (filters.remake && !item.isRemake) return false;
@@ -157,7 +211,7 @@ function initializeData() {
     const raw = localStorage.getItem("nldData");
     if (!raw) {
         document.getElementById("dataBody").innerHTML =
-            `<tr><td colspan="18" style="text-align:center; color: red;">找不到資料，請重新登入</td></tr>`;
+            `<tr><td colspan="17" style="text-align:center; color: red;">找不到資料，請重新登入</td></tr>`;
         return;
     }
 
@@ -170,7 +224,7 @@ function initializeData() {
     } catch (e) {
         console.error("資料格式錯誤:", e);
         document.getElementById("dataBody").innerHTML =
-            `<tr><td colspan="18" style="text-align:center; color: red;">資料格式錯誤，請重新登入</td></tr>`;
+            `<tr><td colspan="17" style="text-align:center; color: red;">資料格式錯誤，請重新登入</td></tr>`;
     }
 }
 
