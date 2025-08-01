@@ -38,7 +38,7 @@ public interface NLDRepository extends JpaRepository<NLD, UUID> {
             "n.isNoCharge, n.isPaused, n.isVoided, n.remarks) FROM NLD n WHERE n.clinicName = :clientName")
     List<NldClientRequest> ClientSearch(String clientName);
 
-    //回傳客戶可查看的資料(診所)
+    //回傳客戶可查看的資料(醫生)
     @Query("SELECT new com.zj.nld.DTO.NldClientRequest(" +
             "n.workOrderNum, n.clinicName, n.docName, n.patientName, " +
             "n.deliveryDate, n.toothPosition, n.prodName, " +

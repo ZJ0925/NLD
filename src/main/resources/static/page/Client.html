@@ -1,23 +1,24 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
+<!DOCTYPE html> <!-- 宣告 HTML 文件的型別 -->
+<html lang="zh-Hant"> <!-- 設定語言為繁體中文 -->
 <head>
-    <meta charset="UTF-8" />
-    <title>客戶技工單查詢</title>
+    <meta charset="UTF-8" /> <!-- 設定文件的字元編碼為 UTF-8 -->
+    <title>Client技工單查詢</title> <!-- 網頁標題 -->
     <style>
+        /* 全域樣式設定 */
         body {
-            font-family: sans-serif;
-            display: flex;
+            font-family: sans-serif; /* 使用無襯線字體 */
+            display: flex; /* 使用 Flexbox 排版 */
             margin: 0;
             padding: 0;
         }
         .sidebar {
-            width: 300px;
-            background-color: #eee;
-            padding: 10px;
-            box-sizing: border-box;
-            min-height: 100vh;
-            overflow-y: auto;
-            flex-shrink: 0;
+            width: 300px; /* 側邊欄寬度 */
+            background-color: #eee; /* 背景色 */
+            padding: 10px; /* 內距 */
+            box-sizing: border-box; /* 包含 padding 在內計算寬度 */
+            min-height: 100vh; /* 高度滿版 */
+            overflow-y: auto; /* 垂直滾動條 */
+            flex-shrink: 0; /* 不被壓縮 */
         }
         .sidebar label {
             display: block;
@@ -82,20 +83,20 @@
             background-color: #555;
         }
         .main {
-            flex-grow: 1;
+            flex-grow: 1; /* 主區塊自動填滿剩餘空間 */
             padding: 10px;
         }
         .table-container {
-            overflow-x: auto;
+            overflow-x: auto; /* 橫向滾動條 */
             border: 1px solid #ccc;
         }
         table {
-            border-collapse: collapse;
+            border-collapse: collapse; /* 表格框線合併 */
             width: 100%;
-            min-width: 1200px;
+            min-width: 900px; /* 最小寬度避免欄位太擠 */
         }
         thead {
-            background-color: #009688;
+            background-color: #009688; /* 表頭背景色 */
             color: white;
         }
         th, td {
@@ -116,71 +117,36 @@
             padding: 20px;
             color: #666;
         }
-        .status-tags {
-            font-size: 12px;
-            color: #666;
-        }
     </style>
 </head>
 <body>
-<!-- 左側搜尋區 -->
+<!-- 側邊欄搜尋區塊 -->
 <div class="sidebar">
-    <label>技工單號：
-        <input type="text" id="jobId" />
-    </label>
-    <label>醫生姓名：
-        <input type="text" id="doctor" />
-    </label>
-    <label>患者姓名：
-        <input type="text" id="patientName" />
-    </label>
-    <label>完成交件：
-        <div class="date-range">
-            <input type="date" id="deliveryStart" /> 至 <input type="date" id="deliveryEnd" />
-        </div>
-    </label>
-    <label>齒位：
-        <input type="text" id="toothPosition" />
-    </label>
-    <label>產品名稱：
-        <input type="text" id="productName" />
-    </label>
-    <label>試戴交件：
-        <div class="date-range">
-            <input type="date" id="tryInStart" /> 至 <input type="date" id="tryInEnd" />
-        </div>
-    </label>
-    <label>工單現況：
-        <input type="text" id="workOrderStatus" />
-    </label>
-    <label>備註：
-        <input type="text" id="remarks" />
-    </label>
+    <!-- 各種輸入欄位與篩選條件 -->
+    <label>技工單號：<input type="text" id="jobId" /></label>
+    <label>醫生姓名：<input type="text" id="doctor" /></label>
+    <label>患者姓名：<input type="text" id="patientName" /></label>
+    <label>完成交件：<div class="date-range"><input type="date" id="deliveryStart" /> 至 <input type="date" id="deliveryEnd" /></div></label>
+    <label>齒位：<input type="text" id="toothPosition" /></label>
+    <label>產品名稱：<input type="text" id="productName" /></label>
+    <label>試戴交件：<div class="date-range"><input type="date" id="tryInStart" /> 至 <input type="date" id="tryInEnd" /></div></label>
+    <label>工單現況：<input type="text" id="currentStatus" /></label>
+    <label>備註：<input type="text" id="remarks" /></label>
 
-    <div class="checkbox-item">
-        <input type="checkbox" id="remake" />
-        <label for="remake">重製工單</label>
-    </div>
-    <div class="checkbox-item">
-        <input type="checkbox" id="noCharge" />
-        <label for="noCharge">不計價</label>
-    </div>
-    <div class="checkbox-item">
-        <input type="checkbox" id="pause" />
-        <label for="pause">暫停</label>
-    </div>
-    <div class="checkbox-item">
-        <input type="checkbox" id="cancel" />
-        <label for="cancel">作廢</label>
-    </div>
+    <!-- 篩選條件勾選框 -->
+    <div class="checkbox-item"><input type="checkbox" id="remake" /><label for="remake">重製工單</label></div>
+    <div class="checkbox-item"><input type="checkbox" id="noCharge" /><label for="noCharge">不計價</label></div>
+    <div class="checkbox-item"><input type="checkbox" id="pause" /><label for="pause">暫停</label></div>
+    <div class="checkbox-item"><input type="checkbox" id="cancel" /><label for="cancel">作廢</label></div>
 
+    <!-- 查詢與重設按鈕 -->
     <div class="button-section">
         <button id="filterBtn">查詢</button>
         <button id="resetBtn">重設</button>
     </div>
 </div>
 
-<!-- 右側表格區 -->
+<!-- 主內容區：資料表格 -->
 <div class="main">
     <div class="table-container">
         <table>
@@ -204,6 +170,7 @@
     </div>
 </div>
 
-<script src="/page/script/AdminRequest.js"></script>
+<!-- 引入 JS 檔案：負責查詢邏輯等行為 -->
+<script src="/page/script/ClientScript.js"></script>
 </body>
 </html>

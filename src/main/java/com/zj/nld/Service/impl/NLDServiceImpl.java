@@ -89,12 +89,12 @@ public class NLDServiceImpl implements NLDService {
                 case 1 -> nldRepository.findAll();
                 // 客戶(需做診所篩選)
                 case 2 -> {
-                    if(groupId != null)
+                    if(groupId == null)
                     {
-                        yield nldRepository.ClientSearch(groupRole.getGroupName());
+                        yield nldRepository.ClientForDocSearch(groupRole.getGroupName(), userGroupRole.getUserName());
 
                     }else {
-                        yield nldRepository.ClientForDocSearch(groupRole.getGroupName(), userGroupRole.getUserName());
+                        yield nldRepository.ClientSearch(groupRole.getGroupName());
                     }
                 }
                 // 業務
