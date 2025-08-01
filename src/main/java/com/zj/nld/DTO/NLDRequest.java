@@ -8,8 +8,6 @@ import java.util.UUID;
 
 public class NLDRequest {
 
-    @NotNull
-    private UUID externalID; //全域唯一值
 
     private String workOrderNum; // 1.技工單號
 
@@ -59,14 +57,6 @@ public class NLDRequest {
 
     private String remarks; // 21.試戴收件日
 
-
-    public UUID getExternalID() {
-        return externalID;
-    }
-
-    public void setExternalID(UUID externalID) {
-        this.externalID = externalID;
-    }
 
     public String getWorkOrderNum() {
         return workOrderNum;

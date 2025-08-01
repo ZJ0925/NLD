@@ -32,7 +32,7 @@ public class NLDProdUnitRequest {
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
     private Date estFinishDate; // 11.預計完成日
 
-    //目前無12派工別--------------------------------------------------------------------------------
+    private String taskType;  //目前無12派工別--------------------------------------------------------------------------------
 
     private String workOrderStatus; // 13.工單現況;
 
@@ -68,6 +68,7 @@ public class NLDProdUnitRequest {
         this.prodName = prodName;
         this.tryInDate = tryInDate;
         this.estFinishDate = estFinishDate;
+        this.taskType = taskType;
         this.workOrderStatus = workOrderStatus;
         this.estTryInDate = estTryInDate;
         this.isRemake = isRemake;
@@ -76,6 +77,14 @@ public class NLDProdUnitRequest {
         this.isVoided = isVoided;
         this.tryInReceivedDate = tryInReceivedDate;
         this.remarks = remarks;
+    }
+
+    public String getTaskType() {
+        return taskType;
+    }
+
+    public void setTaskType(String taskType) {
+        taskType = taskType;
     }
 
     public String getWorkOrderNum() {
