@@ -1,3 +1,68 @@
+(function checkToken() {
+    const token = localStorage.getItem("jwtToken");
+
+    if (!token || token.split('.').length !== 3) {
+        alert("尚未登入或 Token 格式錯誤，請重新登入。");
+        localStorage.removeItem("jwtToken");
+        window.location.href = "/index.html";
+        return;
+    }
+
+    try {
+        const payloadBase64 = token.split('.')[1];
+        const payloadJson = atob(payloadBase64);
+        const payload = JSON.parse(payloadJson);
+
+        const now = Math.floor(Date.now() / 1000);
+        if (payload.exp && payload.exp < now) {
+            alert("登入已過期，請重新登入。");
+            localStorage.removeItem("jwtToken");
+            window.location.href = "/index.html";
+            return;
+        }
+
+        // 顯示倒數懸浮視窗
+        const remaining = payload.exp - now;
+        if (remaining > 0) {
+            const timerEl = document.getElementById("token-timer");
+            const countdownEl = document.getElementById("timer");
+            timerEl.style.display = "block";
+
+            let timeLeft = remaining;
+
+            const updateDisplay = () => {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                countdownEl.textContent = `${minutes} 分 ${seconds} 秒`;
+            };
+
+            updateDisplay();
+
+            const interval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    countdownEl.textContent = "已過期";
+                    alert("Token 已過期，請重新登入。");
+                    localStorage.removeItem("jwtToken");
+                    localStorage.removeItem("nldData");
+                    location.href = "/index.html";
+                } else {
+                    updateDisplay();
+                }
+            }, 1000);
+        }
+    } catch (e) {
+        console.error("無法解析 JWT:", e);
+        alert("Token 格式解析失敗，請重新登入。");
+        localStorage.removeItem("jwtToken");
+        window.location.href = "/index.html";
+    }
+})();
+
+
+
+
 // 原始資料存儲
 let originalData = []; // 儲存未過濾的原始資料
 let filteredData = []; // 儲存過濾後的資料
