@@ -1,3 +1,14 @@
+function base64UrlDecode(str) {
+    // base64url 轉 base64
+    str = str.replace(/-/g, '+').replace(/_/g, '/');
+    // 補足尾部 '='
+    while (str.length % 4) {
+        str += '=';
+    }
+    return atob(str);
+}
+
+
 (function checkToken() {
     const token = localStorage.getItem("jwtToken");
 
@@ -9,9 +20,9 @@
     }
 
     try {
-        const payloadBase64 = token.split('.')[1];
-        const payloadJson = atob(payloadBase64);
-        const payload = JSON.parse(payloadJson);
+        const payloadBase64Url = token.split('.')[1];
+        const payloadJson = base64UrlDecode(payloadBase64Url);
+        const payload = JSON.parse(payloadJson)
 
         const now = Math.floor(Date.now() / 1000);
         if (payload.exp && payload.exp < now) {

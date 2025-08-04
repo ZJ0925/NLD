@@ -25,8 +25,10 @@ public class LineServiceImpl implements LineService {
     //權限服務
     private final PermissionService permissionService;
 
+    private  final String ngrokURL = "https://aa16f05f2834.ngrok-free.app";
+
     // 表單網址
-    private final String url = "http://localhost:8080/route/index.html?";
+    private final String url = ngrokURL + "/route/index.html?";
 
 
     public LineServiceImpl(JwtService jwtService, PermissionService permissionService) {
@@ -35,7 +37,7 @@ public class LineServiceImpl implements LineService {
     }
 
     // LINE 的存取權杖（請換成你自己的）
-    private final String TOKEN = "PWSjC+f6Id6azivlM+Gcff99o/i8MrOhfkz94RG037SesKvUqZL2qk+C3bHicUtZiSv1+r54w2KfnC9pfMjR1MnvuGOeAezNrzT040PZhVX/XYGMffMYY8M1Och+4dL7lCIvRYj/13rZ1T0NnRCcagdB04t89/1O/w1cDnyilFU=";
+    private final String TOKEN = "u4k1EFm0EHSK8sUIkZVEOs3vIKEQmzFgW/8/PeCFczfxmTousEuJGLdxQnm94w3odQJS+JqmNQU6orX1yNt8eykNrOB0GNrcpOZ2JO3/GIzjarT3F5KI/sfnnYkFqdfb9Ap0wTBjxXbZjk+7XA+sVAdB04t89/1O/w1cDnyilFU=";
 
 
     @Override

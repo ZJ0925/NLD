@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>轉導中...</title>
+    <title>跳轉中...</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -48,6 +48,15 @@
         // ✅ 登入前先清除可能存在的舊資料
         localStorage.removeItem("nldData");
 
+
+        function base64UrlDecode(str) {
+            str = str.replace(/-/g, '+').replace(/_/g, '/');
+            while (str.length % 4) {
+                str += '=';
+            }
+            return atob(str);
+        }
+
         // 從 URL 解析參數
         const urlParams = new URLSearchParams(window.location.search);
         let type = urlParams.get('type');
@@ -56,10 +65,12 @@
         // 如果沒有參數，嘗試從路徑解析
         if (!type || !token) {
             const pathParts = window.location.pathname.split("/");
-            if (pathParts.length >= 6) {
+            // 尋找 route 後面的參數結構
+            const routeIndex = pathParts.indexOf('route');
+            if (routeIndex !== -1 && pathParts.length >= routeIndex + 5) {
                 // route/NLD/token/Admin/token 結構
-                type = pathParts[4];   // Admin
-                token = pathParts[5];  // token
+                type = pathParts[routeIndex + 3];   // Admin
+                token = pathParts[routeIndex + 4];  // token
             }
         }
 
@@ -76,13 +87,14 @@
 
         // ✅ 驗證 token 是否過期
         try {
-            const payload = JSON.parse(atob(token.split('.')[1]));
+            const payload = JSON.parse(base64UrlDecode(token.split('.')[1]));
             const now = Math.floor(Date.now() / 1000);
             if (payload.exp && payload.exp < now) {
                 alert("登入已過期，請重新登入。");
                 localStorage.removeItem("jwtToken");
                 return;
             }
+            console.log("Token 驗證成功，有效期至:", new Date(payload.exp * 1000));
         } catch (e) {
             console.error("無法解析 JWT:", e);
             alert("Token 格式錯誤，請重新登入。");
@@ -90,31 +102,47 @@
             return;
         }
 
+        // ✅ 動態建構 API URL (支援 localhost 和 ngrok)
+        const protocol = window.location.protocol;
+        const host = window.location.host;
+        const apiUrl = `${protocol}//${host}/NLD/token/${type}/${token}`;
+
+        console.log("API URL:", apiUrl);
+
         // ✅ 呼叫 API 取得資料
-        fetch(`/NLD/token/${type}/${token}`)
+        fetch(apiUrl)
             .then(res => {
                 if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
                 return res.json();
             })
             .then(data => {
-                console.log("成功取得資料，跳轉頁面", data);
+                console.log("成功取得資料，準備跳轉頁面", data);
                 localStorage.setItem("nldData", JSON.stringify(data));
+
+                // ✅ 動態建構跳轉 URL
+                const baseUrl = `${protocol}//${host}`;
+                let redirectUrl;
+
                 switch (type) {
                     case 'Admin':
-                        window.location.href = `/page/Admin.html?type=${encodeURIComponent(type)}&token=${encodeURIComponent(token)}`;
+                        redirectUrl = `${baseUrl}/page/Admin.html?type=${encodeURIComponent(type)}&token=${encodeURIComponent(token)}`;
                         break;
                     case 'Client':
-                        window.location.href = `/page/Client.html?type=${encodeURIComponent(type)}&token=${encodeURIComponent(token)}`;
+                        redirectUrl = `${baseUrl}/page/Client.html?type=${encodeURIComponent(type)}&token=${encodeURIComponent(token)}`;
                         break;
                     case 'Sales':
-                        window.location.href = `/page/Sales.html?type=${encodeURIComponent(type)}&token=${encodeURIComponent(token)}`;
+                        redirectUrl = `${baseUrl}/page/Sales.html?type=${encodeURIComponent(type)}&token=${encodeURIComponent(token)}`;
                         break;
                     case 'ProdUnit':
-                        window.location.href = `/page/ProdUnit.html?type=${encodeURIComponent(type)}&token=${encodeURIComponent(token)}`;
+                        redirectUrl = `${baseUrl}/page/ProdUnit.html?type=${encodeURIComponent(type)}&token=${encodeURIComponent(token)}`;
                         break;
                     default:
                         alert("未知角色類型: " + type);
+                        return;
                 }
+
+                console.log("跳轉至:", redirectUrl);
+                window.location.href = redirectUrl;
             })
             .catch(err => {
                 console.error("API 錯誤", err);
