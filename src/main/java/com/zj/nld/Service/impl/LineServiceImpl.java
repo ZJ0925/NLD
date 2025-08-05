@@ -25,7 +25,8 @@ public class LineServiceImpl implements LineService {
     //權限服務
     private final PermissionService permissionService;
 
-    private  final String ngrokURL = "https://aa16f05f2834.ngrok-free.app";
+    // ngrok開啟網址：ngrok http --url=bengal-charming-hyena.ngrok-free.app 8080
+    private  final String ngrokURL = "https://bengal-charming-hyena.ngrok-free.app";
 
     // 表單網址
     private final String url = ngrokURL + "/route/index.html?";
