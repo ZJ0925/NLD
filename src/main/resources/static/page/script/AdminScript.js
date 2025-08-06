@@ -8,8 +8,8 @@ function base64UrlDecode(str) {
     return atob(str);
 }
 
-
-(function checkToken() {
+// 修改後的 token 檢查函數 - 只在進入頁面時檢查，不做即時倒數
+(function checkTokenOnPageLoad() {
     const token = localStorage.getItem("jwtToken");
 
     if (!token || token.split('.').length !== 3) {
@@ -22,7 +22,7 @@ function base64UrlDecode(str) {
     try {
         const payloadBase64Url = token.split('.')[1];
         const payloadJson = base64UrlDecode(payloadBase64Url);
-        const payload = JSON.parse(payloadJson)
+        const payload = JSON.parse(payloadJson);
 
         const now = Math.floor(Date.now() / 1000);
         if (payload.exp && payload.exp < now) {
@@ -32,37 +32,10 @@ function base64UrlDecode(str) {
             return;
         }
 
-        // 顯示倒數懸浮視窗
-        const remaining = payload.exp - now;
-        if (remaining > 0) {
-            const timerEl = document.getElementById("token-timer");
-            const countdownEl = document.getElementById("timer");
-            timerEl.style.display = "block";
+        // 移除倒數計時器相關功能
+        // 網頁內的查詢操作不受時間限制
+        console.log("Token 驗證通過，可正常使用網頁功能");
 
-            let timeLeft = remaining;
-
-            const updateDisplay = () => {
-                const minutes = Math.floor(timeLeft / 60);
-                const seconds = timeLeft % 60;
-                countdownEl.textContent = `${minutes} 分 ${seconds} 秒`;
-            };
-
-            updateDisplay();
-
-            const interval = setInterval(() => {
-                timeLeft--;
-                if (timeLeft <= 0) {
-                    clearInterval(interval);
-                    countdownEl.textContent = "已過期";
-                    alert("Token 已過期，請重新登入。");
-                    localStorage.removeItem("jwtToken");
-                    localStorage.removeItem("nldData");
-                    location.href = "/index.html";
-                } else {
-                    updateDisplay();
-                }
-            }, 1000);
-        }
     } catch (e) {
         console.error("無法解析 JWT:", e);
         alert("Token 格式解析失敗，請重新登入。");
@@ -71,8 +44,51 @@ function base64UrlDecode(str) {
     }
 })();
 
+// 新增：當使用者嘗試離開頁面或訪問其他網址時的檢查
+function checkTokenBeforeNavigation() {
+    const token = localStorage.getItem("jwtToken");
 
+    if (!token || token.split('.').length !== 3) {
+        localStorage.removeItem("jwtToken");
+        window.location.href = "/index.html";
+        return false;
+    }
 
+    try {
+        const payloadBase64Url = token.split('.')[1];
+        const payloadJson = base64UrlDecode(payloadBase64Url);
+        const payload = JSON.parse(payloadJson);
+
+        const now = Math.floor(Date.now() / 1000);
+        if (payload.exp && payload.exp < now) {
+            alert("登入已過期，請重新登入。");
+            localStorage.removeItem("jwtToken");
+            localStorage.removeItem("nldData");
+            window.location.href = "/index.html";
+            return false;
+        }
+        return true;
+    } catch (e) {
+        console.error("無法解析 JWT:", e);
+        localStorage.removeItem("jwtToken");
+        window.location.href = "/index.html";
+        return false;
+    }
+}
+
+// 監聽頁面離開事件（可選）
+window.addEventListener('beforeunload', function(e) {
+    // 這裡可以加入額外的檢查邏輯，但通常不需要阻止使用者離開
+    // checkTokenBeforeNavigation();
+});
+
+// 如果有其他導航按鈕或連結，可以在點擊時調用 checkTokenBeforeNavigation()
+// 例如：
+// document.getElementById('someNavigationButton').addEventListener('click', function(e) {
+//     if (!checkTokenBeforeNavigation()) {
+//         e.preventDefault();
+//     }
+// });
 
 // 原始資料存儲
 let originalData = []; // 儲存未過濾的原始資料
@@ -80,13 +96,20 @@ let filteredData = []; // 儲存過濾後的資料
 
 // 格式化日期顯示
 function formatDate(dateStr) {
-    if (!dateStr) return ''; // 若為空值則回傳空字串
+    if (!dateStr) return ''; // 若為空值、null 或 undefined 則回傳空字串
     const date = new Date(dateStr); // 建立日期物件
+    // 檢查日期是否有效
+    if (isNaN(date.getTime())) return '';
     return date.toLocaleDateString('zh-TW', { // 回傳中文格式的日期
         year: 'numeric',
         month: '2-digit',
         day: '2-digit'
     });
+}
+
+// 安全處理 null 值的輔助函數
+function safeValue(value) {
+    return (value === null || value === undefined || value === "NULL") ? '' : value;
 }
 
 // 渲染一列資料
@@ -98,25 +121,25 @@ function renderRow(dto) {
         dto.isVoided && '作廢'
     ].filter(Boolean).join('、'); // 移除 false 並用逗號連接
 
-    const remarksWithStatus = [dto.remarks, statusTags].filter(Boolean).join(' '); // 合併備註與狀態標籤
+    const remarksWithStatus = [safeValue(dto.remarks), statusTags].filter(Boolean).join(' '); // 合併備註與狀態標籤
 
     return `
         <tr>
-            <td>${dto.workOrderNum || ''}</td> <!-- 技工單號 -->
-            <td>${dto.clinicName || ''}</td> <!-- 醫院名稱 -->
-            <td>${dto.docName || ''}</td> <!-- 醫生姓名 -->
-            <td>${dto.patientName || ''}</td> <!-- 患者姓名 -->
+            <td>${safeValue(dto.workOrderNum)}</td> <!-- 技工單號 -->
+            <td>${safeValue(dto.clinicName)}</td> <!-- 醫院名稱 -->
+            <td>${safeValue(dto.docName)}</td> <!-- 醫生姓名 -->
+            <td>${safeValue(dto.patientName)}</td> <!-- 患者姓名 -->
             <td>${formatDate(dto.receivedDate)}</td> <!-- 收件日 -->
             <td>${formatDate(dto.deliveryDate)}</td> <!-- 完成交件 -->
-            <td>${dto.salesIdNum || ''}</td> <!-- 業務人員 -->
-            <td>${dto.toothPosition || ''}</td> <!-- 齒位 -->
-            <td>${dto.prodItem ? dto.prodItem + ' - ' + (dto.prodName || '') : dto.prodName || ''}</td> <!-- 產品名稱 -->
+            <td>${safeValue(dto.salesIdNum)}</td> <!-- 業務人員 -->
+            <td>${safeValue(dto.toothPosition)}</td> <!-- 齒位 -->
+            <td>${dto.prodItem ? safeValue(dto.prodItem) + ' - ' + safeValue(dto.prodName) : safeValue(dto.prodName)}</td> <!-- 產品名稱 -->
             <td>${formatDate(dto.tryInDate)}</td> <!-- 試戴交件 -->
             <td>${formatDate(dto.estFinishDate)}</td> <!-- 預計完成日 -->
-            <td>${dto.workOrderStatus || ''}</td> <!-- 工單現況 -->
-            <td>${dto.taskType || ''}</td> <!-- 派工別 -->
+            <td>${safeValue(dto.workOrderStatus)}</td> <!-- 工單現況 -->
+            <td>${safeValue(dto.taskType)}</td> <!-- 派工別 -->
             <td>${formatDate(dto.estTryInDate)}</td> <!-- 預計試戴日 -->
-            <td>${dto.price ? dto.price.toLocaleString() : ''}</td> <!-- 單價 -->
+            <td>${dto.price !== null && dto.price !== undefined ? dto.price.toLocaleString() : ''}</td> <!-- 單價 -->
             <td>${formatDate(dto.tryInReceivedDate)}</td> <!-- 試戴收件日 -->
             <td><span class="status-tags">${remarksWithStatus}</span></td> <!-- 備註與狀態 -->
         </tr>
@@ -147,7 +170,7 @@ function isDateInRange(dateStr, startDate, endDate) {
     return true; // 通過
 }
 
-// 過濾功能
+// 過濾功能 - 不受時間限制
 function filterData() {
     const filters = {
         // 文字欄位
@@ -242,31 +265,31 @@ function filterData() {
     filteredData = originalData.filter(item => {
 
         // 過濾：技工單號（模糊比對 workOrderNum）
-        if (filters.jobId && !item.workOrderNum?.toLowerCase().includes(filters.jobId)) return false;
+        if (filters.jobId && !safeValue(item.workOrderNum).toLowerCase().includes(filters.jobId)) return false;
 
         // 過濾：醫院名稱（模糊比對 clinicName）
-        if (filters.hospital && !item.clinicName?.toLowerCase().includes(filters.hospital)) return false;
+        if (filters.hospital && !safeValue(item.clinicName).toLowerCase().includes(filters.hospital)) return false;
 
         // 過濾：醫生姓名（模糊比對 docName）
-        if (filters.doctor && !item.docName?.toLowerCase().includes(filters.doctor)) return false;
+        if (filters.doctor && !safeValue(item.docName).toLowerCase().includes(filters.doctor)) return false;
 
         // 過濾：患者姓名（模糊比對 patientName）
-        if (filters.patientName && !item.patientName?.toLowerCase().includes(filters.patientName)) return false;
+        if (filters.patientName && !safeValue(item.patientName).toLowerCase().includes(filters.patientName)) return false;
 
         // 過濾：業務人員（模糊比對 salesIdNum）
-        if (filters.sales && !item.salesIdNum?.toLowerCase().includes(filters.sales)) return false;
+        if (filters.sales && !safeValue(item.salesIdNum).toLowerCase().includes(filters.sales)) return false;
 
         // 過濾：齒位（模糊比對 toothPosition）
-        if (filters.toothPosition && !item.toothPosition?.toLowerCase().includes(filters.toothPosition)) return false;
+        if (filters.toothPosition && !safeValue(item.toothPosition).toLowerCase().includes(filters.toothPosition)) return false;
 
         // 過濾：產品名稱（prodItem 與 prodName 合併後模糊比對）
         if (filters.productName) {
-            const productText = (item.prodItem + ' ' + (item.prodName || '')).toLowerCase();
+            const productText = (safeValue(item.prodItem) + ' ' + safeValue(item.prodName)).toLowerCase();
             if (!productText.includes(filters.productName)) return false;
         }
 
         // 過濾：工單現況（模糊比對 currentStatus）
-        if (filters.currentStatus && !item.currentStatus?.toLowerCase().includes(filters.currentStatus)) return false;
+        if (filters.currentStatus && !safeValue(item.currentStatus).toLowerCase().includes(filters.currentStatus)) return false;
 
         // 過濾：備註與狀態標籤（合併文字模糊比對）
         if (filters.remarks) {
@@ -276,7 +299,7 @@ function filterData() {
                 item.isPaused && '暫停',
                 item.isVoided && '作廢'
             ].filter(Boolean).join('、');
-            const remarksText = ((item.remarks || '') + ' ' + statusTags).toLowerCase();
+            const remarksText = (safeValue(item.remarks) + ' ' + statusTags).toLowerCase();
             if (!remarksText.includes(filters.remarks)) return false;
         }
 

@@ -32,8 +32,8 @@ public class JwtServiceImpl implements JwtService {
     private static final String SECRET_KEY = Base64.getEncoder().encodeToString(bytes);
 
 
-    // 4.設定 token 的有效期限（30 分鐘）
-    private static final long EXPIRATION_MILLIS = 1000 * 10 * 10;
+    // 4.設定 token 的有效期限 (秒) * 分鐘 * 小時
+    private static final long EXPIRATION_MILLIS = (1000 * 60) * 60 * 8;
 
     // 5.使用 JJWT 的工具生成簽章用的 HMAC SHA 金鑰
     private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
