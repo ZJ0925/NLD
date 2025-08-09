@@ -225,4 +225,35 @@ public class NLDRequest {
     public void setRemarks(String remarks) {
         this.remarks = remarks;
     }
+
+
+    public NLDRequest(String workOrderNum, String clinicName, String docName, String patientName, Date receivedDate, Date deliveryDate, String salesIdNum, String toothPosition, String prodItem, String prodName, Date tryInDate, Date estFinishDate, String workOrderStatus, Date estTryInDate, Integer price, boolean isRemake, boolean isNoCharge, boolean isPaused, boolean isVoided, Date tryInReceivedDate, String remarks) {
+        this.workOrderNum = workOrderNum;
+
+        this.clinicName = clinicName;
+
+        this.docName = docName;
+
+        this.patientName = patientName;
+
+        this.receivedDate = receivedDate;
+
+        this.deliveryDate = deliveryDate;
+
+        this.salesIdNum = salesIdNum;
+        this.tryInDate = tryInDate;
+        this.estFinishDate = estFinishDate;
+        this.estTryInDate = estTryInDate;
+        this.isRemake = isRemake;
+        this.isNoCharge = isNoCharge;
+        this.isPaused = isPaused;
+        this.isVoided = isVoided;
+        this.tryInReceivedDate = tryInReceivedDate;
+        this.remarks = remarks;
+        this.toothPosition = toothPosition;
+        this.prodItem = prodItem;
+        this.prodName = prodName;
+        this.workOrderStatus = workOrderStatus;
+        this.price = price;
+    }
 }

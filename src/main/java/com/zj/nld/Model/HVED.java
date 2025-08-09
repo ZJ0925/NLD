@@ -12,6 +12,12 @@ import java.util.Date;
 @Table(name = "HVED")
 public class HVED {
 
+    @Column(name = "COMP_DH")
+    private String compdh;
+
+    @Column(name = "CUN_DH")
+    private String cundh;
+
     @Id
     @Column(name = "NO1_DH")
     private String workOrderNum; // 1.技工單號
@@ -61,6 +67,22 @@ public class HVED {
     @Column(name = "RR__DH")
     private String remarks; // 21.備註
 
+
+    public String getCompdh() {
+        return compdh;
+    }
+
+    public void setCompdh(String compdh) {
+        this.compdh = compdh;
+    }
+
+    public String getCundh() {
+        return cundh;
+    }
+
+    public void setCundh(String cundh) {
+        this.cundh = cundh;
+    }
 
     public String getWorkOrderNum() {
         return workOrderNum;

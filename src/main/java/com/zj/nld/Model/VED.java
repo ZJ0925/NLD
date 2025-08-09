@@ -12,6 +12,11 @@ import java.util.Date;
 @Table(name = "VED")
 public class VED {
 
+
+    @Column(name = "COMP_D")
+    private String comph;
+
+
     @EmbeddedId
     private  VEDkey id;  // NO_D與 NUM_D 複合主鍵
 

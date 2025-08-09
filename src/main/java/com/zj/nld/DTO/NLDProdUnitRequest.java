@@ -68,7 +68,6 @@ public class NLDProdUnitRequest {
         this.prodName = prodName;
         this.tryInDate = tryInDate;
         this.estFinishDate = estFinishDate;
-        this.taskType = taskType;
         this.workOrderStatus = workOrderStatus;
         this.estTryInDate = estTryInDate;
         this.isRemake = isRemake;
