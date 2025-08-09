@@ -23,28 +23,6 @@ public class NLD_Controller {
     @Autowired
     private JwtService jwtService;
 
-    @GetMapping("/{externalID}")
-    public ResponseEntity<NLD> getNLDByExternal(@PathVariable UUID externalID){
-        NLD nld = nldService.getNLDByExternalID(externalID);
-        if (nld != null)
-        {
-            return ResponseEntity.ok(nld);
-        }else{
-            return ResponseEntity.status(404).body(null);
-        }
-    }
-
-    // 取得全部NLD
-    @GetMapping("/getAll")
-    public ResponseEntity <List<NLD>> getAllNLD(){
-        List<NLD> nldList = nldService.getAllNLD();
-        if(!nldList.isEmpty()){
-            return ResponseEntity.ok(nldList);
-        }else{
-            return ResponseEntity.status(404).body(null);
-        }
-    }
-
     // 根據權限取得NLD
     @GetMapping("token/{type}/{token}")
     public ResponseEntity<?> getNLDByToken(@PathVariable String type,@PathVariable String token){

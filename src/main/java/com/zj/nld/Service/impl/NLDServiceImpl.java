@@ -1,5 +1,6 @@
 package com.zj.nld.Service.impl;
 
+import com.zj.nld.DTO.NLDRequest;
 import com.zj.nld.Model.GroupRole;
 import com.zj.nld.Model.UserGroupRole;
 import com.zj.nld.Repository.JpaRepository.NLDRepository;
@@ -32,14 +33,8 @@ public class NLDServiceImpl implements NLDService {
     private PermissionService permissionService;
 
     @Override
-    public NLD getNLDByExternalID(UUID externalID) {
-        NLD nld = nldRepository.findByExternalID(externalID);
-        return nld;
-    }
-
-    @Override
-    public List<NLD> getAllNLD() {
-        return nldRepository.findAll();
+    public List<NLDRequest> AdminSearch() {
+        return nldRepository.AdminSearch();
     }
 
     //客戶可取得的資料
