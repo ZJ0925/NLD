@@ -1,18 +1,18 @@
 package com.zj.nld.Model;
 
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import java.util.Date;
-import java.util.UUID;
 
 @Entity
-@Table(name = "NLD")
-public class NLD {
+@Table(name = "HVED")
+public class HVED {
 
     @Id
-    @Column(name = "ExternalID")
-    private UUID externalID;
-
     @Column(name = "NO1_DH")
     private String workOrderNum; // 1.技工單號
 
@@ -34,29 +34,14 @@ public class NLD {
     @Column(name = "SALE_DH")
     private String salesIdNum; // 7.業務名稱
 
-    @Column(name = "TEENO_D")
-    private String toothPosition; // 8.齒位-----------------
-
-    @Column(name = "MITEM_D")
-    private String prodItem; // 9-1.製作項目-----------------
-
-    @Column(name = "PRO_D")
-    private String prodName; // 9-2. 產品名稱日-----------------
-
     @Column(name = "DAT_5_DH")
     private Date tryInDate; // 10.試戴交件
 
     @Column(name = "DAT_3_DH")
     private Date estFinishDate; // 11.預計完成日
 
-    @Column(name = "PREC_D")
-    private String workOrderStatus; // 13.工單現況;-----------------
-
     @Column(name = "DAT_2_DH")
     private Date estTryInDate; // 14.預計試戴日
-
-    @Column(name = "UNA_D")
-    private Integer price; // 15.單價-----------------
 
     @Column(name = "UN3E_DH")
     private boolean isRemake; // 16.重製
@@ -76,13 +61,6 @@ public class NLD {
     @Column(name = "RR__DH")
     private String remarks; // 21.備註
 
-    public UUID getExternalID() {
-        return externalID;
-    }
-
-    public void setExternalID(UUID externalID) {
-        this.externalID = externalID;
-    }
 
     public String getWorkOrderNum() {
         return workOrderNum;
@@ -140,30 +118,6 @@ public class NLD {
         this.salesIdNum = salesIdNum;
     }
 
-    public String getToothPosition() {
-        return toothPosition;
-    }
-
-    public void setToothPosition(String toothPosition) {
-        this.toothPosition = toothPosition;
-    }
-
-    public String getProdItem() {
-        return prodItem;
-    }
-
-    public void setProdItem(String prodItem) {
-        this.prodItem = prodItem;
-    }
-
-    public String getProdName() {
-        return prodName;
-    }
-
-    public void setProdName(String prodName) {
-        this.prodName = prodName;
-    }
-
     public Date getTryInDate() {
         return tryInDate;
     }
@@ -180,28 +134,12 @@ public class NLD {
         this.estFinishDate = estFinishDate;
     }
 
-    public String getWorkOrderStatus() {
-        return workOrderStatus;
-    }
-
-    public void setWorkOrderStatus(String workOrderStatus) {
-        this.workOrderStatus = workOrderStatus;
-    }
-
     public Date getEstTryInDate() {
         return estTryInDate;
     }
 
     public void setEstTryInDate(Date estTryInDate) {
         this.estTryInDate = estTryInDate;
-    }
-
-    public Integer getPrice() {
-        return price;
-    }
-
-    public void setPrice(Integer price) {
-        this.price = price;
     }
 
     public boolean isRemake() {
@@ -212,7 +150,7 @@ public class NLD {
         isRemake = remake;
     }
 
-    public boolean getNoCharge() {
+    public boolean isNoCharge() {
         return isNoCharge;
     }
 
@@ -220,7 +158,7 @@ public class NLD {
         isNoCharge = noCharge;
     }
 
-    public boolean getPaused() {
+    public boolean isPaused() {
         return isPaused;
     }
 
@@ -228,7 +166,7 @@ public class NLD {
         isPaused = paused;
     }
 
-    public boolean getVoided() {
+    public boolean isVoided() {
         return isVoided;
     }
 
