@@ -1,31 +1,21 @@
-package com.zj.nld.Model;
+package com.zj.nld.Model.DTO;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 
 import java.util.UUID;
 
-@Entity
-@Table(name = "UserGroupRole")
-public class UserGroupRole {
+public class UserGroupRoleRequest {
 
-    @Id
-    @Column(name = "ExternalID")
     private UUID externalID; // 全域唯一值
 
-    @Column(name = "LineID")
     private String lineID; // LINE ID
 
-    @Column(name = "UserName")
     private String userName; // 使用者名稱
 
-    @Column(name = "GroupID")
     private String groupID;
 
-    @Column(name = "RoleID")
     private int roleID;
+
 
     public UUID getExternalID() {
         return externalID;

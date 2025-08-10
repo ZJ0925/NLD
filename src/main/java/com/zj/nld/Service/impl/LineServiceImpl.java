@@ -3,7 +3,7 @@ package com.zj.nld.Service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.zj.nld.Model.UserGroupRole;
+import com.zj.nld.Model.Entity.UserGroupRole;
 import com.zj.nld.Service.JwtService;
 import com.zj.nld.Service.LineService;
 import com.zj.nld.Service.PermissionService;

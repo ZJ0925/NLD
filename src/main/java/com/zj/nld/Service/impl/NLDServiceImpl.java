@@ -1,13 +1,12 @@
 package com.zj.nld.Service.impl;
 
-import com.zj.nld.DTO.NLDRequest;
-import com.zj.nld.Model.GroupRole;
-import com.zj.nld.Model.UserGroupRole;
-import com.zj.nld.Repository.JpaRepository.NLDRepository;
-import com.zj.nld.DTO.NLDProdUnitRequest;
-import com.zj.nld.DTO.NldClientRequest;
-import com.zj.nld.DTO.NldSalesRequest;
-import com.zj.nld.Model.NLD;
+import com.zj.nld.Model.DTO.NLDRequest;
+import com.zj.nld.Model.Entity.GroupRole;
+import com.zj.nld.Model.Entity.UserGroupRole;
+import com.zj.nld.Repository.NLDRepository;
+import com.zj.nld.Model.DTO.NLDProdUnitRequest;
+import com.zj.nld.Model.DTO.NldClientRequest;
+import com.zj.nld.Model.DTO.NldSalesRequest;
 import com.zj.nld.Service.JwtService;
 import com.zj.nld.Service.NLDService;
 import com.zj.nld.Service.PermissionService;
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @Component

@@ -1,27 +1,24 @@
-package com.zj.nld.Model;
+package com.zj.nld.Model.DTO;
 
+import com.zj.nld.Model.Entity.GroupRole;
 import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 
-@Entity
-@Table(name = "GroupRole")
-public class GroupRole {
+public class GroupRoleRequest {
 
-    @Id
-    @Column(name = "GroupID")
     private String groupID; // 群組ID
 
-    @Column(name = "GroupName")
     private String groupName; // 群組名稱(EX:診所名稱)
 
-    @Column(name = "Description")
     private String description; // 群組描述
 
-    @Column(name = "RoleID")
     private Integer roleID;
 
+    public GroupRoleRequest(GroupRole groupRole) {
+        this.groupID = groupRole.getGroupID();
+        this.groupName = groupRole.getGroupName();
+        this.description = groupRole.getDescription();
+        this.roleID = groupRole.getRoleID();
+    }
 
     public String getGroupID() {
         return groupID;
@@ -54,4 +51,5 @@ public class GroupRole {
     public void setRoleID(Integer roleID) {
         this.roleID = roleID;
     }
+
 }

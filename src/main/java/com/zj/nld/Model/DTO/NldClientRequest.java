@@ -1,10 +1,10 @@
-package com.zj.nld.DTO;
+package com.zj.nld.Model.DTO;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.util.Date;
 
-
-public class NldSalesRequest {
+public class NldClientRequest {
 
     private String workOrderNum; // 1.技工單號
 
@@ -15,29 +15,16 @@ public class NldSalesRequest {
     private String patientName; // 4.患者名稱
 
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date receivedDate;  // 5.收件日
-
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
     private Date deliveryDate; // 6.完成交件日
 
     private String toothPosition; //8.齒位
-
-    private String prodItem; // 9-1.製作項目
 
     private String prodName; // 9-2. 產品名稱日
 
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
     private Date tryInDate; // 10.試戴交件
 
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date estFinishDate; // 11.預計完成日
-
     private String workOrderStatus; // 13.工單現況;
-
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date estTryInDate; // 14.預計試戴日
-
-    private Integer price; // 15.單價
 
     private boolean isRemake; // 16.重製
 
@@ -47,58 +34,24 @@ public class NldSalesRequest {
 
     private boolean isVoided; // 19.作廢
 
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date tryInReceivedDate; // 20.試戴收件日
-
     private String remarks; // 21.備註
 
-
-    //建立constructor讓JPA函式可以讀取
-    public NldSalesRequest(
-            String workOrderNum,
-            String clinicName,
-            String docName,
-            String patientName,
-            Date receivedDate,
-            Date deliveryDate,
-            String toothPosition,
-            String prodItem,
-            String prodName,
-            Date tryInDate,
-            Date estFinishDate,
-            String workOrderStatus,
-            Date estTryInDate,
-            Integer price,
-            boolean isRemake,
-            boolean isNoCharge,
-            boolean isPaused,
-            boolean isVoided,
-            Date tryInReceivedDate,
-            String remarks
-    ) {
+    public NldClientRequest(String workOrderNum, String clinicName, String docName, String patientName, Date deliveryDate, String toothPosition, String prodName, Date tryInDate, String workOrderStatus, boolean isRemake, boolean isNoCharge, boolean isPaused, boolean isVoided, String remarks) {
         this.workOrderNum = workOrderNum;
         this.clinicName = clinicName;
         this.docName = docName;
         this.patientName = patientName;
-        this.receivedDate = receivedDate;
         this.deliveryDate = deliveryDate;
         this.toothPosition = toothPosition;
-        this.prodItem = prodItem;
         this.prodName = prodName;
         this.tryInDate = tryInDate;
-        this.estFinishDate = estFinishDate;
         this.workOrderStatus = workOrderStatus;
-        this.estTryInDate = estTryInDate;
-        this.price = price;
         this.isRemake = isRemake;
         this.isNoCharge = isNoCharge;
         this.isPaused = isPaused;
         this.isVoided = isVoided;
-        this.tryInReceivedDate = tryInReceivedDate;
         this.remarks = remarks;
     }
-
-
 
     public String getWorkOrderNum() {
         return workOrderNum;
@@ -132,14 +85,6 @@ public class NldSalesRequest {
         this.patientName = patientName;
     }
 
-    public Date getReceivedDate() {
-        return receivedDate;
-    }
-
-    public void setReceivedDate(Date receivedDate) {
-        this.receivedDate = receivedDate;
-    }
-
     public Date getDeliveryDate() {
         return deliveryDate;
     }
@@ -148,21 +93,12 @@ public class NldSalesRequest {
         this.deliveryDate = deliveryDate;
     }
 
-
     public String getToothPosition() {
         return toothPosition;
     }
 
     public void setToothPosition(String toothPosition) {
         this.toothPosition = toothPosition;
-    }
-
-    public String getProdItem() {
-        return prodItem;
-    }
-
-    public void setProdItem(String prodItem) {
-        this.prodItem = prodItem;
     }
 
     public String getProdName() {
@@ -181,14 +117,6 @@ public class NldSalesRequest {
         this.tryInDate = tryInDate;
     }
 
-    public Date getEstFinishDate() {
-        return estFinishDate;
-    }
-
-    public void setEstFinishDate(Date estFinishDate) {
-        this.estFinishDate = estFinishDate;
-    }
-
     public String getWorkOrderStatus() {
         return workOrderStatus;
     }
@@ -197,23 +125,7 @@ public class NldSalesRequest {
         this.workOrderStatus = workOrderStatus;
     }
 
-    public Date getEstTryInDate() {
-        return estTryInDate;
-    }
-
-    public void setEstTryInDate(Date estTryInDate) {
-        this.estTryInDate = estTryInDate;
-    }
-
-    public Integer getPrice() {
-        return price;
-    }
-
-    public void setPrice(Integer price) {
-        this.price = price;
-    }
-
-    public boolean getRemake() {
+    public boolean isRemake() {
         return isRemake;
     }
 
@@ -221,7 +133,7 @@ public class NldSalesRequest {
         isRemake = remake;
     }
 
-    public boolean getNoCharge() {
+    public boolean isNoCharge() {
         return isNoCharge;
     }
 
@@ -229,7 +141,7 @@ public class NldSalesRequest {
         isNoCharge = noCharge;
     }
 
-    public boolean getPaused() {
+    public boolean isPaused() {
         return isPaused;
     }
 
@@ -237,20 +149,12 @@ public class NldSalesRequest {
         isPaused = paused;
     }
 
-    public boolean getVoided() {
+    public boolean isVoided() {
         return isVoided;
     }
 
     public void setVoided(boolean voided) {
         isVoided = voided;
-    }
-
-    public Date getTryInReceivedDate() {
-        return tryInReceivedDate;
-    }
-
-    public void setTryInReceivedDate(Date tryInReceivedDate) {
-        this.tryInReceivedDate = tryInReceivedDate;
     }
 
     public String getRemarks() {

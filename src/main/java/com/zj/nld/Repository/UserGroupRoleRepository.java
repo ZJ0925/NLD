@@ -1,7 +1,7 @@
-package com.zj.nld.Repository.JpaRepository;
+package com.zj.nld.Repository;
 
 
-import com.zj.nld.Model.UserGroupRole;
+import com.zj.nld.Model.Entity.UserGroupRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;

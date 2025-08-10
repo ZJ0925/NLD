@@ -1,11 +1,10 @@
-package com.zj.nld.Repository.JpaRepository;
+package com.zj.nld.Repository;
 
-import com.zj.nld.DTO.NLDProdUnitRequest;
-import com.zj.nld.DTO.NLDRequest;
-import com.zj.nld.DTO.NldClientRequest;
-import com.zj.nld.DTO.NldSalesRequest;
-import com.zj.nld.Model.HVED;
-import com.zj.nld.Model.NLD;
+import com.zj.nld.Model.DTO.NLDProdUnitRequest;
+import com.zj.nld.Model.DTO.NLDRequest;
+import com.zj.nld.Model.DTO.NldClientRequest;
+import com.zj.nld.Model.DTO.NldSalesRequest;
+import com.zj.nld.Model.Entity.HVED;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Component;
@@ -21,7 +20,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
 
     //回傳業務可查看的資料
     @Query("""
-    SELECT new com.zj.nld.DTO.NldSalesRequest(
+    SELECT new com.zj.nld.Model.DTO.NldSalesRequest(
         h.workOrderNum,
         h.clinicName,
         h.docName,
@@ -53,7 +52,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
 
     //回傳客戶可查看的資料(診所)
     @Query("""
-    SELECT new com.zj.nld.DTO.NldClientRequest(
+    SELECT new com.zj.nld.Model.DTO.NldClientRequest(
         h.workOrderNum,
         h.clinicName,
         h.docName,
@@ -81,7 +80,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
 
     //回傳客戶可查看的資料(醫生)
     @Query("""
-    SELECT new com.zj.nld.DTO.NldClientRequest(
+    SELECT new com.zj.nld.Model.DTO.NldClientRequest(
         h.workOrderNum,
         h.clinicName,
         h.docName,
@@ -108,7 +107,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
 
     //回傳生產單位可查看的資料
     @Query("""
-    SELECT new com.zj.nld.DTO.NLDProdUnitRequest(
+    SELECT new com.zj.nld.Model.DTO.NLDProdUnitRequest(
         h.workOrderNum,
         h.clinicName,
         h.docName,
@@ -139,7 +138,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
 
 
     @Query("""
-    SELECT new com.zj.nld.DTO.NLDRequest(
+    SELECT new com.zj.nld.Model.DTO.NLDRequest(
         h.workOrderNum,
         h.clinicName,
         h.docName,

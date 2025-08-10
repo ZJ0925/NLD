@@ -1,88 +1,60 @@
-package com.zj.nld.Model;
+package com.zj.nld.Model.DTO;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.util.Date;
-import java.util.UUID;
 
-@Entity
-@Table(name = "NLD")
-public class NLD {
+public class NLDRequest {
 
-    @Id
-    @Column(name = "ExternalID")
-    private UUID externalID;
 
-    @Column(name = "NO1_DH")
     private String workOrderNum; // 1.技工單號
 
-    @Column(name = "CUN1_DH")
-    private String clinicName; // 2.診所名稱
+    private String clinicName; // 2.醫院名稱
 
-    @Column(name = "DOC1_DH")
     private String docName; // 3.醫師名稱
 
-    @Column(name = "SNAM_DH")
     private String patientName; // 4.患者名稱
 
-    @Column(name = "DAT_1_DH")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
     private Date receivedDate;  // 5.收件日
 
-    @Column(name = "DAT_4_DH")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
     private Date deliveryDate; // 6.完成交件日
 
-    @Column(name = "SALE_DH")
     private String salesIdNum; // 7.業務名稱
 
-    @Column(name = "TEENO_D")
-    private String toothPosition; // 8.齒位-----------------
+    private String toothPosition; // 8.齒位
 
-    @Column(name = "MITEM_D")
-    private String prodItem; // 9-1.製作項目-----------------
+    private String prodItem; // 9-1.製作項目
 
-    @Column(name = "PRO_D")
-    private String prodName; // 9-2. 產品名稱日-----------------
+    private String prodName; // 9-2. 產品名稱日
 
-    @Column(name = "DAT_5_DH")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
     private Date tryInDate; // 10.試戴交件
 
-    @Column(name = "DAT_3_DH")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
     private Date estFinishDate; // 11.預計完成日
 
-    @Column(name = "PREC_D")
-    private String workOrderStatus; // 13.工單現況;-----------------
+    private String workOrderStatus; // 13.工單現況;
 
-    @Column(name = "DAT_2_DH")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
     private Date estTryInDate; // 14.預計試戴日
 
-    @Column(name = "UNA_D")
-    private Integer price; // 15.單價-----------------
+    private Integer price; // 15.單價
 
-    @Column(name = "UN3E_DH")
     private boolean isRemake; // 16.重製
 
-    @Column(name = "CRM_DH")
     private boolean isNoCharge; // 17.不計價
 
-    @Column(name = "UN3_DH")
     private boolean isPaused; // 18.暫停
 
-    @Column(name = "UN2_DH")
     private boolean isVoided; // 19.作廢
 
-    @Column(name = "DAT_22_DH")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
     private Date tryInReceivedDate; // 20.試戴收件日
 
-    @Column(name = "RR__DH")
-    private String remarks; // 21.備註
+    private String remarks; // 21.試戴收件日
 
-    public UUID getExternalID() {
-        return externalID;
-    }
-
-    public void setExternalID(UUID externalID) {
-        this.externalID = externalID;
-    }
 
     public String getWorkOrderNum() {
         return workOrderNum;
@@ -204,7 +176,7 @@ public class NLD {
         this.price = price;
     }
 
-    public boolean isRemake() {
+    public boolean getRemake() {
         return isRemake;
     }
 
@@ -250,5 +222,36 @@ public class NLD {
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+
+
+    public NLDRequest(String workOrderNum, String clinicName, String docName, String patientName, Date receivedDate, Date deliveryDate, String salesIdNum, String toothPosition, String prodItem, String prodName, Date tryInDate, Date estFinishDate, String workOrderStatus, Date estTryInDate, Integer price, boolean isRemake, boolean isNoCharge, boolean isPaused, boolean isVoided, Date tryInReceivedDate, String remarks) {
+        this.workOrderNum = workOrderNum;
+
+        this.clinicName = clinicName;
+
+        this.docName = docName;
+
+        this.patientName = patientName;
+
+        this.receivedDate = receivedDate;
+
+        this.deliveryDate = deliveryDate;
+
+        this.salesIdNum = salesIdNum;
+        this.tryInDate = tryInDate;
+        this.estFinishDate = estFinishDate;
+        this.estTryInDate = estTryInDate;
+        this.isRemake = isRemake;
+        this.isNoCharge = isNoCharge;
+        this.isPaused = isPaused;
+        this.isVoided = isVoided;
+        this.tryInReceivedDate = tryInReceivedDate;
+        this.remarks = remarks;
+        this.toothPosition = toothPosition;
+        this.prodItem = prodItem;
+        this.prodName = prodName;
+        this.workOrderStatus = workOrderStatus;
+        this.price = price;
     }
 }

@@ -1,4 +1,4 @@
-package com.zj.nld.Model;
+package com.zj.nld.Model.Entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

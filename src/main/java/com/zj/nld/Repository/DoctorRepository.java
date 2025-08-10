@@ -1,8 +1,11 @@
-package com.zj.nld.Repository.JpaRepository;
+package com.zj.nld.Repository;
 
-import com.zj.nld.Model.doctor;
+import com.zj.nld.Model.Entity.GroupRole;
+import com.zj.nld.Model.Entity.doctor;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface DoctorRepository extends JpaRepository<doctor, String> {
     doctor findByDoctorId(String doctorId);
 }
+
+

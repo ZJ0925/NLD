@@ -1,7 +1,7 @@
 package com.zj.nld.Service;
 
-import com.zj.nld.Model.GroupRole;
-import com.zj.nld.Model.UserGroupRole;
+import com.zj.nld.Model.Entity.GroupRole;
+import com.zj.nld.Model.Entity.UserGroupRole;
 
 public interface PermissionService {
 

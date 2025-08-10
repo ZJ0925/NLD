@@ -1,9 +1,9 @@
 package com.zj.nld.Service.impl;
 
-import com.zj.nld.Model.GroupRole;
-import com.zj.nld.Model.UserGroupRole;
-import com.zj.nld.Repository.JpaRepository.GroupRoleRepositoroy;
-import com.zj.nld.Repository.JpaRepository.UserGroupRoleRepository;
+import com.zj.nld.Model.Entity.GroupRole;
+import com.zj.nld.Model.Entity.UserGroupRole;
+import com.zj.nld.Repository.GroupRoleRepository;
+import com.zj.nld.Repository.UserGroupRoleRepository;
 import com.zj.nld.Service.PermissionService;
 import org.springframework.stereotype.Service;
 
@@ -13,11 +13,11 @@ public class PermissionServiceImpl implements PermissionService {
 
     private final UserGroupRoleRepository userGroupRoleRepository;
 
-    private final GroupRoleRepositoroy groupRoleRepositoroy;
+    private final GroupRoleRepository groupRoleRepository;
 
-    public PermissionServiceImpl(UserGroupRoleRepository userGroupRoleRepository, GroupRoleRepositoroy groupRoleRepositoroy) {
+    public PermissionServiceImpl(UserGroupRoleRepository userGroupRoleRepository, GroupRoleRepository groupRoleRepository) {
         this.userGroupRoleRepository = userGroupRoleRepository;
-        this.groupRoleRepositoroy = groupRoleRepositoroy;
+        this.groupRoleRepository = groupRoleRepository;
     }
 
     // 在UserGroupRole根據lineID與groupID取得對應的權限ID
@@ -42,7 +42,7 @@ public class PermissionServiceImpl implements PermissionService {
 
     // // 在GroupRole根據groupID取得對應的權限ID
     public GroupRole getGroupRoleByGroupID(String groupID) {
-        GroupRole groupRole = groupRoleRepositoroy.findGroupRoleByGroupID(groupID);
+        GroupRole groupRole = groupRoleRepository.findGroupRoleByGroupID(groupID);
         if (groupRole != null) {
             return groupRole;
         }else{
