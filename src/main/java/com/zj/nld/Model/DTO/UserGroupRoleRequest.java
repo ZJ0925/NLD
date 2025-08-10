@@ -1,5 +1,7 @@
 package com.zj.nld.Model.DTO;
 
+import com.zj.nld.Model.Entity.GroupRole;
+import com.zj.nld.Model.Entity.UserGroupRole;
 import jakarta.persistence.Column;
 
 import java.util.UUID;
@@ -55,5 +57,14 @@ public class UserGroupRoleRequest {
 
     public void setRoleID(int roleID) {
         this.roleID = roleID;
+    }
+
+
+    public UserGroupRoleRequest(UserGroupRole userGroupRole) {
+        this.externalID = userGroupRole.getExternalID();
+        this.lineID = userGroupRole.getLineID();
+        this.userName = userGroupRole.getUserName();
+        this.groupID = userGroupRole.getGroupID();
+        this.roleID = userGroupRole.getRoleID();
     }
 }
