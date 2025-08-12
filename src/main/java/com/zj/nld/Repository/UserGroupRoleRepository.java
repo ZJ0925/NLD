@@ -20,10 +20,14 @@ public interface UserGroupRoleRepository extends JpaRepository<UserGroupRole, UU
     // 刪除使用者權限
     void deleteUserGroupRoleByExternalID(UUID externalID);
 
+    // 刪除使用者權限
+    void deleteUserGroupRoleByLineIDAndGroupID(String lineID, String groupID);
+
     //根據LINE ID和GrouppID找到權限資料
     UserGroupRole findByLineIDAndGroupID(String lineID, String groupID);
 
     //根據LINE ID找到權限資料
     UserGroupRole findByLineID(String lineID);
+
 
 }

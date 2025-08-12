@@ -3,16 +3,13 @@ package com.zj.nld.Service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.zj.nld.Model.Entity.GroupRole;
 import com.zj.nld.Model.Entity.UserGroupRole;
-import com.zj.nld.Service.JwtService;
-import com.zj.nld.Service.LineService;
-import com.zj.nld.Service.PermissionService;
+import com.zj.nld.Service.*;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Service
@@ -25,6 +22,11 @@ public class LineServiceImpl implements LineService {
     //權限服務
     private final PermissionService permissionService;
 
+    // 使用者權限服務
+    private final UserGroupRoleService userGroupRoleService;
+
+    private final GroupRoleService groupRoleService;
+
     // ngrok開啟網址：ngrok http --domain=bengal-charming-hyena.ngrok-free.app 8080
     private  final String ngrokURL = "https://bengal-charming-hyena.ngrok-free.app";
 
@@ -32,9 +34,11 @@ public class LineServiceImpl implements LineService {
     private final String url = ngrokURL + "/route/index.html?";
 
 
-    public LineServiceImpl(JwtService jwtService, PermissionService permissionService) {
+    public LineServiceImpl(JwtService jwtService, PermissionService permissionService, UserGroupRoleService userGroupRoleService, GroupRoleService groupRoleService) {
         this.jwtService = jwtService;
         this.permissionService = permissionService;
+        this.userGroupRoleService = userGroupRoleService;
+        this.groupRoleService = groupRoleService;
     }
 
     // LINE 的存取權杖（請換成你自己的）
@@ -51,39 +55,101 @@ public class LineServiceImpl implements LineService {
             // 檢查是否有 events
             if (events != null) {
                 for (int i = 0; i < events.size(); i++) {
+
+                    //
                     JSONObject event = events.getJSONObject(i);
+
                     // 取得事件類型，例如 "message"
                     String eventType = event.getString("type");
+                    System.out.println("動作類型: " + eventType);
+
                     // 取得回覆 Token
                     String replyToken = event.getString("replyToken");
 
-                    // 判斷是否為 "message" 事件
-                    if ("message".equals(eventType)) {
-                        // 取得 message 內容
-                        JSONObject message = event.getJSONObject("message");
 
-                        // 取得訊息類型
-                        String msgOrPic = message.getString("type");
 
-                        // 取得發送訊息的群組 ID
-                        String groupId = event.getJSONObject("source").getString("groupId");
-                        // 取得發送訊息的用戶 ID
-                        String userId = event.getJSONObject("source").getString("userId");
 
-                        System.out.println("群組ID :" + groupId);
-                        System.out.println("userId :" + userId);
+                    switch (eventType)
+                    {
+                        // 類型為訊息
+                        case "message" :
+                            //----------------------------message--------------------------------------------------
+                            // 取得 message 內容
+                            JSONObject message = event.getJSONObject("message");
+                            // 取得訊息類型
+                            String msgOrPic = message.getString("type");
+                            // 取得發送訊息的群組 ID
+                            String groupId = event.getJSONObject("source").getString("groupId");
+                            System.out.println("傳送訊息群組ID: " + groupId);
+                            // 取得發送訊息的用戶 ID
+                            String userId = event.getJSONObject("source").getString("userId");
+                            System.out.println("傳送訊息用戶Id: " + userId);
+                            //------------------------------------------------------------------------------
 
-                        // 處理不同類型的訊息
-                        if ("image".equals(msgOrPic)) {
-                            // 如果收到圖片訊息，可以在這裡添加處理邏輯
+                            // 處理不同類型的訊息
+                            if ("image".equals(msgOrPic)) {
+                                // 如果收到圖片訊息，可以在這裡添加處理邏輯
 
-                        } else if ("text".equals(msgOrPic)) {
-                            String messageText = event.getJSONObject("message").getString("text");
-                            String response = handleUserInput(userId, groupId, messageText);
-                            sendReply(replyToken, response);
-                        } else {
-                            System.out.println("不合法傳入, 請傳 image 及 text");
-                        }
+                            } else if ("text".equals(msgOrPic)) {
+                                String messageText = event.getJSONObject("message").getString("text");
+                                String response = handleUserInput(userId, groupId, messageText);
+                                sendReply(replyToken, response);
+                            } else {
+                                System.out.println("不合法傳入, 請傳 image 及 text");
+                            }
+                            break;
+
+                        case "memberLeft" :
+                            String leftGroupId = event.getJSONObject("source").getString("groupId");
+                            System.out.println("離開群組ID: " + leftGroupId);
+
+                            // 取得 left 區塊
+                            JSONObject left = event.getJSONObject("left");
+                            // 取得 members 陣列
+                            JSONArray members = left.getJSONArray("members");
+
+                            // 取出每一個 member
+                            for (int j = 0; j < members.size(); j++) {
+                                JSONObject leftMember = members.getJSONObject(j);
+                                String leftUserId = leftMember.getString("userId");
+                                System.out.println("離開的使用者 ID: " + leftUserId);
+                                deleteRole(leftUserId, leftGroupId);
+                            }
+                            break;
+                        case "memberJoined" :
+                            String joinGroupId = event.getJSONObject("source").getString("groupId");
+                            System.out.println("加入群組ID: " + joinGroupId);
+
+                            GroupRole groupRole = groupRoleService.findGroupRoleByGroupID(joinGroupId);
+
+                            if (groupRole != null) {
+                                // 取得 left 區塊
+                                JSONObject joined = event.getJSONObject("joined");
+                                // 取得 members 陣列
+                                JSONArray joinMembers = joined.getJSONArray("members");
+
+                                // 取出每一個 member
+                                for (int j = 0; j < joinMembers.size(); j++) {
+                                    JSONObject member = joinMembers.getJSONObject(j);
+                                    String joinUserId = member.getString("userId");
+                                    System.out.println("加入的使用者 ID: " + joinUserId);
+
+                                    UserGroupRole userGroupRole = new UserGroupRole();
+                                    userGroupRole.setExternalID(UUID.randomUUID());
+                                    userGroupRole.setLineID(joinUserId);
+                                    userGroupRole.setGroupID(joinGroupId);
+                                    userGroupRole.setRoleID(groupRole.getRoleID());
+                                    userGroupRole.setUserName(joinUserId);
+                                    userGroupRoleService.ceateUserGroupRole(userGroupRole);
+                                    break;
+                                }
+                            }else{
+                                break;
+                            }
+
+                        default :
+
+                            break;
                     }
                 }
             } else {
@@ -121,10 +187,6 @@ public class LineServiceImpl implements LineService {
     }
 
 
-    private String encode(String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8);
-    }
-
     //回覆訊息
     private void sendReply(String replyToken, String message) {
         // 若回覆內容為空，則不送出
@@ -159,4 +221,16 @@ public class LineServiceImpl implements LineService {
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
         rest.postForEntity(REPLY_URL, request, String.class);
     }
+
+
+    //將離開群組的用戶刪除權限
+    private  void deleteRole(String lineID, String groupId) {
+        GroupRole groupRole = groupRoleService.findGroupRoleByGroupID(groupId);
+        if (groupRole != null) {
+            userGroupRoleService.deleteUserGroupRole(lineID, groupId);
+        }
+    }
 }
+
+
+//private String encode(String value) {return URLEncoder.encode(value, StandardCharsets.UTF_8);}

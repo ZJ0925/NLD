@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 public class LINE_Controller {
     @Autowired
     private LineService lineService;
+
     //LINE控制查詢、
     //以後可搭配出傳出去的連結，網頁上可以加入表單ID就可以直接從網頁做更新表單的動作
     //使用@RequestParam來將群組ID及userId綁定在URL裡
