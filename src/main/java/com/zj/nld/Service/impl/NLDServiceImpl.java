@@ -1,16 +1,14 @@
 package com.zj.nld.Service.impl;
 
 import com.zj.nld.Model.DTO.NLDRequest;
+import com.zj.nld.Model.Entity.Doctor;
 import com.zj.nld.Model.Entity.GroupRole;
 import com.zj.nld.Model.Entity.UserGroupRole;
 import com.zj.nld.Repository.NLDRepository;
 import com.zj.nld.Model.DTO.NLDProdUnitRequest;
 import com.zj.nld.Model.DTO.NldClientRequest;
 import com.zj.nld.Model.DTO.NldSalesRequest;
-import com.zj.nld.Service.GroupRoleService;
-import com.zj.nld.Service.JwtService;
-import com.zj.nld.Service.NLDService;
-import com.zj.nld.Service.UserGroupRoleService;
+import com.zj.nld.Service.*;
 import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -33,6 +31,9 @@ public class NLDServiceImpl implements NLDService {
 
     @Autowired
     UserGroupRoleService userGroupRoleService;
+
+    @Autowired
+    DoctorService doctorService;
 
     @Override
     public List<NLDRequest> AdminSearch() {
@@ -86,12 +87,13 @@ public class NLDServiceImpl implements NLDService {
                 case 1 -> nldRepository.findAll();
                 // 客戶(需做診所篩選)
                 case 2 -> {
+                    Doctor doctor = doctorService.findByDoctorName(groupRole.getGroupName());
                     if(groupId == null)
                     {
-                        yield nldRepository.ClientForDocSearch(groupRole.getGroupName(), userGroupRole.getUserName());
+                        yield nldRepository.ClientForDocSearch(doctor.getDocName(), userGroupRole.getUserName());
 
                     }else {
-                        yield nldRepository.ClientSearch(groupRole.getGroupName());
+                        yield nldRepository.ClientSearch(doctor.getDocName());
                     }
                 }
                 // 業務

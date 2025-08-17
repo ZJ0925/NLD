@@ -308,18 +308,18 @@ public class LineServiceImpl implements LineService {
                             return "尚無權限或查詢權限尚未開啟";
                         }
                         // 產生 JWT token 並組成查詢網址回傳
-                        String token = jwtService.generateToken(userId, groupId, userGroupRole.getRoleID());
+                        String token = jwtService.generateToken(userId, groupId, fUserGroupRole.getRoleID());
                         return url + token;
                     }
 
                     // 若群組權限查不到，再透過 userId 查使用者在其他群組的權限
-                    UserGroupRole userGroupRoleByLineId = userGroupRoleService.findByLineID(userId);
+                    UserGroupRole oUserGroupRoleByLineId = userGroupRoleService.findByLineID(userId);
 
-                    if (userGroupRoleByLineId != null) {
+                    if (oUserGroupRoleByLineId != null) {
                         String token = jwtService.generateToken(
                                 userId,
-                                userGroupRoleByLineId.getGroupID(),
-                                userGroupRoleByLineId.getRoleID()
+                                oUserGroupRoleByLineId.getGroupID(),
+                                oUserGroupRoleByLineId.getRoleID()
                         );
                         return url + token;
                     }

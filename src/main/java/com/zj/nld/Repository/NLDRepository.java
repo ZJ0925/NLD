@@ -98,7 +98,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     )
     FROM HVED h
     JOIN VED v ON
-        h.compdh = v.comph 
+        h.compdh = v.comph
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%' AND h.clinicName = :clientName And h.docName = :docName
 """)
     List<NldClientRequest> ClientForDocSearch(String clientName, String docName);
