@@ -5,6 +5,7 @@ import com.zj.nld.Repository.GroupRoleRepository;
 import com.zj.nld.Service.GroupRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class GroupRoleServiceImpl implements GroupRoleService {
@@ -40,6 +41,7 @@ public class GroupRoleServiceImpl implements GroupRoleService {
 
     //刪除群組
     @Override
+    @Transactional
     public void deleteGroupRoleByGroupID(String groupID){
         groupRoleRepository.deleteGroupRoleByGroupID(groupID);
     }
