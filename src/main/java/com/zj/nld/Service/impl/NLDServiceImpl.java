@@ -4,6 +4,7 @@ import com.zj.nld.Model.DTO.NLDRequest;
 import com.zj.nld.Model.Entity.Doctor;
 import com.zj.nld.Model.Entity.GroupRole;
 import com.zj.nld.Model.Entity.UserGroupRole;
+import com.zj.nld.Repository.GroupRoleRepository;
 import com.zj.nld.Repository.NLDRepository;
 import com.zj.nld.Model.DTO.NLDProdUnitRequest;
 import com.zj.nld.Model.DTO.NldClientRequest;
@@ -34,6 +35,8 @@ public class NLDServiceImpl implements NLDService {
 
     @Autowired
     DoctorService doctorService;
+    @Autowired
+    private GroupRoleRepository groupRoleRepository;
 
     @Override
     public List<NLDRequest> AdminSearch() {
@@ -100,6 +103,43 @@ public class NLDServiceImpl implements NLDService {
                 case 3 -> nldRepository.SalesSearch();
                 // 生產單位
                 case 4 -> nldRepository.ProdUnitSearch();
+                default -> null;
+            };
+        }
+        throw new RuntimeException("驗證失敗");
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------
+
+
+    @Override
+    public List<GroupRole> getAdminByToken(String token) {
+        jwtService.isTokenValid(token);
+        Claims claims = jwtService.parseToken(token);
+        //從token讀取lineId
+        String lineId = claims.get("lineId", String.class);
+        //從token讀取groupId
+        String groupId = claims.get("groupId", String.class);
+
+        //從token讀取roleId
+        int roleId = claims.get("roleId", Integer.class);
+
+        // 找到Group可以使用的權限
+        GroupRole groupRole = groupRoleService.getGroupRoleByGroupID(groupId);
+
+        // 找到該user所在的group可使用的權限
+        UserGroupRole userGroupRole = userGroupRoleService.getRoleId(lineId, groupId);
+
+
+
+        if (((groupId == null) && (userGroupRole.getRoleID() == roleId)) ||
+                ((groupRole.getRoleID() == userGroupRole.getRoleID()) &&
+                        (userGroupRole.getRoleID() == roleId) &&
+                        (groupRole.getRoleID() == roleId)))
+        {
+            return switch (roleId) {
+                // 管理者
+                case 1 -> groupRoleRepository.findAll();
                 default -> null;
             };
         }

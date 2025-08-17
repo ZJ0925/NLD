@@ -4,6 +4,7 @@ import com.zj.nld.Model.DTO.NLDProdUnitRequest;
 import com.zj.nld.Model.DTO.NLDRequest;
 import com.zj.nld.Model.DTO.NldClientRequest;
 import com.zj.nld.Model.DTO.NldSalesRequest;
+import com.zj.nld.Model.Entity.GroupRole;
 
 import java.util.List;
 
@@ -22,4 +23,6 @@ public interface NLDService {
     List<NLDProdUnitRequest> getNLDByProdUnit();
 
     List<?> getNLDByToken(String token);
+
+    List<GroupRole> getAdminByToken(String token);
 }

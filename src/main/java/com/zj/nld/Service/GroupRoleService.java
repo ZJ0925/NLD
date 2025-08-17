@@ -17,5 +17,5 @@ public interface GroupRoleService {
     void deleteGroupRoleByGroupID(String groupID);
 
     // 在GroupRole根據groupID取得對應的權限ID
-    public GroupRole getGroupRoleByGroupID(String groupID);
+    GroupRole getGroupRoleByGroupID(String groupID);
 }

@@ -59,6 +59,24 @@ public class JwtServiceImpl implements JwtService {
         };
     }
 
+    // 6.使用者觸發查詢，呼叫此方法建立 token
+    public String generateAdminToken(String lineId, String groupId, Integer roleId) {
+        String jWT = Jwts.builder()
+                .setSubject("NLD-Admin") // 7.設定 token 主題
+                .claim("lineId", lineId)  // 8.加入自定義欄位：LINE ID
+                .claim("groupId", groupId) // 9.加入自定義欄位：群組 ID
+                .claim("roleId", roleId)
+                .setIssuedAt(new Date()) // 11.設定 token 發出時間
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_MILLIS)) // 12.設定 token 過期時間
+                .signWith(key, SignatureAlgorithm.HS256) // 13.使用密鑰和演算法簽名
+                .compact(); // 14.最後產出 JWT 字串
+
+        return switch (roleId) {
+            case 1 -> "type=Admin&token=" + jWT;
+            default -> null;
+        };
+    }
+
 
     // 15.解析出 Claims（Payload 內容）
     public Claims parseToken(String token) {

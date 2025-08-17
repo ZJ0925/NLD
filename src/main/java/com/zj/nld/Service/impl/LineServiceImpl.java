@@ -30,6 +30,8 @@ public class LineServiceImpl implements LineService {
     // 表單網址
     private final String url = ngrokURL + "/route/index.html?";
 
+    private final String adminURL = ngrokURL + "/route/GroupRole.html?";
+
 
     public LineServiceImpl(JwtService jwtService, UserGroupRoleService userGroupRoleService, GroupRoleService groupRoleService) {
         this.jwtService = jwtService;
@@ -295,8 +297,6 @@ public class LineServiceImpl implements LineService {
 
                 //修改群組名稱才可以加入使用者權限------------------------------------------------------------------------------------------
                 }else if ("表單查詢".equals(text)) {
-                    // 使用者想要查詢表單，開始權限判斷流程
-
                     // 先透過 userId 和 groupId 查詢該使用者在該群組的權限
                     UserGroupRole fUserGroupRole = userGroupRoleService.getRoleId(userId, groupId);
                     GroupRole fGroupRole = groupRoleService.findGroupRoleByGroupID(groupId);
@@ -326,7 +326,40 @@ public class LineServiceImpl implements LineService {
 
                     // 以上都查不到權限，回覆沒有權限訊息
                     return "尚無權限";
+                // 權限管理指令
+                }else if ("權限管理".equals(text)) {
+
+                    // 先透過 userId 和 groupId 查詢該使用者在該群組的權限
+                    UserGroupRole aUserGroupRole = userGroupRoleService.getRoleId(userId, groupId);
+                    GroupRole aGroupRole = groupRoleService.findGroupRoleByGroupID(groupId);
+
+
+                    if (aUserGroupRole != null && aGroupRole != null) {
+                        // 如果找到權限，判斷 RoleID 是否為 1 (Admin)
+                        if (aGroupRole.getRoleID() != 1 ) {
+                            return "尚無權限或查詢權限尚未開啟";
+                        }
+                        // 產生 JWT token 並組成查詢網址回傳
+                        String token = jwtService.generateAdminToken(userId, groupId, aGroupRole.getRoleID());
+                        return adminURL + token;
+                    }
+
+                    // 若群組權限查不到，再透過 userId 查使用者在其他群組的權限
+                    UserGroupRole oUserGroupRoleByLineId = userGroupRoleService.findByLineID(userId);
+
+                    if (aUserGroupRole != null && aUserGroupRole.getRoleID()== 1) {
+                        String token = jwtService.generateAdminToken(
+                                userId,
+                                oUserGroupRoleByLineId.getGroupID(),
+                                oUserGroupRoleByLineId.getRoleID()
+                        );
+                        return adminURL + token;
+                    }
+
+                    // 以上都查不到權限，回覆沒有權限訊息
+                    return "尚無權限";
                 }else{
+
                     // 使用者輸入的不是支援的指令，這裡目前設計不回覆訊息
                     // 若要回覆提示，可改成 return "請輸入『表單查詢』或『修改群組名稱』";
                     return null;
