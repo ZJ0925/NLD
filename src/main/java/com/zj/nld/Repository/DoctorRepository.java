@@ -5,7 +5,7 @@ import com.zj.nld.Model.Entity.doctor;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface DoctorRepository extends JpaRepository<doctor, String> {
-    doctor findByDoctorId(String doctorId);
+    doctor findByDoctorName(String doctorName);
 }
 
 

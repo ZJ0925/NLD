@@ -18,4 +18,41 @@ public class GroupRoleServiceImpl implements GroupRoleService {
         return groupRoleRepository.findGroupRoleByGroupID(groupID);
     }
 
+
+
+    // 新增群組
+    @Override
+    public GroupRole createGroupRole(GroupRole groupRole){
+        return groupRoleRepository.save(groupRole);
+    }
+
+    // 更新群組名稱
+    @Override
+    public boolean updateGroupRole(GroupRole groupRole){
+        try {
+            groupRoleRepository.save(groupRole);
+            return true;
+        }catch (Exception e){
+            return false;
+        }
+    }
+
+
+    //刪除群組
+    @Override
+    public void deleteGroupRoleByGroupID(String groupID){
+        groupRoleRepository.deleteGroupRoleByGroupID(groupID);
+    }
+
+    // 在GroupRole根據groupID取得對應的權限ID
+    @Override
+    public GroupRole getGroupRoleByGroupID(String groupID) {
+        GroupRole groupRole = groupRoleRepository.findGroupRoleByGroupID(groupID);
+        if (groupRole != null) {
+            return groupRole;
+        }else{
+            return null;
+        }
+    }
+
 }

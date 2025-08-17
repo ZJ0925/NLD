@@ -7,9 +7,10 @@ import com.zj.nld.Repository.NLDRepository;
 import com.zj.nld.Model.DTO.NLDProdUnitRequest;
 import com.zj.nld.Model.DTO.NldClientRequest;
 import com.zj.nld.Model.DTO.NldSalesRequest;
+import com.zj.nld.Service.GroupRoleService;
 import com.zj.nld.Service.JwtService;
 import com.zj.nld.Service.NLDService;
-import com.zj.nld.Service.PermissionService;
+import com.zj.nld.Service.UserGroupRoleService;
 import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,7 +29,10 @@ public class NLDServiceImpl implements NLDService {
     private JwtService jwtService;
 
     @Autowired
-    private PermissionService permissionService;
+    private GroupRoleService groupRoleService;
+
+    @Autowired
+    UserGroupRoleService userGroupRoleService;
 
     @Override
     public List<NLDRequest> AdminSearch() {
@@ -65,10 +69,10 @@ public class NLDServiceImpl implements NLDService {
         int roleId = claims.get("roleId", Integer.class);
 
         // 找到Group可以使用的權限
-        GroupRole groupRole = permissionService.getGroupRoleByGroupID(groupId);
+        GroupRole groupRole = groupRoleService.getGroupRoleByGroupID(groupId);
 
         // 找到該user所在的group可使用的權限
-        UserGroupRole userGroupRole = permissionService.getRoleId(lineId, groupId);
+        UserGroupRole userGroupRole = userGroupRoleService.getRoleId(lineId, groupId);
 
 
 

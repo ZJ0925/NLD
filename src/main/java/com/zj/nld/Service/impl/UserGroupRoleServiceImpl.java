@@ -27,4 +27,36 @@ public class UserGroupRoleServiceImpl implements UserGroupRoleService {
     public void deleteUserGroupRole(String lineID, String groupID) {
         userGroupRoleRepository.deleteUserGroupRoleByLineIDAndGroupID(lineID, groupID);
     }
+
+    // 在UserGroupRole根據lineID與groupID取得對應的權限ID
+    @Override
+    public UserGroupRole getRoleId(String lineId, String groupId) {
+        UserGroupRole userGroupRole = userGroupRoleRepository.findByLineIDAndGroupID(lineId, groupId);
+        if (userGroupRole != null) {
+            return userGroupRole;
+        }else {
+            return null;
+        }
+    }
+
+
+    // 在UserGroupRole根據lineID與groupID取得對應的權限ID
+    @Override
+    public UserGroupRole findByLineID(String lineId) {
+        UserGroupRole userGroupRole = userGroupRoleRepository.findByLineID(lineId);
+        if (userGroupRole != null) {
+            return userGroupRole;
+        }else {
+            return null;
+        }
+    }
+
+    public boolean updateUserGroupRole(UserGroupRole userGroupRole) {
+        try {
+            userGroupRoleRepository.save(userGroupRole);
+            return true;
+        }catch (Exception e) {
+            return false;
+        }
+    }
 }

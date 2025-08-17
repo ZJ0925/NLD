@@ -19,9 +19,6 @@ public class LineServiceImpl implements LineService {
     // JWT服務
     private final JwtService jwtService;
 
-    //權限服務
-    private final PermissionService permissionService;
-
     // 使用者權限服務
     private final UserGroupRoleService userGroupRoleService;
 
@@ -34,9 +31,8 @@ public class LineServiceImpl implements LineService {
     private final String url = ngrokURL + "/route/index.html?";
 
 
-    public LineServiceImpl(JwtService jwtService, PermissionService permissionService, UserGroupRoleService userGroupRoleService, GroupRoleService groupRoleService) {
+    public LineServiceImpl(JwtService jwtService, UserGroupRoleService userGroupRoleService, GroupRoleService groupRoleService) {
         this.jwtService = jwtService;
-        this.permissionService = permissionService;
         this.userGroupRoleService = userGroupRoleService;
         this.groupRoleService = groupRoleService;
     }
@@ -66,7 +62,8 @@ public class LineServiceImpl implements LineService {
                     // 取得回覆 Token
                     String replyToken = event.getString("replyToken");
 
-
+                    UserGroupRole userGroupRole =  new UserGroupRole();;
+                    GroupRole groupRole =  new GroupRole();;
 
 
                     switch (eventType)
@@ -120,7 +117,7 @@ public class LineServiceImpl implements LineService {
                             String joinGroupId = event.getJSONObject("source").getString("groupId");
                             System.out.println("加入群組ID: " + joinGroupId);
 
-                            GroupRole groupRole = groupRoleService.findGroupRoleByGroupID(joinGroupId);
+                            groupRole = groupRoleService.findGroupRoleByGroupID(joinGroupId);
 
                             if (groupRole != null) {
                                 // 取得 left 區塊
@@ -134,7 +131,7 @@ public class LineServiceImpl implements LineService {
                                     String joinUserId = member.getString("userId");
                                     System.out.println("加入的使用者 ID: " + joinUserId);
 
-                                    UserGroupRole userGroupRole = new UserGroupRole();
+
                                     userGroupRole.setExternalID(UUID.randomUUID());
                                     userGroupRole.setLineID(joinUserId);
                                     userGroupRole.setGroupID(joinGroupId);
@@ -146,6 +143,22 @@ public class LineServiceImpl implements LineService {
                             }else{
                                 break;
                             }
+
+                        //機器人加入群組
+                        case "join" :
+                            System.out.println("新增群組權限");
+                            groupRole.setGroupID(event.getJSONObject("source").getString("groupId"));
+                            groupRole.setGroupName(event.getJSONObject("source").getString("groupId"));
+                            groupRole.setRoleID(0);
+                            groupRole.setDescription(null);
+                            groupRoleService.createGroupRole(groupRole);
+                            break;
+
+                        case "leave" :
+                            String leaveGroupId = event.getJSONObject("source").getString("groupId");
+                            System.out.println("groupId: " + leaveGroupId);
+                            groupRoleService.deleteGroupRoleByGroupID(leaveGroupId);
+                            break;
 
                         default :
 
@@ -162,29 +175,151 @@ public class LineServiceImpl implements LineService {
         return "OK";
     }
 
-    // 使用者輸入查詢表單，根據權限回傳相對網址+token
+
+    // 紀錄每個使用者目前的對話狀態，例如是否在等待輸入新群組名稱
+    HashMap<String, String> userState = new HashMap<>();
+
     private String handleUserInput(String userId, String groupId, String text) {
-        if (text.equals("表單查詢"))
-        {
-            //透過userId, groupId查看在資料庫有無資料
-            UserGroupRole userGroupRole = permissionService.getRoleId(userId, groupId);
-            //透過userId查看在資料庫有無資料
-            UserGroupRole userGroupRoleByLineId = permissionService.findByLineID(userId);
-            if (userGroupRole != null){
-                //針對群組回覆回傳資料
-                return url + (jwtService.generateToken(userId, groupId, permissionService.getRoleId(userId, groupId).getRoleID()));
-            }else if(userGroupRoleByLineId != null){
-                //針對私訊機器人回傳資料
-                return url + (jwtService.generateToken(
-                        userId, permissionService.findByLineID(userId).getGroupID(), permissionService.findByLineID(userId).getRoleID()));
-            }else{
-                //沒有找到代表沒有權限查看
-                return "尚無權限";
-            }
-        }else{
-            return null;
+        // 取得使用者目前的狀態，預設是 "default"
+        String state = userState.getOrDefault(userId, "default");
+        GroupRole groupRole = new GroupRole();
+        UserGroupRole userGroupRole = new UserGroupRole();
+        boolean updateResult = false;
+
+
+        switch (state) {
+            case "awaiting_new_group_name":
+                if (text.equals("取消")){
+                    // 狀態清除，結束修改流程
+                    userState.remove(userId);
+                    return "已取消修改使用者名稱";
+                }
+                groupRole = groupRoleService.findGroupRoleByGroupID(groupId);
+
+
+                // 呼叫服務更新群組名稱，傳入群組ID與新名稱
+                groupRole.setGroupName(text);
+
+                updateResult = groupRoleService.updateGroupRole(groupRole);
+
+
+                // 狀態清除，結束修改流程
+                userState.remove(userId);
+
+                // 根據更新結果回覆使用者
+                if (updateResult) {
+                    return "已成功將群組名稱修改為：" + text;
+                } else {
+                    return "修改失敗，請稍後再試";
+                }
+
+            case "awaiting_new_user_name":
+                if (text.equals("取消")){
+                    // 狀態清除，結束修改流程
+                    userState.remove(userId);
+                    return "已取消修改使用者名稱";
+                }
+                userGroupRole = userGroupRoleService.getRoleId(userId, groupId);
+                userGroupRole.setUserName(text);
+                updateResult = userGroupRoleService.updateUserGroupRole(userGroupRole);
+                if (updateResult) {
+                    userState.remove(userId);
+                    return  "已成功將使用者名稱修改為：" + text;
+                }else{
+                    userState.remove(userId);
+                    return "修改失敗，請稍後再試";
+                }
+            default:
+                //機器人指令------------------------------------------------------------------------------------------
+                if ("新生指令".equals(text)) {
+                    return "目前支援的指令如下：\n"
+                            + "1️⃣ 「修改群組名稱」：輸入指令後，機器人會要求您輸入公司或診所的全名，日後參照表單資料做查詢，只能重新命名一次，若要重新命名，請將機器人退出重新加入即可。待更新後，將由管理人員進行審核。\n"
+                            + "2️⃣ 「將我加入權限」：為本群組新增使用者權限，在此之前需先更新群組名稱\n"
+                            + "3️⃣ 「修改我的名稱」：使用此命令修改使用者的名稱，請輸入使用者全名\n"
+                            + "4️⃣ 「表單查詢」：查詢群組相關表單資料，需具備權限\n";
+                //先在群組修改群組名稱，以日後可以從群組查詢有關該診所資料------------------------------------------------------------------------------------------
+                } else if ("修改群組名稱".equals(text)) {
+                    groupRole = groupRoleService.findGroupRoleByGroupID(groupId);
+                    if (groupRole.getGroupID().equals(groupRole.getGroupName())){
+                        // 偵測到使用者想要修改群組名稱，切換狀態等待輸入新名稱
+                        userState.put(userId, "awaiting_new_group_name");
+                        return "請輸入想要修改的群組名稱(名稱請修改為公司全名稱)";
+                    }else{
+                        return "群組名稱已修改過，需要再次修改請將機器人移出群組並重新加入";
+                    }
+                //使用者加入權限------------------------------------------------------------------------------------------
+                } else if("將我加入權限".equals(text)) {
+                    if(groupId == null){
+                        return "請至群組內使用該指令";
+                    }
+                    groupRole = groupRoleService.findGroupRoleByGroupID(groupId);
+                    if (groupRole.getRoleID() != 0){
+                        userGroupRole.setExternalID(UUID.randomUUID());
+                        userGroupRole.setLineID(userId);
+                        userGroupRole.setUserName(userId);
+                        userGroupRole.setGroupID(groupId);
+                        userGroupRole.setRoleID(groupRole.getRoleID());
+                        userGroupRoleService.ceateUserGroupRole(userGroupRole);
+                        return "使用者權限新增完成";
+                    }else if (groupRole != null){
+                        return "已加入權限，若還是無法查詢表單，請檢查使用者名稱即群組名稱有無確實更改";
+                    }else{
+                        return "群組權限可能尚未開通，或群組名稱尚未更新，請稍後再試一次";
+                    }
+                //修改使用者名稱才可以在私訊機器人後得到群組資料------------------------------------------------------------------------------------------
+                }else if ("修改我的名稱".equals(text)) {
+                    userGroupRole = userGroupRoleService.findByLineID(userId);
+                    groupRole = groupRoleService.findGroupRoleByGroupID(groupId);
+                    if (userGroupRole.getGroupID().equals(groupRole.getGroupID()) && groupRole.getRoleID() != 0 && userGroupRole.getLineID().equals(userGroupRole.getUserName())) {
+                        userState.put(userId, "awaiting_new_user_name");
+                        return "請輸入想要修改的使用者名稱(名稱請修改為使用者全名)";
+                    }else if (!userGroupRole.getLineID().equals(userGroupRole.getUserName())) {
+                        return "已修改過，請重新加入群組來修改名稱";
+                    }else{
+                        return "群組權限可能尚未開通，或群族名稱尚未更新，因此無法進行使用者名稱的修改";
+                    }
+
+                //修改群組名稱才可以加入使用者權限------------------------------------------------------------------------------------------
+                }else if ("表單查詢".equals(text)) {
+                    // 使用者想要查詢表單，開始權限判斷流程
+
+                    // 先透過 userId 和 groupId 查詢該使用者在該群組的權限
+                    userGroupRole = userGroupRoleService.getRoleId(userId, groupId);
+                    groupRole = groupRoleService.findGroupRoleByGroupID(groupId);
+
+
+                    if (userGroupRole != null && groupRole != null) {
+                        // 如果找到權限，判斷 RoleID 是否為 0 (無權限)
+                        if (groupRole.getRoleID() == 0 ) {
+                            return "尚無權限或查詢權限尚未開啟";
+                        }
+                        // 產生 JWT token 並組成查詢網址回傳
+                        String token = jwtService.generateToken(userId, groupId, userGroupRole.getRoleID());
+                        return url + token;
+                    }
+
+                    // 若群組權限查不到，再透過 userId 查使用者在其他群組的權限
+                    UserGroupRole userGroupRoleByLineId = userGroupRoleService.findByLineID(userId);
+
+                    if (userGroupRoleByLineId != null) {
+                        String token = jwtService.generateToken(
+                                userId,
+                                userGroupRoleByLineId.getGroupID(),
+                                userGroupRoleByLineId.getRoleID()
+                        );
+                        return url + token;
+                    }
+
+                    // 以上都查不到權限，回覆沒有權限訊息
+                    return "尚無權限";
+                }else{
+                    // 使用者輸入的不是支援的指令，這裡目前設計不回覆訊息
+                    // 若要回覆提示，可改成 return "請輸入『表單查詢』或『修改群組名稱』";
+                    return null;
+                }
         }
     }
+
 
 
     //回覆訊息
@@ -233,4 +368,11 @@ public class LineServiceImpl implements LineService {
 }
 
 
-//private String encode(String value) {return URLEncoder.encode(value, StandardCharsets.UTF_8);}
+// 未來多個指令可使用
+//Map<String, Function<UserContext, String>> commandHandlers = new HashMap<>();
+//
+//commandHandlers.put("表單查詢", this::handleFormQuery);
+//commandHandlers.put("修改群組名稱", this::handleRenameGroup);
+//// ...
+//
+//String response = commandHandlers.getOrDefault(text, this::handleUnknown).apply(context);
