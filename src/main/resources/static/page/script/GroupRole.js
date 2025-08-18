@@ -9,10 +9,12 @@ function base64UrlDecode(str) {
 
 // Token檢查函數
 (function checkTokenOnPageLoad() {
+
     // 從URL解析參數
     const urlParams = new URLSearchParams(window.location.search);
     let type = urlParams.get('type');
     let token = urlParams.get('token');
+    alert("取得的 token:" + token);
 
     if (!type || !token) {
         alert("缺少必要參數，請檢查連結");
@@ -89,7 +91,6 @@ const resetBtn = document.getElementById('resetBtn');
 
 // 初始化頁面
 function initializePage() {
-    setupEventListeners();
     loadDataFromAPI();
 }
 
@@ -149,43 +150,42 @@ function setupEventListeners() {
 }
 
 // 從API載入數據
-function loadDataFromAPI() {
-    // 構建API URL
-    const protocol = window.location.protocol;
-    const host = window.location.host;
-    const apiUrl = `${protocol}//${host}/Admin/token/${window.userType}/${window.userToken}`;
+async function loadDataFromAPI() {
+    if (!window.userType || !window.userToken) {
+        console.error("User type 或 token 未設定，無法載入資料");
+        return;
+    }
 
-    console.log("API URL:", apiUrl);
+    const encodedToken = encodeURIComponent(window.userToken);
+    const apiUrl = `${window.location.protocol}//${window.location.host}/Admin/token/${window.userType}/${encodedToken}`;
 
-    fetch(apiUrl)
-        .then(res => {
-            if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-            return res.json();
-        })
-        .then(data => {
-            console.log("成功取得資料:", data);
-            originalData = Array.isArray(data) ? data : [];
-            filteredData = [...originalData];
+    try {
+        const res = await fetch(apiUrl);
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
 
-            // 移除載入中的行
-            if (loadingRow) {
-                loadingRow.remove();
-            }
+        const data = await res.json();
+        console.log("成功取得資料:", data);
+        originalData = Array.isArray(data) ? data : [];
+        filteredData = [...originalData];
 
-            renderTable();
-            updatePagination();
-        })
-        .catch(err => {
-            console.error("API 錯誤", err);
-            if (loadingRow) {
-                loadingRow.innerHTML = `
-                    <td colspan="3" class="error-message">
-                        無法載入資料：${err.message}<br>
-                        請檢查網路連線或聯絡系統管理員
-                    </td>
-                `;
-            }
-        });
+        if (loadingRow) {
+            loadingRow.remove();
+        }
+
+        renderTable();
+        updatePagination();
+
+    } catch (err) {
+        console.error("API 錯誤", err);
+        if (loadingRow) {
+            loadingRow.innerHTML = `
+                <td colspan="3" class="error-message">
+                    無法載入資料：${err.message}<br>
+                    請檢查網路連線或聯絡系統管理員
+                </td>
+            `;
+        }
+    }
 }
 
 // 防抖函數
@@ -458,15 +458,80 @@ function createEllipsis() {
 
 // 獲取變更的數據 (供後端API調用)
 function getChangedData() {
-    const changedData = originalData.filter(item => changedRows.has(item.groupId));
+    const changedData = originalData.filter(item => changedRows.has(item.GroupID));
     return changedData.map(item => ({
-        groupId: item.groupId,
-        groupName: item.groupName,
-        description: item.description,
-        roleId: item.roleId
+        groupId: item.GroupID,
+        groupName: item.GroupName,
+        description: item.Description,
+        roleId: item.RoleID
     }));
 }
 
 // 將函數暴露到全局作用域，供外部調用
 window.getChangedData = getChangedData;
 window.resetFilters = resetFilters;
+
+
+window.addEventListener('DOMContentLoaded', () => {
+    // 抓取 DOM 元素
+    const filterBtn = document.getElementById('filterBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const searchGroupName = document.getElementById('searchGroupName');
+    const searchDescription = document.getElementById('searchDescription');
+    const searchRole = document.getElementById('searchRole');
+    const itemsPerPageSelect = document.getElementById('itemsPerPage');
+    const sortTriangle = document.getElementById('sortTriangle');
+    const prevPageBtn = document.getElementById('prevPage');
+    const nextPageBtn = document.getElementById('nextPage');
+
+    // 綁定事件
+    filterBtn.addEventListener('click', filterData);
+    resetBtn.addEventListener('click', resetFilters);
+
+    [searchGroupName, searchDescription].forEach(input => {
+        input.addEventListener('keypress', e => {
+            if (e.key === 'Enter') {
+                filterData();
+            }
+        });
+    });
+
+    searchRole.addEventListener('change', filterData);
+
+    itemsPerPageSelect.addEventListener('change', function() {
+        itemsPerPage = parseInt(this.value);
+        currentPage = 1;
+        renderTable();
+        updatePagination();
+    });
+
+    sortTriangle.addEventListener('click', () => {
+        if (currentSort === 'none' || currentSort === 'desc') {
+            sortData('asc');
+            updateSortTriangle('asc');
+        } else {
+            sortData('desc');
+            updateSortTriangle('desc');
+        }
+    });
+
+    prevPageBtn.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderTable();
+            updatePagination();
+        }
+    });
+
+    nextPageBtn.addEventListener('click', () => {
+        const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderTable();
+            updatePagination();
+        }
+    });
+
+    // 初始化頁面
+    initializePage();
+});

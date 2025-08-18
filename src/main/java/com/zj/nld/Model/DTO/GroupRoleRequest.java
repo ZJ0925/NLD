@@ -1,16 +1,21 @@
 package com.zj.nld.Model.DTO;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.zj.nld.Model.Entity.GroupRole;
 import jakarta.persistence.Column;
 
 public class GroupRoleRequest {
 
+    @JsonProperty("GroupID")
     private String groupID; // 群組ID
 
+    @JsonProperty("GroupName")
     private String groupName; // 群組名稱(EX:診所名稱)
 
+    @JsonProperty("Description")
     private String description; // 群組描述
 
+    @JsonProperty("RoleID")
     private Integer roleID;
 
     public GroupRoleRequest(GroupRole groupRole) {

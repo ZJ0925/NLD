@@ -149,8 +149,8 @@
         }
 
         .table-container {
-            flex: 1;
-            overflow: auto;
+            position: relative;
+            min-height: 200px; /* 防止初始高度為 0，根據需要調整 */
         }
 
         table {
@@ -336,21 +336,28 @@
 
         /* 載入中樣式 */
         .loading-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.8); /* 半透明背景 */
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 200px;
             flex-direction: column;
+            z-index: 10;
+            pointer-events: none; /* 可選：避免阻擋點擊 */
         }
 
         .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #008390;
+            border: 5px solid #ccc;
+            border-top: 5px solid #333;
             border-radius: 50%;
             width: 40px;
             height: 40px;
             animation: spin 1s linear infinite;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         @keyframes spin {
@@ -385,7 +392,7 @@
         <div class="filter-group">
             <label for="searchRole">權限</label>
             <select id="searchRole">
-                <option value="">全部權限</option>
+                <option value="">請選擇</option>
                 <option value="0">0 - 無權限</option>
                 <option value="1">1 - 管理員</option>
                 <option value="2">2 - 客戶</option>
