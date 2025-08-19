@@ -70,7 +70,7 @@
             box-shadow: 0 0 5px rgba(0, 131, 144, 0.3);
         }
 
-        .button-group {
+        .button-groupSearch {
             display: flex;
             gap: 10px;
             margin-top: 30px;
@@ -371,6 +371,17 @@
             padding: 20px;
             font-weight: bold;
         }
+
+        .button-group {
+            display: none;
+            justify-content: space-between;
+            padding: 0 20px 10px 20px;
+        }
+
+        .button-group.show {
+            display: flex;
+        }
+
     </style>
 </head>
 <body>
@@ -401,9 +412,9 @@
             </select>
         </div>
 
-        <div class="button-group">
-            <button class="btn btn-primary" id="filterBtn">查詢</button>
+        <div class="button-groupSearch">
             <button class="btn btn-secondary" id="resetBtn">重設</button>
+            <button class="btn btn-primary" id="filterBtn">查詢</button>
         </div>
     </div>
 
@@ -450,6 +461,12 @@
                 </tr>
                 </tbody>
             </table>
+        </div>
+
+
+        <div class="button-group" id="actionButtons">
+            <button class="btn btn-secondary" id="cancelChangesBtn">取消變更</button>
+            <button class="btn btn-primary" id="saveChangesBtn">儲存變更</button>
         </div>
 
         <div class="pagination" id="pagination">

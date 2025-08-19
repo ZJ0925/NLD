@@ -18,6 +18,9 @@ public interface GroupRoleRepository extends JpaRepository<GroupRole, String> {
 
 
 
+    List<GroupRole> findByGroupIDIn(List<String> groupIds);
+
+
 
 
 

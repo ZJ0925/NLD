@@ -1,6 +1,9 @@
 package com.zj.nld.Service;
 
+import com.zj.nld.Model.DTO.GroupRoleRequest;
 import com.zj.nld.Model.Entity.GroupRole;
+
+import java.util.List;
 
 public interface GroupRoleService {
 
@@ -18,4 +21,10 @@ public interface GroupRoleService {
 
     // 在GroupRole根據groupID取得對應的權限ID
     GroupRole getGroupRoleByGroupID(String groupID);
+
+
+    List<GroupRole> getAdminByToken(String token);
+
+    // 批量更新群組權限
+    List<GroupRole> updateGroupRolesByToken(String token, List<GroupRoleRequest> groupRolesDTO);
 }

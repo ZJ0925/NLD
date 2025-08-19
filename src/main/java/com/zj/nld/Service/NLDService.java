@@ -24,5 +24,4 @@ public interface NLDService {
 
     List<?> getNLDByToken(String token);
 
-    List<GroupRole> getAdminByToken(String token);
 }
