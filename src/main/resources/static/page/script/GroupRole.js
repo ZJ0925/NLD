@@ -14,8 +14,6 @@ function base64UrlDecode(str) {
     const urlParams = new URLSearchParams(window.location.search);
     let type = urlParams.get('type');
     let token = urlParams.get('token');
-    alert("取得的 token:" + token);
-
     if (!type || !token) {
         alert("缺少必要參數，請檢查連結");
         return;

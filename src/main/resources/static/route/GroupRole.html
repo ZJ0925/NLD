@@ -155,19 +155,17 @@
 
         table {
             width: 100%;
+            table-layout: fixed; /* 必須加這個，才會遵守指定的寬度 */
             border-collapse: collapse;
             background-color: white;
         }
 
-        th {
-            background-color: #008390;
-            color: white;
-            padding: 15px 10px;
+        th, td {
+            width: 33.33%;
+            padding: 12px 10px;
+            border-bottom: 1px solid #e0e0e0;
             text-align: center;
-            font-weight: bold;
-            position: sticky;
-            top: 0;
-            z-index: 10;
+            word-wrap: break-word; /* 自動換行避免溢出 */
         }
 
         .role-header {
@@ -252,7 +250,7 @@
         }
 
         .pagination {
-            padding: 20px;
+            padding: 20px 20px 10px 20px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -294,9 +292,13 @@
         }
 
         .page-info {
-            margin: 0 15px;
+            display: block;
+            width: 100%;
+            text-align: center;
             color: #666;
             font-size: 14px;
+            background-color: #f8f9fa;
+            padding: 0 0 10px 0;
         }
 
         .no-data {
@@ -373,14 +375,22 @@
         }
 
         .button-group {
-            display: none;
-            justify-content: space-between;
-            padding: 0 20px 10px 20px;
+            display: flex;
+            justify-content: center; /* 中央對齊 */
+            gap: 10px;               /* 按鈕之間的間距 */
+            padding: 10px;
+        }
+        .button-group button {
+            flex: 0 0 auto;         /* 不撐開、不縮小、自動寬度 */
+            width: 30%;            /* 讓按鈕寬度依內容 */
         }
 
         .button-group.show {
-            display: flex;
+            display: block;
         }
+
+
+
 
     </style>
 </head>
@@ -473,8 +483,8 @@
             <button id="prevPage">上一頁</button>
             <div id="pageNumbers"></div>
             <button id="nextPage">下一頁</button>
-            <div class="page-info" id="pageInfo"></div>
         </div>
+        <div class="page-info" id="pageInfo"></div>
     </div>
 </div>
 
