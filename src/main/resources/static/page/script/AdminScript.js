@@ -131,7 +131,7 @@ function renderRow(dto) {
             <td>${safeValue(dto.patientName)}</td> <!-- 患者姓名 -->
             <td>${formatDate(dto.receivedDate)}</td> <!-- 收件日 -->
             <td>${formatDate(dto.deliveryDate)}</td> <!-- 完成交件 -->
-            <td>${safeValue(dto.salesIdNum)}</td> <!-- 業務人員 -->
+            <td>${safeValue(dto.salesName)}</td> <!-- 業務人員 -->
             <td>${safeValue(dto.toothPosition)}</td> <!-- 齒位 -->
             <td>${dto.prodItem ? safeValue(dto.prodItem) + ' - ' + safeValue(dto.prodName) : safeValue(dto.prodName)}</td> <!-- 產品名稱 -->
             <td>${formatDate(dto.tryInDate)}</td> <!-- 試戴交件 -->
@@ -276,8 +276,8 @@ function filterData() {
         // 過濾：患者姓名（模糊比對 patientName）
         if (filters.patientName && !safeValue(item.patientName).toLowerCase().includes(filters.patientName)) return false;
 
-        // 過濾：業務人員（模糊比對 salesIdNum）
-        if (filters.sales && !safeValue(item.salesIdNum).toLowerCase().includes(filters.sales)) return false;
+        // 過濾：業務人員（模糊比對 salesName）
+        if (filters.sales && !safeValue(item.salesName).toLowerCase().includes(filters.sales)) return false;
 
         // 過濾：齒位（模糊比對 toothPosition）
         if (filters.toothPosition && !safeValue(item.toothPosition).toLowerCase().includes(filters.toothPosition)) return false;

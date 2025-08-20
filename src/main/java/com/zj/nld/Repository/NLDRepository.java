@@ -114,7 +114,6 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
         h.patientName,
         h.receivedDate,
         h.deliveryDate,
-        h.salesIdNum,
         v.toothPosition,
         v.prodName,
         h.tryInDate,
@@ -126,12 +125,14 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
         h.isPaused,
         h.isVoided,
         h.tryInReceivedDate,
-        h.remarks
+        h.remarks,
+        s.Name as salesName
     )
     FROM HVED h
-    JOIN VED v ON
-        h.compdh = v.comph 
-    WHERE h.compdh = '001' AND h.cundh LIKE 'K%'
+    JOIN VED v ON h.compdh = v.comph
+    JOIN Sales s ON h.salesIdNum = s.ID
+    WHERE h.compdh = '001'
+    AND h.cundh LIKE 'K%'
 """)
     List<NLDProdUnitRequest> ProdUnitSearch();
 
@@ -145,7 +146,6 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
         h.patientName,
         h.receivedDate,
         h.deliveryDate,
-        h.salesIdNum,
         v.toothPosition,
         v.prodItem,
         v.prodName,
@@ -159,12 +159,14 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
         h.isPaused,
         h.isVoided,
         h.tryInReceivedDate,
-        h.remarks
+        h.remarks,
+        s.Name as salesName
     )
     FROM HVED h
-    JOIN VED v ON
-        h.compdh = v.comph 
-    WHERE h.compdh = '001' AND h.cundh LIKE 'K%'
+    JOIN VED v ON h.compdh = v.comph
+    JOIN Sales s ON h.salesIdNum = s.ID
+    WHERE h.compdh = '001'
+    AND h.cundh LIKE 'K%'
 """)
     List<NLDRequest> AdminSearch();
 

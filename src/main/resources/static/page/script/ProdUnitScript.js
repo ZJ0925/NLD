@@ -131,7 +131,7 @@ function renderRow(dto) {
             <td>${dto.patientName || ''}</td> <!-- 患者姓名 -->
             <td>${formatDate(dto.receivedDate)}</td> <!-- 收件日 -->
             <td>${formatDate(dto.deliveryDate)}</td> <!-- 完成交件 -->
-            <td>${dto.salesIdNum || ''}</td> <!-- 業務人員 -->
+            <td>${dto.salesName || ''}</td> <!-- 業務人員 -->
             <td>${dto.toothPosition || ''}</td> <!-- 齒位 -->
             <td>${formatDate(dto.tryInDate)}</td> <!-- 試戴交件 -->
             <td>${formatDate(dto.estFinishDate)}</td> <!-- 預計完成日 -->
@@ -234,7 +234,7 @@ function filterData() {
         // 過濾：患者姓名（模糊比對 patientName）
         if (filters.patientName && !item.patientName?.toLowerCase().includes(filters.patientName)) return false;
         // 過濾：業務人員（模糊比對 salesIdNum）
-        if (filters.sales && !item.salesIdNum?.toLowerCase().includes(filters.sales)) return false;
+        if (filters.sales && !item.salesName?.toLowerCase().includes(filters.sales)) return false;
         // 過濾：齒位（模糊比對 toothPosition）
         if (filters.toothPosition && !item.toothPosition?.toLowerCase().includes(filters.toothPosition)) return false;
         // 過濾：工單現況（模糊比對 workOrderStatus）

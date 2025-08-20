@@ -1,10 +1,8 @@
 package com.zj.nld.Model.Entity;
 
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 
 import java.util.Date;
 
@@ -67,6 +65,19 @@ public class HVED {
     @Column(name = "RR__DH")
     private String remarks; // 21.備註
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "SALE_DH", referencedColumnName = "NO_P1", insertable = false, updatable = false)
+    @JsonIgnore // 忽略這個屬性
+    private Sales sales; // 添加與 Sales 實體的關聯
+
+
+    public Sales getSales() {
+        return sales;
+    }
+
+    public void setSales(Sales sales) {
+        this.sales = sales;
+    }
 
     public String getCompdh() {
         return compdh;

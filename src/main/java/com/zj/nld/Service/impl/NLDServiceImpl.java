@@ -87,7 +87,7 @@ public class NLDServiceImpl implements NLDService {
         {
             return switch (roleId) {
                 // 管理者
-                case 1 -> nldRepository.findAll();
+                case 1 -> nldRepository.AdminSearch();
                 // 客戶(需做診所篩選)
                 case 2 -> {
                     Doctor doctor = doctorService.findByDoctorName(groupRole.getGroupName());
