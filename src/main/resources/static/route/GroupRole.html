@@ -229,8 +229,8 @@
         }
 
         .changed {
-            color: #dc3545 !important;
-            font-weight: bold;
+            color: red !important;  /* 使用 !important 來確保樣式不被覆蓋 */
+            background-color: #ffe6e6;  /* 可以加強變更的視覺效果 */
         }
 
         .role-select {
@@ -385,10 +385,11 @@
             width: 30%;            /* 讓按鈕寬度依內容 */
         }
 
-        .button-group.show {
-            display: block;
-        }
 
+        #saveChangesBtn,
+        #cancelChangesBtn {
+            display: none; /* 預設隱藏 */
+        }
 
 
 
@@ -488,6 +489,6 @@
     </div>
 </div>
 
-<script src="/page/script/GroupRole.js"></script>
+<script src="/page/script/test2.js"></script>
 </body>
 </html>
