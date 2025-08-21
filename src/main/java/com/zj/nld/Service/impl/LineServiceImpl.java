@@ -161,7 +161,6 @@ public class LineServiceImpl implements LineService {
                             joinGroupRole.setGroupID(event.getJSONObject("source").getString("groupId"));
                             joinGroupRole.setGroupName(event.getJSONObject("source").getString("groupId"));
                             joinGroupRole.setRoleID(0);
-                            joinGroupRole.setDescription(null);
                             groupRoleService.createGroupRole(joinGroupRole);
                             break;
 

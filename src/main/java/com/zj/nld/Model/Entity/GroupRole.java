@@ -16,9 +16,6 @@ public class GroupRole {
     @Column(name = "GroupName")
     private String groupName; // 群組名稱(EX:診所名稱)
 
-    @Column(name = "Description")
-    private String description; // 群組描述
-
     @Column(name = "RoleID")
     private Integer roleID;
 
@@ -39,13 +36,6 @@ public class GroupRole {
         this.groupName = groupName;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
 
     public Integer getRoleID() {
         return roleID;

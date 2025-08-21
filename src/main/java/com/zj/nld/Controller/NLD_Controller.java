@@ -21,5 +21,4 @@ public class NLD_Controller {
     public ResponseEntity<?> getNLDByToken(@PathVariable String type,@PathVariable String token){
         return ResponseEntity.ok(nldService.getNLDByToken(token));
     }
-
 }

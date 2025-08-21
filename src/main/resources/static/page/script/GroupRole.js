@@ -1,4 +1,4 @@
-// GroupRole.js - 群組管理系統（清理版）
+// GroupRole.js - 群組管理系統（徹底修正取消變更問題）
 
 // 全局變數
 let originalData = [];
@@ -11,7 +11,6 @@ let currentChanges = new Map(); // 儲存當前的變更數據
 
 // DOM 元素
 const searchGroupName = document.getElementById('searchGroupName');
-const searchDescription = document.getElementById('searchDescription');
 const searchRole = document.getElementById('searchRole');
 const itemsPerPageSelect = document.getElementById('itemsPerPage');
 const sortTriangle = document.getElementById('sortTriangle');
@@ -34,22 +33,21 @@ const roleMap = {
 };
 
 // 1. 頁面加載初始化
-// 頁面加載初始化
 window.addEventListener('DOMContentLoaded', () => {
     // 綁定事件
-    filterBtn.addEventListener('click', filterData);
+    filterBtn.addEventListener('click', applyFilters);
     resetBtn.addEventListener('click', resetFilters);
 
-    [searchGroupName, searchDescription].forEach(input => {
+    [searchGroupName].forEach(input => {
         input.addEventListener('keypress', e => {
             if (e.key === 'Enter') {
-                e.preventDefault(); // 防止 Enter 鍵提交表單或觸發其他不必要的事件
-                filterData();
+                e.preventDefault();
+                applyFilters();
             }
         });
     });
 
-    searchRole.addEventListener('change', filterData);
+    searchRole.addEventListener('change', applyFilters);
 
     itemsPerPageSelect.addEventListener('change', function() {
         itemsPerPage = parseInt(this.value);
@@ -101,19 +99,17 @@ window.addEventListener('DOMContentLoaded', () => {
     initializePage();
 });
 
-
 // 2. Token檢查與解析
 (function checkTokenOnPageLoad() {
-    // 從URL解析參數
     const urlParams = new URLSearchParams(window.location.search);
     let type = urlParams.get('type');
     let token = urlParams.get('token');
+
     if (!type || !token) {
         alert("缺少必要參數，請檢查連結");
         return;
     }
 
-    // 驗證token格式
     if (!token || token.split('.').length !== 3) {
         alert("尚未登入或 Token 格式錯誤，請重新登入。");
         return;
@@ -134,11 +130,9 @@ window.addEventListener('DOMContentLoaded', () => {
         console.log("用戶角色:", type);
         console.log("Token有效期至:", new Date(payload.exp * 1000));
 
-        // 儲存token和type到全局變量
         window.userType = type;
         window.userToken = token;
 
-        // 初始化頁面
         initializePage();
 
     } catch (e) {
@@ -164,7 +158,9 @@ async function loadDataFromAPI() {
         const data = await res.json();
         console.log("成功取得資料:", data);
         originalData = Array.isArray(data) ? data : [];
-        filteredData = [...originalData];
+
+        // 初始化時重建 filteredData
+        rebuildFilteredData();
 
         if (loadingRow) {
             loadingRow.remove();
@@ -177,7 +173,7 @@ async function loadDataFromAPI() {
         console.error("API 錯誤", err);
         if (loadingRow) {
             loadingRow.innerHTML = `
-                <td colspan="3" class="error-message">
+                <td colspan="2" class="error-message">
                     無法載入資料：${err.message}<br>
                     請檢查網路連線或聯絡系統管理員
                 </td>
@@ -186,55 +182,53 @@ async function loadDataFromAPI() {
     }
 }
 
-// 4. 篩選數據
-function filterData() {
+// 4. 重建篩選數據 - 核心修正函數
+function rebuildFilteredData() {
     const groupNameFilter = searchGroupName.value.toLowerCase();
-    const descriptionFilter = searchDescription.value.toLowerCase();
     const roleFilter = searchRole.value;
 
-    // 應用篩選時，使用原始數據進行篩選，然後應用變更
-    filteredData = originalData.filter(item => {
-        const groupNameMatch = safeValue(item.GroupName).toLowerCase().includes(groupNameFilter);
-        const descriptionMatch = safeValue(item.Description).toLowerCase().includes(descriptionFilter);
-        const roleMatch = roleFilter === '' || item.RoleID.toString() === roleFilter;
+    // 完全基於原始數據重建，然後應用變更
+    filteredData = originalData
+        .filter(item => {
+            const groupNameMatch = safeValue(item.GroupName).toLowerCase().includes(groupNameFilter);
+            const roleMatch = roleFilter === '' || item.RoleID.toString() === roleFilter;
+            return groupNameMatch && roleMatch;
+        })
+        .map(item => {
+            // 深度複製原始項目
+            const itemCopy = JSON.parse(JSON.stringify(item));
 
-        return groupNameMatch && descriptionMatch && roleMatch;
-    }).map(item => {
-        // 如果有變更，應用變更
-        if (currentChanges.has(item.GroupID)) {
-            return { ...item, ...currentChanges.get(item.GroupID) };
-        }
-        return { ...item };
-    });
+            // 如果有變更記錄，則應用變更
+            if (currentChanges.has(item.GroupID)) {
+                const changes = currentChanges.get(item.GroupID);
+                Object.assign(itemCopy, changes);
+            }
 
+            return itemCopy;
+        });
+}
+
+// 5. 應用篩選條件
+function applyFilters() {
+    rebuildFilteredData();
     currentPage = 1;
     renderTable();
     updatePagination();
 }
 
-// 5. 重設篩選條件
+// 6. 重設篩選條件
 function resetFilters() {
     searchGroupName.value = '';
-    searchDescription.value = '';
     searchRole.value = '';
-
-    // 重設時保持變更狀態
-    filteredData = originalData.map(item => {
-        if (currentChanges.has(item.GroupID)) {
-            return { ...item, ...currentChanges.get(item.GroupID) };
-        }
-        return { ...item };
-    });
-
+    rebuildFilteredData();
     updateSortTriangle('none');
     currentSort = 'none';
     currentPage = 1;
-
     renderTable();
     updatePagination();
 }
 
-// 6. 排序數據
+// 7. 排序數據
 function sortData(order) {
     if (order === 'asc') {
         filteredData.sort((a, b) => a.RoleID - b.RoleID);
@@ -249,25 +243,21 @@ function sortData(order) {
     updatePagination();
 }
 
-// 7. 分頁控制
+// 8. 分頁控制
 function updatePagination() {
     const totalItems = filteredData.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-    // 更新上一頁/下一頁按鈕
     prevPageBtn.disabled = currentPage <= 1;
     nextPageBtn.disabled = currentPage >= totalPages;
 
-    // 更新頁碼按鈕
     pageNumbers.innerHTML = '';
 
     if (totalPages <= 7) {
-        // 如果總頁數<=7，顯示所有頁碼
         for (let i = 1; i <= totalPages; i++) {
             createPageButton(i);
         }
     } else {
-        // 複雜的分頁邏輯
         if (currentPage <= 4) {
             for (let i = 1; i <= 5; i++) {
                 createPageButton(i);
@@ -291,13 +281,12 @@ function updatePagination() {
         }
     }
 
-    // 更新頁面資訊
     const startItem = (currentPage - 1) * itemsPerPage + 1;
     const endItem = Math.min(currentPage * itemsPerPage, totalItems);
     pageInfo.textContent = `顯示 ${startItem}-${endItem} 項，共 ${totalItems} 項`;
 }
 
-// 8. 渲染表格
+// 9. 渲染表格
 function renderTable() {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -306,7 +295,7 @@ function renderTable() {
     tableBody.innerHTML = '';
 
     if (currentPageData.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="3" class="no-data">沒有找到匹配的數據</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="2" class="no-data">沒有找到匹配的數據</td></tr>';
         return;
     }
 
@@ -316,7 +305,7 @@ function renderTable() {
     });
 }
 
-// 9. 更新排序三角形
+// 10. 更新排序三角形
 function updateSortTriangle(activeSort) {
     if (activeSort === 'asc') {
         sortTriangle.className = 'sort-triangle up';
@@ -330,85 +319,94 @@ function updateSortTriangle(activeSort) {
     }
 }
 
-
-// 10. 變更處理
+// 11. 變更處理 - 修正版本，不直接修改 filteredData
 function handleCellChange(element, groupId, field, newValue) {
+    console.log('=== handleCellChange 開始 ===');
+    console.log('參數:', { groupId, field, newValue });
+
     const originalItem = originalData.find(item => item.GroupID === groupId);
-    if (!originalItem) return;
+    if (!originalItem) {
+        console.error('找不到原始數據項目:', groupId);
+        return;
+    }
 
-    const originalValue = originalItem[field];
-    const isChanged = originalValue?.toString() !== newValue?.toString();
+    // 獲取原始值
+    let originalValue = originalItem[field];
+    let compareValue = newValue;
 
-    console.log('變更檢查:', {
-        groupId,
-        field,
-        originalValue,
-        newValue,
+    if (field === 'RoleID') {
+        originalValue = parseInt(originalValue);
+        compareValue = parseInt(newValue);
+    }
+
+    // 判斷是否與原始值不同
+    const isChanged = originalValue !== compareValue;
+
+    console.log('比較結果:', {
         isChanged,
-        changedRows: Array.from(changedRows) // 這裡可以檢查 `changedRows`
+        originalValue,
+        compareValue
     });
 
-
     if (isChanged) {
-        // 儲存變更到 currentChanges
+        // 有變更：加入紅色樣式和記錄變更
+        element.classList.add('changed');
+
         if (!currentChanges.has(groupId)) {
             currentChanges.set(groupId, {});
         }
-        currentChanges.get(groupId)[field] = newValue;
+        currentChanges.get(groupId)[field] = compareValue;
+        changedRows.add(groupId);
 
-        // 更新 filteredData 中的對應項目
-        const filteredIndex = filteredData.findIndex(item => item.GroupID === groupId);
-        if (filteredIndex !== -1) {
-            filteredData[filteredIndex][field] = newValue;
-        }
-
-        element.classList.add('changed');
-        changedRows.add(groupId); // 確保變更後加到 `changedRows` 中
     } else {
-        // 如果值恢復為原始值，移除變更
-        if (currentChanges.has(groupId)) {
-            delete currentChanges.get(groupId)[field];
-
-            // 如果該項目沒有其他變更，完全移除
-            const changes = currentChanges.get(groupId);
-            if (Object.keys(changes).length === 0) {
-                currentChanges.delete(groupId);
-                changedRows.delete(groupId); // 移除變更
-            }
-        }
-
+        // 沒有變更：移除紅色樣式和變更記錄
         element.classList.remove('changed');
 
-        // 檢查該行是否還有其他變更
-        const row = element.closest('tr');
-        const hasOtherChanges = row.querySelectorAll('.changed').length > 0;
+        // 從變更記錄中移除此欄位
+        if (currentChanges.has(groupId)) {
+            const changes = currentChanges.get(groupId);
+            delete changes[field];
 
-        if (!hasOtherChanges) {
-            changedRows.delete(groupId);
+            // 如果該群組沒有其他變更，完全移除
+            if (Object.keys(changes).length === 0) {
+                currentChanges.delete(groupId);
+                changedRows.delete(groupId);
+            }
         }
     }
 
-    // 更新儲存按鈕顯示
-    updateSaveButton();
+    // 重建 filteredData 以反映變更
+    rebuildFilteredData();
+
+    // 重新渲染當前頁面
+    renderTable();
+
+    console.log('當前狀態:', {
+        changedRowsSize: changedRows.size,
+        currentChangesSize: currentChanges.size,
+        elementHasChangedClass: element.classList.contains('changed')
+    });
+
+    updateSaveButtonVisibility();
 }
 
-// 11. 更新儲存按鈕顯示
-function updateSaveButton() {
+// 12. 更新儲存按鈕顯示
+function updateSaveButtonVisibility() {
     const saveChangesBtn = document.getElementById('saveChangesBtn');
     const cancelChangesBtn = document.getElementById('cancelChangesBtn');
 
-    // 檢查是否有變更
-    if (changedRows.size > 0) {
-        if (saveChangesBtn) saveChangesBtn.style.display = 'block'; // 顯示儲存按鈕
-        if (cancelChangesBtn) cancelChangesBtn.style.display = 'block'; // 顯示取消按鈕
+    const hasChanges = changedRows.size > 0;
+
+    if (hasChanges) {
+        if (saveChangesBtn) saveChangesBtn.style.display = 'inline-block';
+        if (cancelChangesBtn) cancelChangesBtn.style.display = 'inline-block';
     } else {
-        if (saveChangesBtn) saveChangesBtn.style.display = 'none'; // 隱藏儲存按鈕
-        if (cancelChangesBtn) cancelChangesBtn.style.display = 'none'; // 隱藏取消按鈕
+        if (saveChangesBtn) saveChangesBtn.style.display = 'none';
+        if (cancelChangesBtn) cancelChangesBtn.style.display = 'none';
     }
 }
 
-
-// 12. 儲存變更
+// 13. 儲存變更
 async function saveChanges() {
     const changedData = getChangedData();
 
@@ -417,27 +415,30 @@ async function saveChanges() {
         return;
     }
 
-    console.log('準備儲存的數據:', changedData);
+    if (!confirm(`確定要儲存 ${changedData.length} 筆變更嗎？`)) {
+        return;
+    }
 
     try {
-        // TODO: 發送到後端進行保存（API請求）
-        // const response = await fetch('/api/groups/update', {
-        //     method: 'PUT',
-        //     headers: {
-        //         'Authorization': `Bearer ${window.userToken}`,
-        //         'Content-Type': 'application/json'
-        //     },
-        //     body: JSON.stringify(changedData)
-        // });
+        const encodedToken = encodeURIComponent(window.userToken);
+        const response = await fetch(`${window.location.protocol}//${window.location.host}/Admin/updateGroups/${window.userType}/${encodedToken}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(changedData)
+        });
 
-        // if (!response.ok) {
-        //     throw new Error(`HTTP error! status: ${response.status}`);
-        // }
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-        // 模擬成功保存
+        const result = await response.json();
+        console.log('儲存成功回應:', result);
+
         alert('變更已成功儲存');
 
-        // 儲存成功後，將變更應用到原始數據並清除變更標記
+        // 儲存成功後，將變更應用到原始數據
         currentChanges.forEach((changes, groupId) => {
             const originalIndex = originalData.findIndex(item => item.GroupID === groupId);
             if (originalIndex !== -1) {
@@ -449,11 +450,10 @@ async function saveChanges() {
         changedRows.clear();
         currentChanges.clear();
 
-        document.querySelectorAll('.changed').forEach(el => {
-            el.classList.remove('changed');
-        });
-
-        updateSaveButton();
+        // 重建數據並重新渲染
+        rebuildFilteredData();
+        renderTable();
+        updateSaveButtonVisibility();
 
     } catch (error) {
         console.error('儲存失敗:', error);
@@ -461,13 +461,16 @@ async function saveChanges() {
     }
 }
 
-// 13. 取消變更
+// 14. 取消變更 - 徹底修正版本
 function cancelChanges() {
     if (!confirm('確定要取消所有變更嗎？')) {
         return;
     }
 
-    // 清除所有變更
+    console.log('開始取消變更...');
+    console.log('取消前 - changedRows:', changedRows.size, 'currentChanges:', currentChanges.size);
+
+    // 清除所有變更記錄
     changedRows.clear();
     currentChanges.clear();
 
@@ -476,14 +479,18 @@ function cancelChanges() {
         el.classList.remove('changed');
     });
 
-    // 重新應用當前篩選條件（使用原始數據）
-    filterData();
+    // 重建 filteredData（此時 currentChanges 已清空，所以會還原到原始狀態）
+    rebuildFilteredData();
 
-    updateSaveButton();
-    console.log('已取消所有變更');
+    // 重新渲染
+    renderTable();
+    updateSaveButtonVisibility();
+
+    console.log('取消後 - changedRows:', changedRows.size, 'currentChanges:', currentChanges.size);
+    console.log('已取消所有變更，數據已還原到原始狀態');
 }
 
-// 14. 獲取變更數據
+// 15. 獲取變更數據
 function getChangedData() {
     const changedData = [];
 
@@ -493,7 +500,6 @@ function getChangedData() {
             changedData.push({
                 GroupID: groupId,
                 GroupName: originalItem.GroupName,
-                Description: changes.Description !== undefined ? changes.Description : originalItem.Description,
                 RoleID: changes.RoleID !== undefined ? changes.RoleID : originalItem.RoleID
             });
         }
@@ -502,46 +508,31 @@ function getChangedData() {
     return changedData;
 }
 
-// 15. 創建表格行
+// 16. 創建表格行
 function createTableRow(item) {
     const row = document.createElement('tr');
     row.setAttribute('data-group-id', item.GroupID);
 
-    // 群組名稱 (只顯示，不可編輯)
+    // 找到對應的原始數據
+    const originalItem = originalData.find(orig => orig.GroupID === item.GroupID);
+
+    // 群組名稱
     const groupNameCell = document.createElement('td');
     groupNameCell.textContent = safeValue(item.GroupName);
     row.appendChild(groupNameCell);
 
-    // 其他描述 (可編輯)
-    const descriptionCell = document.createElement('td');
-    const descriptionInput = document.createElement('input');
-    descriptionInput.type = 'text';
-    descriptionInput.value = safeValue(item.Description);
-    descriptionInput.className = 'editable';
-
-    // 檢查是否有變更並標記
-    const originalItem = originalData.find(orig => orig.GroupID === item.GroupID);
-    if (originalItem && originalItem.Description !== item.Description) {
-        descriptionInput.classList.add('changed');
-    }
-
-    descriptionInput.addEventListener('input', function() {
-        handleCellChange(this, item.GroupID, 'Description', this.value);
-    });
-    descriptionInput.addEventListener('blur', function() {
-        handleCellChange(this, item.GroupID, 'Description', this.value);
-    });
-    descriptionCell.appendChild(descriptionInput);
-    row.appendChild(descriptionCell);
-
-    // 權限 (可編輯下拉選單)
+    // 權限選單
     const roleCell = document.createElement('td');
     const roleSelect = document.createElement('select');
     roleSelect.className = 'role-select';
 
-    // 檢查是否有變更並標記
-    if (originalItem && originalItem.RoleID !== item.RoleID) {
-        roleSelect.classList.add('changed');
+    // 檢查權限是否已變更
+    if (originalItem) {
+        const originalRole = parseInt(originalItem.RoleID);
+        const currentRole = parseInt(item.RoleID);
+        if (originalRole !== currentRole) {
+            roleSelect.classList.add('changed');
+        }
     }
 
     // 添加選項
@@ -549,14 +540,15 @@ function createTableRow(item) {
         const option = document.createElement('option');
         option.value = i;
         option.textContent = `${i} - ${roleMap[i]}`;
-        if (i === item.RoleID) {
+        if (i === parseInt(item.RoleID)) {
             option.selected = true;
         }
         roleSelect.appendChild(option);
     }
 
-    roleSelect.addEventListener('change', function() {
-        handleCellChange(this, item.GroupID, 'RoleID', parseInt(this.value));
+    roleSelect.addEventListener('change', function(e) {
+        const newRoleId = parseInt(e.target.value);
+        handleCellChange(e.target, item.GroupID, 'RoleID', newRoleId);
     });
 
     roleCell.appendChild(roleSelect);
@@ -565,7 +557,7 @@ function createTableRow(item) {
     return row;
 }
 
-// 16. 創建頁碼按鈕
+// 17. 創建頁碼按鈕
 function createPageButton(pageNum) {
     const button = document.createElement('button');
     button.textContent = pageNum;
@@ -582,7 +574,7 @@ function createPageButton(pageNum) {
     pageNumbers.appendChild(button);
 }
 
-// 17. 創建省略號
+// 18. 創建省略號
 function createEllipsis() {
     const ellipsis = document.createElement('span');
     ellipsis.textContent = '...';
@@ -591,12 +583,12 @@ function createEllipsis() {
     pageNumbers.appendChild(ellipsis);
 }
 
-// 18. 初始化頁面
+// 19. 初始化頁面
 function initializePage() {
     loadDataFromAPI();
 }
 
-// 19. JWT解析功能
+// 20. JWT解析功能
 function base64UrlDecode(str) {
     str = str.replace(/-/g, '+').replace(/_/g, '/');
     while (str.length % 4) {
@@ -605,7 +597,7 @@ function base64UrlDecode(str) {
     return atob(str);
 }
 
-// 20. 安全處理null值
+// 21. 安全處理null值
 function safeValue(value) {
     return (value === null || value === undefined || value === "NULL") ? '' : value;
 }

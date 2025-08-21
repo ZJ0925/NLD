@@ -66,7 +66,6 @@ public class RoleServiceImpl implements RoleService {
             GroupRole existing = groupRoleRepository.findGroupRoleByGroupID(groupID);
 
             existing.setGroupName(groupRoleRequest.getGroupName());
-            existing.setDescription(groupRoleRequest.getDescription());
             existing.setRoleID(groupRoleRequest.getRoleID());
 
             GroupRole updated = groupRoleRepository.save(existing);

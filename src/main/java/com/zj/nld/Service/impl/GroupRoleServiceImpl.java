@@ -149,7 +149,6 @@ public class GroupRoleServiceImpl implements GroupRoleService {
             for (GroupRoleRequest req : groupRolesDTO){
                 GroupRole role = groupRoleMap.get(req.getGroupID());
                 if (role != null){
-                    role.setDescription(req.getDescription());
                     role.setRoleID(req.getRoleID());
                     role.setGroupName(req.getGroupName());
                 }

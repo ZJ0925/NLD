@@ -12,8 +12,6 @@ public class GroupRoleRequest {
     @JsonProperty("GroupName")
     private String groupName; // 群組名稱(EX:診所名稱)
 
-    @JsonProperty("Description")
-    private String description; // 群組描述
 
     @JsonProperty("RoleID")
     private Integer roleID;
@@ -21,7 +19,6 @@ public class GroupRoleRequest {
     public GroupRoleRequest(GroupRole groupRole) {
         this.groupID = groupRole.getGroupID();
         this.groupName = groupRole.getGroupName();
-        this.description = groupRole.getDescription();
         this.roleID = groupRole.getRoleID();
     }
 
@@ -41,13 +38,6 @@ public class GroupRoleRequest {
         this.groupName = groupName;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
 
     public Integer getRoleID() {
         return roleID;
