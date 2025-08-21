@@ -426,7 +426,8 @@ async function saveChanges() {
     }
 
     try {
-        // 根據新的 Controller 路徑修正
+        // 暫時測試不同的路徑
+        // 先試試看沒有 /Admin 的路徑
         const apiUrl = `${window.location.protocol}//${window.location.host}/Admin/update`;
 
         console.log('準備發送請求到:', apiUrl);
@@ -456,6 +457,12 @@ async function saveChanges() {
 
         alert('變更已成功儲存');
 
+        // 立即將當前頁面上所有紅色框框變成綠色，不重新渲染
+        document.querySelectorAll('.changed').forEach(element => {
+            element.classList.remove('changed');
+            element.classList.add('saved');
+        });
+
         // 儲存成功後，將變更應用到原始數據
         currentChanges.forEach((changes, groupId) => {
             const originalIndex = originalData.findIndex(item => item.GroupID === groupId);
@@ -464,14 +471,27 @@ async function saveChanges() {
             }
         });
 
-        // 清除變更標記
+        // 清除變更標記（但不重新渲染，保持綠色效果）
         changedRows.clear();
         currentChanges.clear();
-
-        // 重建數據並重新渲染
-        rebuildFilteredData();
-        renderTable();
         updateSaveButtonVisibility();
+
+        // 更新 filteredData 以保持數據同步，但不重新渲染表格
+        rebuildFilteredData();
+
+        // 3秒後將綠色框框淡化
+        setTimeout(() => {
+            document.querySelectorAll('.saved').forEach(element => {
+                element.classList.add('saved-fadeout');
+            });
+
+            // 再過1秒完全移除樣式
+            setTimeout(() => {
+                document.querySelectorAll('.saved').forEach(element => {
+                    element.classList.remove('saved', 'saved-fadeout');
+                });
+            }, 1000);
+        }, 2000);
 
     } catch (error) {
         console.error('儲存失敗:', error);

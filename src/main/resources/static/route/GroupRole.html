@@ -402,6 +402,26 @@
             box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
         }
 
+        /* 原有的變更樣式 (紅色) */
+        .changed {
+            border: 2px solid #dc3545 !important;
+            background-color: #fff5f5 !important;
+        }
+
+        /* 新增：儲存成功樣式 (綠色) */
+        .saved {
+            border: 2px solid #28a745 !important;
+            background-color: #f0fff4 !important;
+            transition: all 0.3s ease;
+        }
+
+        /* 新增：淡化效果 */
+        .saved-fadeout {
+            border-color: transparent !important;
+            background-color: transparent !important;
+            transition: all 1s ease;
+        }
+
         /* 預設隱藏儲存按鈕 */
         #saveChangesBtn,
         #cancelChangesBtn {
@@ -536,6 +556,6 @@
     </div>
 </div>
 
-<script src="/page/script/GroupRole.js?v=85"></script>
+<script src="/page/script/GroupRole.js?v=89"></script>
 </body>
 </html>
