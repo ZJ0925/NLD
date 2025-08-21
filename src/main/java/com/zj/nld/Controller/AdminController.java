@@ -29,8 +29,9 @@ public class AdminController {
                 .collect(Collectors.toList());
     }
 
-    public List<GroupRoleRequest> updateGroupRole(@PathVariable String type, @PathVariable String token, List<GroupRoleRequest> groupRolesDTO){
-        List<GroupRole> updatedRoles = groupRoleService.updateGroupRolesByToken(token, groupRolesDTO);
+    @PutMapping("update")
+    public List<GroupRoleRequest> updateGroupRole(@RequestBody List<GroupRoleRequest> groupRolesDTO){
+        List<GroupRole> updatedRoles = groupRoleService.updateGroupRoles(groupRolesDTO);
 
         return updatedRoles.stream()
                 .map(GroupRoleRequest::new)

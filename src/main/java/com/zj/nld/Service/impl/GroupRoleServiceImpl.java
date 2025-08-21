@@ -115,46 +115,28 @@ public class GroupRoleServiceImpl implements GroupRoleService {
 
     @Override
     @Transactional
-    public List<GroupRole> updateGroupRolesByToken(String token, List<GroupRoleRequest> groupRolesDTO) {
-        jwtService.isTokenValid(token);
-        Claims claims = jwtService.parseToken(token);
-        //從token讀取lineId
-        String lineId = claims.get("lineId", String.class);
-        //從token讀取groupId
-        String groupId = claims.get("groupId", String.class);
-        // 找到Group可以使用的權限
-        GroupRole groupRole = getGroupRoleByGroupID(groupId);
-
-        // 找到該user所在的group可使用的權限
-        UserGroupRole userGroupRole = userGroupRoleService.getRoleId(lineId, groupId);
-        //從token讀取roleId
-        int roleId = claims.get("roleId", Integer.class);
+    public List<GroupRole> updateGroupRoles(List<GroupRoleRequest> groupRolesDTO) {
 
         List<GroupRole> updatedEntities = Collections.emptyList();
+        List<String> groupIds = groupRolesDTO.stream()
+                .map(GroupRoleRequest::getGroupID)
+                .toList();
+        List<GroupRole> roles = groupRoleRepository.findByGroupIDIn(groupIds);
 
+        Map<String, GroupRole> groupRoleMap = roles.stream()
+                .collect(Collectors.toMap(GroupRole::getGroupID, Function.identity()));
 
-        if (((groupId == null) && (userGroupRole.getRoleID() == roleId)) ||
-                ((groupRole.getRoleID() == userGroupRole.getRoleID()) &&
-                        (userGroupRole.getRoleID() == roleId) &&
-                        (groupRole.getRoleID() == roleId)))
-        {
-            List<String> groupIds = groupRolesDTO.stream()
-                    .map(GroupRoleRequest::getGroupID)
-                    .toList();
-            List<GroupRole> roles = groupRoleRepository.findByGroupIDIn(groupIds);
-
-            Map<String, GroupRole> groupRoleMap = roles.stream()
-                    .collect(Collectors.toMap(GroupRole::getGroupID, Function.identity()));
-
-            for (GroupRoleRequest req : groupRolesDTO){
-                GroupRole role = groupRoleMap.get(req.getGroupID());
-                if (role != null){
-                    role.setRoleID(req.getRoleID());
-                    role.setGroupName(req.getGroupName());
-                }
+        for (GroupRoleRequest req : groupRolesDTO){
+            GroupRole role = groupRoleMap.get(req.getGroupID());
+            if (role != null){
+                role.setRoleID(req.getRoleID());
+                role.setGroupName(req.getGroupName());
             }
-            updatedEntities = groupRoleRepository.saveAll(roles);
         }
+
+        updatedEntities = groupRoleRepository.saveAll(roles);
         return updatedEntities;
+
+
     }
 }

@@ -16,6 +16,9 @@ public class GroupRoleRequest {
     @JsonProperty("RoleID")
     private Integer roleID;
 
+    public GroupRoleRequest() {
+    }
+
     public GroupRoleRequest(GroupRole groupRole) {
         this.groupID = groupRole.getGroupID();
         this.groupName = groupRole.getGroupName();

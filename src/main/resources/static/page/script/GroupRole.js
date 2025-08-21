@@ -406,9 +406,15 @@ function updateSaveButtonVisibility() {
     }
 }
 
-// 13. 儲存變更
+// 13. 儲存變更 - 修正 API 路徑並加上調試
 async function saveChanges() {
     const changedData = getChangedData();
+
+    // 詳細調試資訊
+    console.log('=== 準備儲存變更 ===');
+    console.log('changedRows:', Array.from(changedRows));
+    console.log('currentChanges:', Array.from(currentChanges.entries()));
+    console.log('準備傳送的數據:', JSON.stringify(changedData, null, 2));
 
     if (changedData.length === 0) {
         alert('沒有資料需要儲存');
@@ -420,17 +426,29 @@ async function saveChanges() {
     }
 
     try {
-        const encodedToken = encodeURIComponent(window.userToken);
-        const response = await fetch(`${window.location.protocol}//${window.location.host}/Admin/updateGroups/${window.userType}/${encodedToken}`, {
+        // 根據新的 Controller 路徑修正
+        const apiUrl = `${window.location.protocol}//${window.location.host}/Admin/update`;
+
+        console.log('準備發送請求到:', apiUrl);
+        console.log('請求方法: PUT');
+        console.log('請求內容:', JSON.stringify(changedData, null, 2));
+
+        const response = await fetch(apiUrl, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
             body: JSON.stringify(changedData)
         });
 
+        console.log('收到回應狀態:', response.status);
+        console.log('回應標頭:', response.headers);
+
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorText = await response.text();
+            console.error('錯誤回應內容:', errorText);
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
         }
 
         const result = await response.json();

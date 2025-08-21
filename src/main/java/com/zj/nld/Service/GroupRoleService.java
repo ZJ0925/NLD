@@ -26,5 +26,5 @@ public interface GroupRoleService {
     List<GroupRole> getAdminByToken(String token);
 
     // 批量更新群組權限
-    List<GroupRole> updateGroupRolesByToken(String token, List<GroupRoleRequest> groupRolesDTO);
+    List<GroupRole> updateGroupRoles(List<GroupRoleRequest> groupRolesDTO);
 }
