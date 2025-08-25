@@ -44,7 +44,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     )
     FROM HVED h
     JOIN VED v ON
-        h.compdh = v.comph 
+        h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%'
     """)
     List<NldSalesRequest> SalesSearch();
@@ -70,7 +70,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     )
     FROM HVED h
     JOIN VED v ON
-        h.compdh = v.comph 
+        h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%' AND h.clinicName = :clientName
 """)
     List<NldClientRequest> ClientSearch(String clientName);
@@ -98,7 +98,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     )
     FROM HVED h
     JOIN VED v ON
-        h.compdh = v.comph
+        h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%' AND h.clinicName = :clientName And h.docName = :docName
 """)
     List<NldClientRequest> ClientForDocSearch(String clientName, String docName);
@@ -129,7 +129,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
         s.Name as salesName
     )
     FROM HVED h
-    JOIN VED v ON h.compdh = v.comph
+    JOIN VED v ON h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     JOIN Sales s ON h.salesIdNum = s.ID
     WHERE h.compdh = '001'
     AND h.cundh LIKE 'K%'
@@ -163,7 +163,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
         s.Name as salesName
     )
     FROM HVED h
-    JOIN VED v ON h.compdh = v.comph
+    JOIN VED v ON h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     JOIN Sales s ON h.salesIdNum = s.ID
     WHERE h.compdh = '001'
     AND h.cundh LIKE 'K%'

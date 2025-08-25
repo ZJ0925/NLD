@@ -13,6 +13,12 @@ public class HVED {
     @Column(name = "COMP_DH")
     private String compdh;
 
+    @Column(name = "NO_DH")
+    private String nodh;
+
+    @Column(name = "REM_2_DH")
+    private String rem2dh;
+
     @Column(name = "CUN_DH")
     private String cundh;
 
@@ -87,13 +93,6 @@ public class HVED {
         this.compdh = compdh;
     }
 
-    public String getCundh() {
-        return cundh;
-    }
-
-    public void setCundh(String cundh) {
-        this.cundh = cundh;
-    }
 
     public String getWorkOrderNum() {
         return workOrderNum;

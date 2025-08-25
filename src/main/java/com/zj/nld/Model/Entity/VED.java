@@ -1,10 +1,7 @@
 package com.zj.nld.Model.Entity;
 
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "VED")
@@ -14,9 +11,12 @@ public class VED {
     @Column(name = "COMP_D")
     private String comph;
 
+    @Column(name = "NO_D")
+    @Id
+    private String nod;
 
-    @EmbeddedId
-    private  VEDkey id;  // NO_D與 NUM_D 複合主鍵
+    @Column(name = "REM_2_D")
+    private String rem2d;
 
     @Column(name = "TEENO_D")
     private String toothPosition; // 8.齒位-----------------
