@@ -1,10 +1,10 @@
 package com.zj.nld.Controller;
 
 
-import com.zj.nld.Model.DTO.GroupRoleRequest;
-import com.zj.nld.Model.Entity.GroupRole;
-import com.zj.nld.Service.GroupRoleService;
+import com.zj.nld.Model.DTO.UserGroupRoleRequest;
+import com.zj.nld.Model.Entity.UserGroupRole;
 import com.zj.nld.Service.NLDService;
+import com.zj.nld.Service.UserGroupRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,22 +19,22 @@ public class AdminController {
     private NLDService nldService;
 
     @Autowired
-    private GroupRoleService groupRoleService;
+    private UserGroupRoleService userGroupRoleService;
 
     @GetMapping("token/{type}/{token}")
-    public List<GroupRoleRequest> getAdmin(@PathVariable String type, @PathVariable String token){
-        List<GroupRole> groupRoles = groupRoleService.getAdminByToken(token);
+    public List<UserGroupRoleRequest> getAdmin(@PathVariable String type, @PathVariable String token){
+        List<UserGroupRole> groupRoles = groupRoleService.getAdminByToken(token);
         return groupRoles.stream()
-                .map(GroupRoleRequest::new)
+                .map(UserGroupRoleRequest::new)
                 .collect(Collectors.toList());
     }
 
     @PutMapping("update")
-    public List<GroupRoleRequest> updateGroupRole(@RequestBody List<GroupRoleRequest> groupRolesDTO){
-        List<GroupRole> updatedRoles = groupRoleService.updateGroupRoles(groupRolesDTO);
+    public List<UserGroupRoleRequest> updateGroupRole(@RequestBody List<UserGroupRoleRequest> groupRolesDTO){
+        List<UserGroupRole> updatedRoles = groupRoleService.updateGroupRoles(groupRolesDTO);
 
         return updatedRoles.stream()
-                .map(GroupRoleRequest::new)
+                .map(UserGroupRoleRequest::new)
                 .collect(Collectors.toList());
     }
 

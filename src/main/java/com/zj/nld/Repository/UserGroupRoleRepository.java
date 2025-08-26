@@ -29,5 +29,8 @@ public interface UserGroupRoleRepository extends JpaRepository<UserGroupRole, UU
     //根據LINE ID找到權限資料
     UserGroupRole findByLineID(String lineID);
 
+    //根據GroupID尋找UserGroupRole的list
+    List<UserGroupRole> findByGroupID(String groupID);
+
 
 }

@@ -14,7 +14,7 @@ public interface RoleService {
     public List<GroupRoleRequest> getAllGroupRole();
 
     // 取得單筆群組權限
-    GroupRoleRequest getGroupRoleByGroupID(String groupID);
+    UserGroupRoleRequest getGroupRoleByGroupID(String groupID);
 
     // 新增權限
     GroupRoleRequest createGroupRole(GroupRoleRequest groupRoleRequest);

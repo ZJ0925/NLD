@@ -16,6 +16,8 @@ public class UserGroupRoleRequest {
 
     private String groupID;
 
+    private String groupName;
+
     private int roleID;
 
 
@@ -51,6 +53,14 @@ public class UserGroupRoleRequest {
         this.groupID = groupID;
     }
 
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
+    }
+
     public int getRoleID() {
         return roleID;
     }
@@ -65,6 +75,7 @@ public class UserGroupRoleRequest {
         this.lineID = userGroupRole.getLineID();
         this.userName = userGroupRole.getUserName();
         this.groupID = userGroupRole.getGroupID();
+        this.groupName = userGroupRole.getGroupName();
         this.roleID = userGroupRole.getRoleID();
     }
 }

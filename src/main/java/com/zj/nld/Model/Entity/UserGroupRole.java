@@ -24,6 +24,9 @@ public class UserGroupRole {
     @Column(name = "GroupID")
     private String groupID;
 
+    @Column(name = "GroupName")
+    private String groupName;
+
     @Column(name = "RoleID")
     private int roleID;
 
@@ -57,6 +60,14 @@ public class UserGroupRole {
 
     public void setGroupID(String groupID) {
         this.groupID = groupID;
+    }
+
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
     }
 
     public int getRoleID() {
