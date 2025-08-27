@@ -148,89 +148,161 @@
             font-size: 14px;
         }
 
-        .table-container {
-            position: relative;
-            min-height: 200px;
+        .expand-all-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .expand-all-controls button {
+            padding: 8px 16px;
+            border: 1px solid #008390;
+            background-color: white;
+            color: #008390;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .expand-all-controls button:hover {
+            background-color: #008390;
+            color: white;
+        }
+
+        /* 群組容器樣式 */
+        .groups-container {
             flex: 1;
             overflow-y: auto;
+            padding: 20px;
         }
 
-        table {
-            width: 100%;
-            table-layout: fixed;
-            border-collapse: collapse;
+        .group-item {
             background-color: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
         }
 
-        th, td {
-            width: 50%;
-            padding: 12px 10px;
-            border-bottom: 1px solid #e0e0e0;
-            text-align: center;
-            word-wrap: break-word;
+        .group-item:hover {
+            border-color: #008390;
+            box-shadow: 0 4px 8px rgba(0, 131, 144, 0.2);
         }
 
-        .role-header {
+        .group-header {
+            background-color: #f8f9fa;
+            padding: 15px 20px;
+            cursor: pointer;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
+            border-radius: 6px 6px 0 0;
+            transition: background-color 0.3s;
         }
 
-        .sort-triangle {
-            width: 0;
-            height: 0;
+        .group-header:hover {
+            background-color: #e8f4f5;
+        }
+
+        .group-header.expanded {
+            background-color: #008390;
+            color: white;
+            border-radius: 6px 6px 0 0;
+        }
+
+        .group-name {
+            font-size: 18px;
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .group-stats {
+            font-size: 14px;
+            color: #666;
+            margin-left: 10px;
+        }
+
+        .group-header.expanded .group-stats {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .expand-icon {
+            font-size: 18px;
+            transition: transform 0.3s;
+            user-select: none;
+        }
+
+        .expand-icon.expanded {
+            transform: rotate(180deg);
+        }
+
+        .group-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .group-content.expanded {
+            max-height: 1000px;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed; /* 固定表格布局 */
+        }
+
+        .users-table th,
+        .users-table td {
+            width: 33.33%; /* 三欄平分 */
+            text-align: center; /* 文字置中 */
+            vertical-align: middle; /* 垂直置中 */
+        }
+
+        .users-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .users-table th:first-child {
+            width: 50%;
+        }
+
+        .users-table th:last-child {
+            width: 50%;
+        }
+
+        .users-table tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+
+        .users-table tr:hover {
+            background-color: #f0f8f9;
+        }
+
+        .role-select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background-color: white;
+            font-size: 14px;
+            border-radius: 4px;
             cursor: pointer;
             transition: all 0.3s;
         }
 
-        .sort-triangle.up {
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-            border-bottom: 8px solid white;
-        }
-
-        .sort-triangle.down {
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-            border-top: 8px solid white;
-        }
-
-        .sort-triangle:hover {
-            opacity: 0.7;
-        }
-
-        td {
-            padding: 12px 10px;
-            border-bottom: 1px solid #e0e0e0;
-            text-align: center;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
-
-        tr:hover {
-            background-color: #e8f4f5;
-        }
-
-        .editable {
-            background-color: transparent;
-            border: 1px solid transparent;
-            padding: 8px;
-            width: 100%;
-            font-size: 14px;
-            transition: all 0.3s;
-            text-align: center;
-        }
-
-        .editable:focus {
+        .role-select:focus {
             outline: none;
             border-color: #008390;
-            background-color: #f0f8f9;
+            box-shadow: 0 0 3px rgba(0, 131, 144, 0.3);
         }
 
-        /* 強化變更樣式 - 更高優先級 */
+        .role-select:hover {
+            border-color: #008390;
+        }
+
         .role-select.changed {
             color: #dc3545 !important;
             background-color: #ffe6e6 !important;
@@ -238,29 +310,106 @@
             font-weight: bold !important;
         }
 
-        .role-select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            background-color: white;
-            font-size: 14px;
-            transition: all 0.3s;
+        .saved {
+            border: 2px solid #28a745 !important;
+            background-color: #f0fff4 !important;
+            transition: all 0.3s ease;
+        }
+
+        .saved-fadeout {
+            border-color: #ddd !important;
+            background-color: white !important;
+            transition: all 1s ease;
+        }
+
+        /* 載入中樣式 */
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 5px solid #ccc;
+            border-top: 5px solid #008390;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            color: #dc3545;
             text-align: center;
+            padding: 20px;
+            font-weight: bold;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+
+        /* 儲存按鈕群組樣式 */
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .button-group button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
+            transition: all 0.3s;
+            min-width: 120px;
         }
 
-        .role-select:focus {
-            outline: none;
-            border-color: #008390;
-            background-color: #f0f8f9;
+        #saveChangesBtn {
+            background-color: #28a745;
+            color: white;
+            box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+            display: none;
         }
 
-        .role-select:hover {
-            border-color: #008390;
+        #saveChangesBtn:hover {
+            background-color: #218838;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
         }
 
+        #cancelChangesBtn {
+            background-color: #dc3545;
+            color: white;
+            box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+            display: none;
+        }
+
+        #cancelChangesBtn:hover {
+            background-color: #c82333;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
+        }
+
+        /* 分頁樣式 */
         .pagination {
-            padding: 20px 20px 10px 20px;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -309,123 +458,6 @@
             font-size: 14px;
             background-color: #f8f9fa;
             padding: 0 0 10px 0;
-        }
-
-        .no-data {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-            font-style: italic;
-        }
-
-        /* 載入中樣式 */
-        .loading-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,255,255,0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            z-index: 10;
-            pointer-events: none;
-        }
-
-        .spinner {
-            border: 5px solid #ccc;
-            border-top: 5px solid #333;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 10px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .error-message {
-            color: #dc3545;
-            text-align: center;
-            padding: 20px;
-            font-weight: bold;
-        }
-
-        /* 儲存按鈕群組樣式 - 修改為置中顯示 */
-        .button-group {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .button-group button {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            min-width: 120px;
-        }
-
-        /* 儲存和取消按鈕的不同樣式 */
-        #saveChangesBtn {
-            background-color: #28a745;
-            color: white;
-            box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
-        }
-
-        #saveChangesBtn:hover {
-            background-color: #218838;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.4);
-        }
-
-        #cancelChangesBtn {
-            background-color: #dc3545;
-            color: white;
-            box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
-        }
-
-        #cancelChangesBtn:hover {
-            background-color: #c82333;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.4);
-        }
-
-        /* 原有的變更樣式 (紅色) */
-        .changed {
-            border: 2px solid #dc3545 !important;
-            background-color: #fff5f5 !important;
-        }
-
-        /* 新增：儲存成功樣式 (綠色) */
-        .saved {
-            border: 2px solid #28a745 !important;
-            background-color: #f0fff4 !important;
-            transition: all 0.3s ease;
-        }
-
-        /* 新增：淡化效果 */
-        .saved-fadeout {
-            border-color: transparent !important;
-            background-color: transparent !important;
-            transition: all 1s ease;
-        }
-
-        /* 預設隱藏儲存按鈕 */
-        #saveChangesBtn,
-        #cancelChangesBtn {
-            display: none;
         }
 
         /* 響應式設計 */
@@ -477,13 +509,15 @@
             <input type="text" id="searchGroupName" placeholder="輸入群組名稱">
         </div>
 
-
+        <div class="filter-group">
+            <label for="searchUserName">使用者名稱</label>
+            <input type="text" id="searchUserName" placeholder="輸入使用者名稱">
+        </div>
 
         <div class="filter-group">
             <label for="searchRole">權限</label>
             <select id="searchRole">
                 <option value="">請選擇</option>
-                <option value="0">0 - 無權限</option>
                 <option value="1">1 - 管理員</option>
                 <option value="2">2 - 客戶</option>
                 <option value="3">3 - 業務</option>
@@ -507,38 +541,23 @@
             <div class="items-per-page">
                 <label>每頁顯示：</label>
                 <select id="itemsPerPage">
-                    <option value="10">10筆</option>
-                    <option value="20">20筆</option>
-                    <option value="30">30筆</option>
-                    <option value="40">40筆</option>
-                    <option value="50">50筆</option>
-                    <option value="100">100筆</option>
+                    <option value="5">5個群組</option>
+                    <option value="10" selected>10個群組</option>
+                    <option value="20">20個群組</option>
+                    <option value="50">50個群組</option>
                 </select>
+            </div>
+            <div class="expand-all-controls">
+                <button id="expandAllBtn">展開全部</button>
+                <button id="collapseAllBtn">收合全部</button>
             </div>
         </div>
 
-        <div class="table-container">
-            <table id="groupTable">
-                <thead>
-                <tr>
-                    <th>群組名稱</th>
-                    <th>
-                        <div class="role-header">
-                            權限
-                            <div class="sort-triangle up" id="sortTriangle"></div>
-                        </div>
-                    </th>
-                </tr>
-                </thead>
-                <tbody id="tableBody">
-                <tr id="loadingRow">
-                    <td colspan="2" class="loading-container">
-                        <div class="spinner"></div>
-                        <p>資料載入中，請稍候...</p>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+        <div class="groups-container" id="groupsContainer">
+            <div class="loading-container">
+                <div class="spinner"></div>
+                <p>資料載入中，請稍候...</p>
+            </div>
         </div>
 
         <!-- 儲存/取消按鈕群組 -->
@@ -556,6 +575,6 @@
     </div>
 </div>
 
-<script src="/page/script/GroupRole.js?v=89"></script>
+<script src="/page/script/GroupRole.js?v=97"></script>
 </body>
 </html>

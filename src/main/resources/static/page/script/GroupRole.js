@@ -1,6 +1,6 @@
-// GroupRole.js - 群組管理系統（徹底修正取消變更問題）
+// GroupRole.js - 群組管理系統（已移除token驗證）
 
-// 全局變數
+// 全域變數
 let originalData = [];
 let filteredData = [];
 let currentPage = 1;
@@ -13,9 +13,6 @@ let currentChanges = new Map(); // 儲存當前的變更數據
 const searchGroupName = document.getElementById('searchGroupName');
 const searchRole = document.getElementById('searchRole');
 const itemsPerPageSelect = document.getElementById('itemsPerPage');
-const sortTriangle = document.getElementById('sortTriangle');
-const tableBody = document.getElementById('tableBody');
-const loadingRow = document.getElementById('loadingRow');
 const prevPageBtn = document.getElementById('prevPage');
 const nextPageBtn = document.getElementById('nextPage');
 const pageNumbers = document.getElementById('pageNumbers');
@@ -32,19 +29,17 @@ const roleMap = {
     4: "生產單位"
 };
 
-// 1. 頁面加載初始化
+// 1. 頁面載入初始化
 window.addEventListener('DOMContentLoaded', () => {
     // 綁定事件
     filterBtn.addEventListener('click', applyFilters);
     resetBtn.addEventListener('click', resetFilters);
 
-    [searchGroupName].forEach(input => {
-        input.addEventListener('keypress', e => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                applyFilters();
-            }
-        });
+    searchGroupName.addEventListener('keypress', e => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            applyFilters();
+        }
     });
 
     searchRole.addEventListener('change', applyFilters);
@@ -54,16 +49,6 @@ window.addEventListener('DOMContentLoaded', () => {
         currentPage = 1;
         renderTable();
         updatePagination();
-    });
-
-    sortTriangle.addEventListener('click', () => {
-        if (currentSort === 'none' || currentSort === 'desc') {
-            sortData('asc');
-            updateSortTriangle('asc');
-        } else {
-            sortData('desc');
-            updateSortTriangle('desc');
-        }
     });
 
     prevPageBtn.addEventListener('click', () => {
@@ -95,61 +80,25 @@ window.addEventListener('DOMContentLoaded', () => {
         cancelChangesBtn.addEventListener('click', cancelChanges);
     }
 
+    // 綁定展開/收合全部按鈕
+    const expandAllBtn = document.getElementById('expandAllBtn');
+    const collapseAllBtn = document.getElementById('collapseAllBtn');
+
+    if (expandAllBtn) {
+        expandAllBtn.addEventListener('click', expandAll);
+    }
+
+    if (collapseAllBtn) {
+        collapseAllBtn.addEventListener('click', collapseAll);
+    }
+
     // 初始化頁面
     initializePage();
 });
 
-// 2. Token檢查與解析
-(function checkTokenOnPageLoad() {
-    const urlParams = new URLSearchParams(window.location.search);
-    let type = urlParams.get('type');
-    let token = urlParams.get('token');
-
-    if (!type || !token) {
-        alert("缺少必要參數，請檢查連結");
-        return;
-    }
-
-    if (!token || token.split('.').length !== 3) {
-        alert("尚未登入或 Token 格式錯誤，請重新登入。");
-        return;
-    }
-
-    try {
-        const payloadBase64Url = token.split('.')[1];
-        const payloadJson = base64UrlDecode(payloadBase64Url);
-        const payload = JSON.parse(payloadJson);
-
-        const now = Math.floor(Date.now() / 1000);
-        if (payload.exp && payload.exp < now) {
-            alert("登入已過期，請重新登入。");
-            return;
-        }
-
-        console.log("Token 驗證通過，可正常使用網頁功能");
-        console.log("用戶角色:", type);
-        console.log("Token有效期至:", new Date(payload.exp * 1000));
-
-        window.userType = type;
-        window.userToken = token;
-
-        initializePage();
-
-    } catch (e) {
-        console.error("無法解析 JWT:", e);
-        alert("Token 格式解析失敗，請重新登入。");
-    }
-})();
-
-// 3. 從 API 載入數據
+// 2. 從 API 載入數據
 async function loadDataFromAPI() {
-    if (!window.userType || !window.userToken) {
-        console.error("User type 或 token 未設定，無法載入資料");
-        return;
-    }
-
-    const encodedToken = encodeURIComponent(window.userToken);
-    const apiUrl = `${window.location.protocol}//${window.location.host}/Admin/token/${window.userType}/${encodedToken}`;
+    const apiUrl = `${window.location.protocol}//${window.location.host}/Role/Admin`;
 
     try {
         const res = await fetch(apiUrl);
@@ -162,8 +111,10 @@ async function loadDataFromAPI() {
         // 初始化時重建 filteredData
         rebuildFilteredData();
 
-        if (loadingRow) {
-            loadingRow.remove();
+        // 移除載入中提示
+        const loadingContainer = document.querySelector('.loading-container');
+        if (loadingContainer) {
+            loadingContainer.remove();
         }
 
         renderTable();
@@ -171,18 +122,19 @@ async function loadDataFromAPI() {
 
     } catch (err) {
         console.error("API 錯誤", err);
-        if (loadingRow) {
-            loadingRow.innerHTML = `
-                <td colspan="2" class="error-message">
+        const groupsContainer = document.getElementById('groupsContainer');
+        if (groupsContainer) {
+            groupsContainer.innerHTML = `
+                <div class="error-message">
                     無法載入資料：${err.message}<br>
                     請檢查網路連線或聯絡系統管理員
-                </td>
+                </div>
             `;
         }
     }
 }
 
-// 4. 重建篩選數據 - 核心修正函數
+// 3. 重建篩選數據 - 核心修正函數
 function rebuildFilteredData() {
     const groupNameFilter = searchGroupName.value.toLowerCase();
     const roleFilter = searchRole.value;
@@ -190,8 +142,8 @@ function rebuildFilteredData() {
     // 完全基於原始數據重建，然後應用變更
     filteredData = originalData
         .filter(item => {
-            const groupNameMatch = safeValue(item.GroupName).toLowerCase().includes(groupNameFilter);
-            const roleMatch = roleFilter === '' || item.RoleID.toString() === roleFilter;
+            const groupNameMatch = safeValue(item.groupName).toLowerCase().includes(groupNameFilter);
+            const roleMatch = roleFilter === '' || item.roleID.toString() === roleFilter;
             return groupNameMatch && roleMatch;
         })
         .map(item => {
@@ -199,8 +151,8 @@ function rebuildFilteredData() {
             const itemCopy = JSON.parse(JSON.stringify(item));
 
             // 如果有變更記錄，則應用變更
-            if (currentChanges.has(item.GroupID)) {
-                const changes = currentChanges.get(item.GroupID);
+            if (currentChanges.has(item.groupID)) {
+                const changes = currentChanges.get(item.groupID);
                 Object.assign(itemCopy, changes);
             }
 
@@ -208,7 +160,7 @@ function rebuildFilteredData() {
         });
 }
 
-// 5. 應用篩選條件
+// 4. 應用篩選條件
 function applyFilters() {
     rebuildFilteredData();
     currentPage = 1;
@@ -216,34 +168,17 @@ function applyFilters() {
     updatePagination();
 }
 
-// 6. 重設篩選條件
+// 5. 重設篩選條件
 function resetFilters() {
     searchGroupName.value = '';
     searchRole.value = '';
     rebuildFilteredData();
-    updateSortTriangle('none');
-    currentSort = 'none';
     currentPage = 1;
     renderTable();
     updatePagination();
 }
 
-// 7. 排序數據
-function sortData(order) {
-    if (order === 'asc') {
-        filteredData.sort((a, b) => a.RoleID - b.RoleID);
-        currentSort = 'asc';
-    } else if (order === 'desc') {
-        filteredData.sort((a, b) => b.RoleID - a.RoleID);
-        currentSort = 'desc';
-    }
-
-    currentPage = 1;
-    renderTable();
-    updatePagination();
-}
-
-// 8. 分頁控制
+// 6. 分頁控制
 function updatePagination() {
     const totalItems = filteredData.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -286,55 +221,164 @@ function updatePagination() {
     pageInfo.textContent = `顯示 ${startItem}-${endItem} 項，共 ${totalItems} 項`;
 }
 
-// 9. 渲染表格
+// 7. 渲染表格
 function renderTable() {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const currentPageData = filteredData.slice(startIndex, endIndex);
 
-    tableBody.innerHTML = '';
+    const groupsContainer = document.getElementById('groupsContainer');
+    if (!groupsContainer) return;
 
     if (currentPageData.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="2" class="no-data">沒有找到匹配的數據</td></tr>';
+        groupsContainer.innerHTML = '<div class="no-data">沒有找到匹配的數據</div>';
         return;
     }
 
+    // 創建群組項目
+    let htmlContent = '';
     currentPageData.forEach(item => {
-        const row = createTableRow(item);
-        tableBody.appendChild(row);
+        htmlContent += createGroupItem(item);
+    });
+
+    groupsContainer.innerHTML = htmlContent;
+
+    // 為每個群組綁定事件
+    currentPageData.forEach(item => {
+        bindGroupEvents(item);
     });
 }
 
-// 10. 更新排序三角形
-function updateSortTriangle(activeSort) {
-    if (activeSort === 'asc') {
-        sortTriangle.className = 'sort-triangle up';
-        currentSort = 'asc';
-    } else if (activeSort === 'desc') {
-        sortTriangle.className = 'sort-triangle down';
-        currentSort = 'desc';
-    } else {
-        sortTriangle.className = 'sort-triangle up';
-        currentSort = 'none';
+// 8. 創建群組項目HTML
+function createGroupItem(item) {
+    const originalItem = originalData.find(orig => orig.groupID === item.groupID);
+    let roleSelectClass = 'role-select';
+
+    if (originalItem) {
+        const originalRole = parseInt(originalItem.roleID);
+        const currentRole = parseInt(item.roleID);
+        if (originalRole !== currentRole) {
+            roleSelectClass += ' changed';
+        }
+    }
+
+    let roleOptions = '';
+    for (let i = 0; i <= 4; i++) {
+        const selected = i === parseInt(item.roleID) ? 'selected' : '';
+        roleOptions += `<option value="${i}" ${selected}>${i} - ${roleMap[i]}</option>`;
+    }
+
+    // 確保 userName 有值
+    const displayUserName = safeValue(item.userName || (originalItem && originalItem.userName) || '');
+
+    return `
+        <div class="group-item">
+            <div class="group-header" data-group-id="${item.groupID}">
+                <div class="group-name">${safeValue(item.groupName)}</div>
+                <div class="expand-icon">▼</div>
+            </div>
+            <div class="group-content">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>群組名稱</th>
+                            <th>使用者名稱</th>
+                            <th>權限設定</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>${safeValue(item.groupName)}</td>
+                            <td>${displayUserName}</td>
+                            <td>
+                                <select class="${roleSelectClass}" data-group-id="${item.groupID}">
+                                    ${roleOptions}
+                                </select>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
+
+
+// 9. 綁定群組事件
+function bindGroupEvents(item) {
+    // 綁定展開/收合事件
+    const header = document.querySelector(`[data-group-id="${item.groupID}"].group-header`);
+    if (header) {
+        header.addEventListener('click', function() {
+            const content = this.nextElementSibling;
+            const icon = this.querySelector('.expand-icon');
+
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                this.classList.remove('expanded');
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                content.classList.add('expanded');
+                this.classList.add('expanded');
+                icon.style.transform = 'rotate(180deg)';
+            }
+        });
+    }
+
+    // 綁定權限選單變更事件
+    const roleSelect = document.querySelector(`select[data-group-id="${item.groupID}"]`);
+    if (roleSelect) {
+        roleSelect.addEventListener('change', function(e) {
+            const newRoleId = parseInt(e.target.value);
+            handleCellChange(e.target, item.groupID, 'roleID', newRoleId);
+        });
     }
 }
 
-// 11. 變更處理 - 修正版本，不直接修改 filteredData
+// 10. 展開全部群組
+function expandAll() {
+    document.querySelectorAll('.group-content').forEach(content => {
+        content.classList.add('expanded');
+    });
+    document.querySelectorAll('.group-header').forEach(header => {
+        header.classList.add('expanded');
+        const icon = header.querySelector('.expand-icon');
+        if (icon) {
+            icon.style.transform = 'rotate(180deg)';
+        }
+    });
+}
+
+// 11. 收合全部群組
+function collapseAll() {
+    document.querySelectorAll('.group-content').forEach(content => {
+        content.classList.remove('expanded');
+    });
+    document.querySelectorAll('.group-header').forEach(header => {
+        header.classList.remove('expanded');
+        const icon = header.querySelector('.expand-icon');
+        if (icon) {
+            icon.style.transform = 'rotate(0deg)';
+        }
+    });
+}
+
+// 12. 變更處理 - 修正版本，不直接修改 filteredData
 function handleCellChange(element, groupId, field, newValue) {
     console.log('=== handleCellChange 開始 ===');
     console.log('參數:', { groupId, field, newValue });
 
-    const originalItem = originalData.find(item => item.GroupID === groupId);
+    const originalItem = originalData.find(item => item.groupID === groupId);
     if (!originalItem) {
         console.error('找不到原始數據項目:', groupId);
         return;
     }
 
-    // 獲取原始值
+    // 取得原始值
     let originalValue = originalItem[field];
     let compareValue = newValue;
 
-    if (field === 'RoleID') {
+    if (field === 'roleID') {
         originalValue = parseInt(originalValue);
         compareValue = parseInt(newValue);
     }
@@ -390,7 +434,7 @@ function handleCellChange(element, groupId, field, newValue) {
     updateSaveButtonVisibility();
 }
 
-// 12. 更新儲存按鈕顯示
+// 13. 更新儲存按鈕顯示
 function updateSaveButtonVisibility() {
     const saveChangesBtn = document.getElementById('saveChangesBtn');
     const cancelChangesBtn = document.getElementById('cancelChangesBtn');
@@ -406,7 +450,7 @@ function updateSaveButtonVisibility() {
     }
 }
 
-// 13. 儲存變更 - 修正 API 路徑並加上調試
+// 14. 儲存變更 - 使用 /Role/update API
 async function saveChanges() {
     const changedData = getChangedData();
 
@@ -426,9 +470,7 @@ async function saveChanges() {
     }
 
     try {
-        // 暫時測試不同的路徑
-        // 先試試看沒有 /Admin 的路徑
-        const apiUrl = `${window.location.protocol}//${window.location.host}/Admin/update`;
+        const apiUrl = `${window.location.protocol}//${window.location.host}/Role/update`;
 
         console.log('準備發送請求到:', apiUrl);
         console.log('請求方法: PUT');
@@ -444,7 +486,6 @@ async function saveChanges() {
         });
 
         console.log('收到回應狀態:', response.status);
-        console.log('回應標頭:', response.headers);
 
         if (!response.ok) {
             const errorText = await response.text();
@@ -465,7 +506,7 @@ async function saveChanges() {
 
         // 儲存成功後，將變更應用到原始數據
         currentChanges.forEach((changes, groupId) => {
-            const originalIndex = originalData.findIndex(item => item.GroupID === groupId);
+            const originalIndex = originalData.findIndex(item => item.groupID === groupId);
             if (originalIndex !== -1) {
                 originalData[originalIndex] = { ...originalData[originalIndex], ...changes };
             }
@@ -499,7 +540,7 @@ async function saveChanges() {
     }
 }
 
-// 14. 取消變更 - 徹底修正版本
+// 15. 取消變更 - 徹底修正版本
 function cancelChanges() {
     if (!confirm('確定要取消所有變更嗎？')) {
         return;
@@ -528,71 +569,22 @@ function cancelChanges() {
     console.log('已取消所有變更，數據已還原到原始狀態');
 }
 
-// 15. 獲取變更數據
+// 16. 取得變更數據 - 根據 Controller 的格式調整
 function getChangedData() {
     const changedData = [];
 
     currentChanges.forEach((changes, groupId) => {
-        const originalItem = originalData.find(item => item.GroupID === groupId);
+        const originalItem = originalData.find(item => item.groupID === groupId);
         if (originalItem) {
             changedData.push({
-                GroupID: groupId,
-                GroupName: originalItem.GroupName,
-                RoleID: changes.RoleID !== undefined ? changes.RoleID : originalItem.RoleID
+                groupID: groupId,
+                groupName: originalItem.groupName,
+                roleID: changes.roleID !== undefined ? changes.roleID : originalItem.roleID
             });
         }
     });
 
     return changedData;
-}
-
-// 16. 創建表格行
-function createTableRow(item) {
-    const row = document.createElement('tr');
-    row.setAttribute('data-group-id', item.GroupID);
-
-    // 找到對應的原始數據
-    const originalItem = originalData.find(orig => orig.GroupID === item.GroupID);
-
-    // 群組名稱
-    const groupNameCell = document.createElement('td');
-    groupNameCell.textContent = safeValue(item.GroupName);
-    row.appendChild(groupNameCell);
-
-    // 權限選單
-    const roleCell = document.createElement('td');
-    const roleSelect = document.createElement('select');
-    roleSelect.className = 'role-select';
-
-    // 檢查權限是否已變更
-    if (originalItem) {
-        const originalRole = parseInt(originalItem.RoleID);
-        const currentRole = parseInt(item.RoleID);
-        if (originalRole !== currentRole) {
-            roleSelect.classList.add('changed');
-        }
-    }
-
-    // 添加選項
-    for (let i = 0; i <= 4; i++) {
-        const option = document.createElement('option');
-        option.value = i;
-        option.textContent = `${i} - ${roleMap[i]}`;
-        if (i === parseInt(item.RoleID)) {
-            option.selected = true;
-        }
-        roleSelect.appendChild(option);
-    }
-
-    roleSelect.addEventListener('change', function(e) {
-        const newRoleId = parseInt(e.target.value);
-        handleCellChange(e.target, item.GroupID, 'RoleID', newRoleId);
-    });
-
-    roleCell.appendChild(roleSelect);
-    row.appendChild(roleCell);
-
-    return row;
 }
 
 // 17. 創建頁碼按鈕
@@ -626,21 +618,12 @@ function initializePage() {
     loadDataFromAPI();
 }
 
-// 20. JWT解析功能
-function base64UrlDecode(str) {
-    str = str.replace(/-/g, '+').replace(/_/g, '/');
-    while (str.length % 4) {
-        str += '=';
-    }
-    return atob(str);
-}
-
-// 21. 安全處理null值
+// 20. 安全處理null值
 function safeValue(value) {
     return (value === null || value === undefined || value === "NULL") ? '' : value;
 }
 
-// 將函數暴露到全局作用域，供外部調用
+// 將函數暴露到全域作用域，供外部調用
 window.getChangedData = getChangedData;
 window.resetFilters = resetFilters;
 window.saveChanges = saveChanges;

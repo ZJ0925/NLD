@@ -14,28 +14,13 @@ import java.util.*;
 @Service
 public class LineServiceImpl implements LineService {
     // ngrok開啟網址：ngrok http --domain=bengal-charming-hyena.ngrok-free.app 8080
-    private  static String ngrokURL;
-
-    @Value("${NgrokURL}")
-    public static void setNgrokURL(String ngrokURL) {
-        LineServiceImpl.ngrokURL = ngrokURL;
-    }
-
-    // 表單網址
-    private static String url;
+    private String url;
 
     @Value("${URL}")
-    public static void setUrl(String url) {
-        LineServiceImpl.url = url;
+    public void setUrl(String url) {
+        this.url = url;
     }
 
-    // Admin的權限管理網址
-    private static String adminURL;
-
-    @Value("${AdminURL}")
-    public static void setAdminURL(String adminURL) {
-        LineServiceImpl.adminURL = adminURL;
-    }
 
     // JWT服務
     private final JwtService jwtService;
@@ -189,25 +174,15 @@ public class LineServiceImpl implements LineService {
         return "OK";
     }
 
-    // 紀錄每個使用者目前的對話狀態，例如是否在等待輸入新群組名稱
-    HashMap<String, String> userState = new HashMap<>();
 
     private String handleUserInput(String userId, String groupId, String text) {
-        // 取得使用者目前的狀態，預設是 "default"
-        String state = userState.getOrDefault(userId, "default");
-        UserGroupRole userGroupRole = new UserGroupRole();
-        boolean updateResult = false;
+
 
         if ("表單查詢".equals(text)) {
             // 先透過 userId 和 groupId 查詢該使用者在該群組的權限
             UserGroupRole fUserGroupRole = userGroupRoleService.getRoleId(userId, groupId);
-            UserGroupRole fGroupRole = userGroupRoleService.getGroupRoleByGroupID(groupId);
 
-            if (fUserGroupRole != null && fGroupRole != null) {
-                // 如果找到權限，判斷 RoleID 是否為 0 (無權限)
-                if (fGroupRole.getRoleID() == 0) {
-                    return "尚無權限或查詢權限尚未開啟";
-                }
+            if (fUserGroupRole != null) {
                 // 產生 JWT token 並組成查詢網址回傳
                 String token = jwtService.generateToken(userId, groupId, fUserGroupRole.getRoleID());
                 return url + token;
@@ -228,35 +203,6 @@ public class LineServiceImpl implements LineService {
             // 以上都查不到權限，回覆沒有權限訊息
             return "尚無權限";
 
-        } else if ("權限管理".equals(text)) {
-            // 先透過 userId 和 groupId 查詢該使用者在該群組的權限
-            UserGroupRole aUserGroupRole = userGroupRoleService.getRoleId(userId, groupId);
-            UserGroupRole aGroupRole = userGroupRoleService.getGroupRoleByGroupID(groupId);
-
-            if (aUserGroupRole != null && aGroupRole != null) {
-                // 如果找到權限，判斷 RoleID 是否為 1 (Admin)
-                if (aGroupRole.getRoleID() != 1) {
-                    return "尚無權限或查詢權限尚未開啟";
-                }
-                // 產生 JWT token 並組成查詢網址回傳
-                String token = jwtService.generateAdminToken(userId, groupId, aGroupRole.getRoleID());
-                return adminURL + token;
-            }
-
-            // 若群組權限查不到，再透過 userId 查使用者在其他群組的權限
-            UserGroupRole oUserGroupRoleByLineId = userGroupRoleService.findByLineID(userId);
-
-            if (aUserGroupRole != null && aUserGroupRole.getRoleID() == 1) {
-                String token = jwtService.generateAdminToken(
-                        userId,
-                        oUserGroupRoleByLineId.getGroupID(),
-                        oUserGroupRoleByLineId.getRoleID()
-                );
-                return adminURL + token;
-            }
-
-            // 以上都查不到權限，回覆沒有權限訊息
-            return "尚無權限";
         }
 
         // 沒有符合的指令
@@ -265,10 +211,10 @@ public class LineServiceImpl implements LineService {
 
 
     //將離開群組的用戶刪除權限
-    private  void deleteRole(String lineID, String groupId) {
-        UserGroupRole userGroupRole = userGroupRoleService.getGroupRoleByGroupID(groupId);
+    private void deleteRole(String lineID, String groupID) {
+        UserGroupRole userGroupRole = userGroupRoleService.getRoleId(lineID, groupID);
         if (userGroupRole != null) {
-            userGroupRoleService.deleteUserGroupRole(lineID, groupId);
+            userGroupRoleService.deleteUserGroupRole(lineID, groupID);
         }
     }
 }

@@ -3,6 +3,7 @@ package com.zj.nld.Model.DTO;
 import com.zj.nld.Model.Entity.UserGroupRole;
 import jakarta.persistence.Column;
 
+import java.util.List;
 import java.util.UUID;
 
 public class UserGroupRoleRequest {
@@ -18,6 +19,8 @@ public class UserGroupRoleRequest {
     private String groupName;
 
     private int roleID;
+
+    private List<UserGroupRoleRequest> groupList;
 
 
     public UUID getExternalID() {
@@ -68,6 +71,13 @@ public class UserGroupRoleRequest {
         this.roleID = roleID;
     }
 
+    public List<UserGroupRoleRequest> getGroupList() {
+        return groupList;
+    }
+
+    public void setGroupList(List<UserGroupRoleRequest> groupList) {
+        this.groupList = groupList;
+    }
 
     public UserGroupRoleRequest(UserGroupRole userGroupRole) {
         this.externalID = userGroupRole.getExternalID();

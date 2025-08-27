@@ -8,6 +8,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -33,16 +34,6 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public UserGroupRoleRequest getUserGroupRoleByExternalID(UUID externalID) {
         UserGroupRole userGroupRole = userGroupRoleRepository.findUserGroupRoleByExternalID(externalID);
-        if (userGroupRole != null) {
-            return new UserGroupRoleRequest(userGroupRole); // 手動轉 DTO
-        }
-        return null;
-    }
-
-    // 取得單筆群組權限 (by groupID)
-    @Override
-    public UserGroupRoleRequest getUserGroupRoleByGroupID(String groupID) {
-        UserGroupRole userGroupRole = userGroupRoleRepository.findUserGroupRoleByGroupID(groupID);
         if (userGroupRole != null) {
             return new UserGroupRoleRequest(userGroupRole); // 手動轉 DTO
         }
@@ -90,24 +81,6 @@ public class RoleServiceImpl implements RoleService {
         }
     }
 
-    //更新群組權限 (by groupID)
-    @Override
-    public UserGroupRoleRequest updateUserGroupRoleByGroupID(String groupID, UserGroupRoleRequest userGroupRoleRequest) {
-        try{
-            UserGroupRole existing = userGroupRoleRepository.findUserGroupRoleByGroupID(groupID);
-            if (existing == null) {
-                throw new EntityNotFoundException("UserGroupRole not found for groupID: " + groupID);
-            }
-
-            existing.setGroupName(userGroupRoleRequest.getGroupName());
-            existing.setRoleID(userGroupRoleRequest.getRoleID());
-
-            UserGroupRole updated = userGroupRoleRepository.save(existing);
-            return new UserGroupRoleRequest(updated);
-        }catch (Exception e){
-            throw new EntityNotFoundException("UserGroupRole not found for groupID: " + groupID);
-        }
-    }
 
     //刪除使用者權限 (by externalID)
     @Override
@@ -115,9 +88,32 @@ public class RoleServiceImpl implements RoleService {
         userGroupRoleRepository.deleteUserGroupRoleByExternalID(externalID);
     }
 
-    //刪除群組權限 (by groupID)
     @Override
-    public void deleteUserGroupRoleByGroupID(String groupID) {
-        userGroupRoleRepository.deleteUserGroupRoleByGroupID(groupID);
+    public List<UserGroupRole> updateUserGroupRoles(List<UserGroupRoleRequest> userGroupRoleDTOs) {
+        List<UserGroupRole> updatedRoles = new ArrayList<>();
+
+        for (UserGroupRoleRequest dto : userGroupRoleDTOs) {
+            try {
+                UserGroupRole userGroupRole = userGroupRoleRepository.findByLineIDAndGroupID(dto.getLineID(), dto.getGroupID());
+
+                if (userGroupRole != null) {
+                    userGroupRole.setRoleID(dto.getRoleID());
+                    userGroupRole.setGroupName(dto.getGroupName());
+                    userGroupRoleRepository.save(userGroupRole);
+
+                    updatedRoles.add(userGroupRole); // 更新成功才加到結果
+                } else {
+                    // 找不到的處理方式：可以忽略、丟例外、或直接建立新資料
+                    // 這裡我先選擇忽略
+                    System.out.println("UserGroupRole not found for lineID: " + dto.getLineID());
+                }
+
+            } catch (Exception e) {
+                // 出錯時紀錄 log，繼續跑下一筆
+                System.err.println("Error updating UserGroupRole for lineID: " + dto.getLineID() + " - " + e.getMessage());
+            }
+        }
+
+        return updatedRoles;
     }
 }

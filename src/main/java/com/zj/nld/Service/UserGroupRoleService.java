@@ -19,18 +19,11 @@ public interface UserGroupRoleService {
     // 在UserGroupRole根據lineID取得權限資料
     UserGroupRole findByLineID(String lineId);
 
-    // 更新使用者權限
-    boolean updateUserGroupRole(UserGroupRole userGroupRole);
-
     // 刪除群組的所有權限
     void deleteGroupRoleByGroupID(String groupID);
 
-    // 在UserGroupRole根據groupID取得對應的權限資料 (用於群組層級操作)
-    UserGroupRole getGroupRoleByGroupID(String groupID);
 
     // 根據Token取得管理員權限資料
-    List<UserGroupRole> getAdminByToken(String token);
+    List<UserGroupRole> getAllRole();
 
-    // 批量更新群組權限
-    List<UserGroupRole> updateGroupRoles(List<UserGroupRoleRequest> groupRolesDTO);
 }

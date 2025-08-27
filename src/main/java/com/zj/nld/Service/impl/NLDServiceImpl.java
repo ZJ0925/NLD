@@ -69,23 +69,19 @@ public class NLDServiceImpl implements NLDService {
         //從token讀取roleId
         int roleId = claims.get("roleId", Integer.class);
 
-        // 找到Group可以使用的權限
-        UserGroupRole groupRole = userGroupRoleService.getGroupRoleByGroupID(groupId);
 
         // 找到該user所在的group可使用的權限
         UserGroupRole userGroupRole = userGroupRoleService.getRoleId(lineId, groupId);
 
         if (((groupId == null) && (userGroupRole.getRoleID() == roleId)) ||
-                ((groupRole.getRoleID() == userGroupRole.getRoleID()) &&
-                        (userGroupRole.getRoleID() == roleId) &&
-                        (groupRole.getRoleID() == roleId)))
+                (groupId != null && (userGroupRole.getRoleID() == roleId)))
         {
             return switch (roleId) {
                 // 管理者
                 case 1 -> nldRepository.AdminSearch();
                 // 客戶(需做診所篩選)
                 case 2 -> {
-                    Doctor doctor = doctorService.findByDoctorName(groupRole.getGroupName());
+                    Doctor doctor = doctorService.findByDoctorName(userGroupRole.getGroupName());
                     if(groupId == null)
                     {
                         yield nldRepository.ClientForDocSearch(doctor.getDocName(), userGroupRole.getUserName());

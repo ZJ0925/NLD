@@ -1,7 +1,9 @@
 package com.zj.nld.Controller;
 
 import com.zj.nld.Model.DTO.UserGroupRoleRequest;
+import com.zj.nld.Model.Entity.UserGroupRole;
 import com.zj.nld.Service.RoleService;
+import com.zj.nld.Service.UserGroupRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/Role")
@@ -16,6 +19,17 @@ public class RoleController {
 
     @Autowired
     private RoleService roleService;
+
+    @Autowired
+    private UserGroupRoleService userGroupRoleService;
+
+    @GetMapping("/Admin")
+    public List<UserGroupRoleRequest> getAdmin(){
+        List<UserGroupRole> groupRoles = userGroupRoleService.getAllRole();
+        return groupRoles.stream()
+                .map(UserGroupRoleRequest::new)
+                .collect(Collectors.toList());
+    }
 
     // 取得所有使用者權限
     @GetMapping("/GET/allUserGroupRole")
@@ -33,18 +47,6 @@ public class RoleController {
     @GetMapping("/GET/UserGroupRole/{externalID}")
     public ResponseEntity<UserGroupRoleRequest> GetUserGroupRole(@PathVariable UUID externalID) {
         UserGroupRoleRequest userGroupRole = roleService.getUserGroupRoleByExternalID(externalID);
-
-        if (userGroupRole != null) {
-            return ResponseEntity.ok(userGroupRole);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    // 取得單筆群組權限 (根據GroupID)
-    @GetMapping("/GET/GroupRole/{groupID}")
-    public ResponseEntity<UserGroupRoleRequest> GetGroupRole(@PathVariable String groupID) {
-        UserGroupRoleRequest userGroupRole = roleService.getUserGroupRoleByGroupID(groupID);
 
         if (userGroupRole != null) {
             return ResponseEntity.ok(userGroupRole);
@@ -73,18 +75,16 @@ public class RoleController {
         }
     }
 
-    // 更新群組權限 (根據GroupID)
-    @PutMapping("/PUT/GroupRole/{groupID}")
-    public ResponseEntity<UserGroupRoleRequest> UpdateGroupRole(@PathVariable String groupID, @RequestBody UserGroupRoleRequest userGroupRoleRequest) {
+    //批量更新
+    @PutMapping("update")
+    public List<UserGroupRoleRequest> updateGroupRole(@RequestBody List<UserGroupRoleRequest> groupRolesDTO){
+        List<UserGroupRole> updatedRoles = roleService.updateUserGroupRoles(groupRolesDTO);
 
-        UserGroupRoleRequest userGroupRole = roleService.getUserGroupRoleByGroupID(groupID);
-        if (userGroupRole != null) {
-            UserGroupRoleRequest updated = roleService.updateUserGroupRoleByGroupID(groupID, userGroupRoleRequest);
-            return ResponseEntity.ok(updated);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return updatedRoles.stream()
+                .map(UserGroupRoleRequest::new)
+                .collect(Collectors.toList());
     }
+
 
     // 刪除使用者權限
     @DeleteMapping("/Delete/UserGroupRole/{externalID}")
@@ -98,15 +98,5 @@ public class RoleController {
         }
     }
 
-    // 刪除群組權限 (根據GroupID)
-    @DeleteMapping("/Delete/GroupRole/{groupID}")
-    public ResponseEntity<Void> deleteGroupRole(@PathVariable String groupID) {
-        UserGroupRoleRequest existing = roleService.getUserGroupRoleByGroupID(groupID);
-        if (existing != null) {
-            roleService.deleteUserGroupRoleByGroupID(groupID);
-            return ResponseEntity.noContent().build(); // 204 No Content
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
+
 }

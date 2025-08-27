@@ -10,6 +10,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -76,65 +77,9 @@ public class UserGroupRoleServiceImpl implements UserGroupRoleService {
         userGroupRoleRepository.deleteUserGroupRoleByGroupID(groupID);
     }
 
-    // 在UserGroupRole根據groupID取得對應的權限資料 (用於群組層級操作)
     @Override
-    public UserGroupRole getGroupRoleByGroupID(String groupID) {
-        UserGroupRole userGroupRole = userGroupRoleRepository.findUserGroupRoleByGroupID(groupID);
-        if (userGroupRole != null) {
-            return userGroupRole;
-        } else{
-            return null;
-        }
+    public List<UserGroupRole> getAllRole() {
+        return userGroupRoleRepository.findAll();
     }
 
-    @Override
-    public List<UserGroupRole> getAdminByToken(String token) {
-        jwtService.isTokenValid(token);
-        Claims claims = jwtService.parseToken(token);
-        //從token讀取lineId
-        String lineId = claims.get("lineId", String.class);
-        //從token讀取groupId
-        String groupId = claims.get("groupId", String.class);
-
-        //從token讀取roleId
-        int roleId = claims.get("roleId", Integer.class);
-
-        // 找到該user所在的group可使用的權限
-        UserGroupRole userGroupRole = this.getRoleId(lineId, groupId);
-
-        if (userGroupRole.getRoleID() == roleId)
-        {
-            return switch (roleId) {
-                // 管理者
-                case 1 -> userGroupRoleRepository.findAll();
-                default -> Collections.emptyList();
-            };
-        }
-        throw new RuntimeException("驗證失敗");
-    }
-
-    @Override
-    @org.springframework.transaction.annotation.Transactional
-    public List<UserGroupRole> updateGroupRoles(List<UserGroupRoleRequest> groupRolesDTO) {
-
-        List<UserGroupRole> updatedEntities = Collections.emptyList();
-        List<String> groupIds = groupRolesDTO.stream()
-                .map(UserGroupRoleRequest::getGroupID)
-                .toList();
-        List<UserGroupRole> roles = userGroupRoleRepository.findByGroupIDIn(groupIds);
-
-        Map<String, UserGroupRole> groupRoleMap = roles.stream()
-                .collect(Collectors.toMap(UserGroupRole::getGroupID, Function.identity()));
-
-        for (UserGroupRoleRequest req : groupRolesDTO){
-            UserGroupRole role = groupRoleMap.get(req.getGroupID());
-            if (role != null){
-                role.setRoleID(req.getRoleID());
-                role.setGroupName(req.getGroupName());
-            }
-        }
-
-        updatedEntities = userGroupRoleRepository.saveAll(roles);
-        return updatedEntities;
-    }
 }
