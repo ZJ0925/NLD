@@ -8,6 +8,7 @@ import com.zj.nld.Service.RoleService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,6 +87,20 @@ public class RoleServiceImpl implements RoleService {
         }catch (Exception e){
             throw new EntityNotFoundException("UserGroupRole not found: " + externalID);
         }
+    }
+
+    @Transactional
+    public List<UserGroupRoleRequest> updateGroupName(String groupID, String newGroupName) {
+        // 更新所有對應的 UserGroupRole
+        userGroupRoleRepository.updateGroupNameByGroupID(groupID, newGroupName);
+
+        // 取得更新後的資料
+        List<UserGroupRole> roles = userGroupRoleRepository.findByGroupID(groupID);
+
+        // 轉成 DTO
+        return roles.stream()
+                .map(UserGroupRoleRequest::new)
+                .collect(Collectors.toList());
     }
 
 

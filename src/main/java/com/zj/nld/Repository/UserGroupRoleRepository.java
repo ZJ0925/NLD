@@ -33,6 +33,14 @@ public interface UserGroupRoleRepository extends JpaRepository<UserGroupRole, UU
     // 根據LINE ID找到權限資料
     UserGroupRole findByLineID(String lineID);
 
+    // 找出某個 groupID 的所有 UserGroupRole
+    List<UserGroupRole> findByGroupID(String groupID);
+
+    // 直接用 JPA 更新 groupName
+    @Modifying
+    @Query("UPDATE UserGroupRole u SET u.groupName = :groupName WHERE u.groupID = :groupID")
+    int updateGroupNameByGroupID(@Param("groupID") String groupID, @Param("groupName") String groupName);
+
     // 用externalID刪除使用者權限 (by externalID)
     @Modifying
     @Query("DELETE FROM UserGroupRole u WHERE u.externalID = :externalID")

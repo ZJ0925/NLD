@@ -84,4 +84,14 @@ public class RoleController {
     }
 
 
+    //批量更新群組名稱
+    @PutMapping("/update/GroupName")
+    public ResponseEntity<List<UserGroupRoleRequest>> updateGroupName(
+            @RequestParam String groupID,
+            @RequestParam String newGroupName) {
+        List<UserGroupRoleRequest> result = roleService.updateGroupName(groupID, newGroupName);
+        return ResponseEntity.ok(result);
+    }
+
+
 }

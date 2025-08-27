@@ -291,10 +291,49 @@
             color: white;
             font-weight: bold;
             text-align: center;
+            position: relative;
         }
 
         .users-table td {
             text-align: center;
+        }
+
+        .users-table th:first-child {
+            width: 50%;
+        }
+
+        .users-table th:last-child {
+            width: 50%;
+        }
+
+        .sort-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .sort-arrows {
+            display: flex;
+            flex-direction: column;
+            line-height: 0.8;
+        }
+
+        .sort-arrow {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            transition: color 0.3s;
+        }
+
+        .sort-arrow.active {
+            color: white;
+            font-weight: bold;
+        }
+
+        .sort-header:hover .sort-arrow {
+            color: rgba(255, 255, 255, 0.8);
         }
 
         .users-table tr:hover {

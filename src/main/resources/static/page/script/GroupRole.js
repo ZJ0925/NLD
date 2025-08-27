@@ -11,6 +11,7 @@ let currentView = 'groupList'; // 'groupList' 或 'groupDetail'
 let currentGroupId = null;
 let changedRows = new Set();
 let currentChanges = new Map(); // 儲存當前的變更數據
+let currentSort = 'none'; // 'none', 'asc', 'desc'
 
 // DOM 元素
 const searchGroupName = document.getElementById('searchGroupName');
@@ -24,9 +25,8 @@ const pageInfo = document.getElementById('pageInfo');
 const filterBtn = document.getElementById('filterBtn');
 const resetBtn = document.getElementById('resetBtn');
 
-// 權限對應表
+// 權限對應表 - 移除無權限選項
 const roleMap = {
-    0: "無權限",
     1: "管理員",
     2: "客戶",
     3: "業務",
@@ -192,6 +192,18 @@ function rebuildFilteredUserData() {
 
             return itemCopy;
         });
+
+    // 應用排序
+    applySorting();
+}
+
+// 新增排序功能
+function applySorting() {
+    if (currentSort === 'asc') {
+        filteredUserData.sort((a, b) => parseInt(a.roleID) - parseInt(b.roleID));
+    } else if (currentSort === 'desc') {
+        filteredUserData.sort((a, b) => parseInt(b.roleID) - parseInt(a.roleID));
+    }
 }
 
 // 6. 應用篩選條件
@@ -225,6 +237,7 @@ function resetFilters() {
 function switchToGroupListView() {
     currentView = 'groupList';
     currentGroupId = null;
+    currentSort = 'none'; // 重置排序
 
     // 清除所有變更
     changedRows.clear();
@@ -364,14 +377,21 @@ function renderGroupDetail() {
         return;
     }
 
-    // 創建使用者表格
+    // 創建使用者表格 - 只顯示使用者名稱和權限設定
     let htmlContent = `
         <table class="users-table">
             <thead>
                 <tr>
-                    <th>群組名稱</th>
                     <th>使用者名稱</th>
-                    <th>權限設定</th>
+                    <th>
+                        <div class="sort-header" onclick="toggleSort()">
+                            權限設定
+                            <div class="sort-arrows">
+                                <span class="sort-arrow ${currentSort === 'asc' ? 'active' : ''}">▲</span>
+                                <span class="sort-arrow ${currentSort === 'desc' ? 'active' : ''}">▼</span>
+                            </div>
+                        </div>
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -394,7 +414,7 @@ function renderGroupDetail() {
     });
 }
 
-// 14. 創建使用者行HTML
+// 14. 創建使用者行HTML - 只顯示使用者名稱和權限設定
 function createUserRow(user) {
     const originalUser = originalUserData.find(orig =>
         orig.groupID === user.groupID && orig.externalID === user.externalID
@@ -411,14 +431,14 @@ function createUserRow(user) {
     }
 
     let roleOptions = '';
-    for (let i = 0; i <= 4; i++) {
+    // 移除無權限選項，只顯示 1-4
+    for (let i = 1; i <= 4; i++) {
         const selected = i === parseInt(user.roleID) ? 'selected' : '';
         roleOptions += `<option value="${i}" ${selected}>${i} - ${roleMap[i]}</option>`;
     }
 
     return `
         <tr>
-            <td>${safeValue(user.groupName)}</td>
             <td>${safeValue(user.userName)}</td>
             <td>
                 <select class="${roleSelectClass}" data-group-id="${user.groupID}" data-external-id="${user.externalID}">
@@ -701,6 +721,27 @@ function cancelChanges() {
     console.log('已取消所有變更，數據已還原到原始狀態');
 }
 
+// 新增排序切換功能
+function toggleSort() {
+    if (currentSort === 'none') {
+        currentSort = 'asc';
+    } else if (currentSort === 'asc') {
+        currentSort = 'desc';
+    } else {
+        currentSort = 'none';
+    }
+
+    console.log('排序模式切換為:', currentSort);
+
+    // 重新應用篩選和排序
+    rebuildFilteredUserData();
+
+    // 重新渲染當前頁面
+    currentPage = 1; // 排序後回到第一頁
+    renderGroupDetail();
+    updatePagination();
+}
+
 // 23. 取得變更資料
 function getChangedData() {
     const changedData = [];
@@ -767,3 +808,4 @@ window.resetFilters = resetFilters;
 window.saveChanges = saveChanges;
 window.cancelChanges = cancelChanges;
 window.switchToGroupListView = switchToGroupListView;
+window.toggleSort = toggleSort;

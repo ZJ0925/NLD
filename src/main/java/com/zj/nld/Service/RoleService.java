@@ -27,6 +27,10 @@ public interface RoleService {
     // 刪除使用者權限 (by externalID)
     void deleteUserGroupRole(UUID externalID);
 
+    //批量更新
     List<UserGroupRole> updateUserGroupRoles(List<UserGroupRoleRequest> groupRolesDTO);
+
+    //批量更新群組名稱
+    List<UserGroupRoleRequest> updateGroupName(String groupID, String newGroupName);
 
 }
