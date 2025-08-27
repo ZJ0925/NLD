@@ -1,21 +1,15 @@
 package com.zj.nld.Service.impl;
 
-import com.zj.nld.Model.DTO.UserGroupRoleRequest;
+
 import com.zj.nld.Model.Entity.UserGroupRole;
 import com.zj.nld.Repository.UserGroupRoleRepository;
 import com.zj.nld.Service.JwtService;
 import com.zj.nld.Service.UserGroupRoleService;
-import io.jsonwebtoken.Claims;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+
 
 @Service
 public class UserGroupRoleServiceImpl implements UserGroupRoleService {

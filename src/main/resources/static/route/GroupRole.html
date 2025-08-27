@@ -104,6 +104,36 @@
             background-color: #5a6268;
         }
 
+        /* 麵包屑導航 */
+        .breadcrumb {
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .breadcrumb-item {
+            color: #008390;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .breadcrumb-item:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb-item.active {
+            color: #666;
+            cursor: default;
+        }
+
+        .breadcrumb-separator {
+            color: #666;
+        }
+
         /* 右側主內容區 */
         .main-content {
             flex: 1;
@@ -176,110 +206,103 @@
             padding: 20px;
         }
 
-        .group-item {
+        /* 群組列表樣式 */
+        .group-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .group-card {
             background-color: white;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
-            margin-bottom: 15px;
+            padding: 20px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
+            cursor: pointer;
         }
 
-        .group-item:hover {
+        .group-card:hover {
             border-color: #008390;
             box-shadow: 0 4px 8px rgba(0, 131, 144, 0.2);
+            transform: translateY(-2px);
         }
 
-        .group-header {
-            background-color: #f8f9fa;
-            padding: 15px 20px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-radius: 6px 6px 0 0;
-            transition: background-color 0.3s;
-        }
-
-        .group-header:hover {
-            background-color: #e8f4f5;
-        }
-
-        .group-header.expanded {
-            background-color: #008390;
-            color: white;
-            border-radius: 6px 6px 0 0;
-        }
-
-        .group-name {
+        .group-card-name {
             font-size: 18px;
             font-weight: bold;
-            flex: 1;
+            color: #008390;
+            margin-bottom: 10px;
         }
 
-        .group-stats {
-            font-size: 14px;
+        .group-card-info {
             color: #666;
-            margin-left: 10px;
+            font-size: 14px;
         }
 
-        .group-header.expanded .group-stats {
-            color: rgba(255, 255, 255, 0.8);
+        /* 群組詳情樣式 */
+        .group-detail {
+            display: none;
         }
 
-        .expand-icon {
-            font-size: 18px;
-            transition: transform 0.3s;
-            user-select: none;
+        .group-detail.active {
+            display: block;
         }
 
-        .expand-icon.expanded {
-            transform: rotate(180deg);
+        .group-detail-header {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 2px solid #008390;
         }
 
-        .group-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
+        .group-detail-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #008390;
+            margin-bottom: 10px;
         }
 
-        .group-content.expanded {
-            max-height: 1000px;
+        .group-detail-subtitle {
+            color: #666;
+            font-size: 16px;
         }
 
         .users-table {
             width: 100%;
             border-collapse: collapse;
-            table-layout: fixed; /* 固定表格布局 */
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .users-table th,
         .users-table td {
-            width: 33.33%; /* 三欄平分 */
-            text-align: center; /* 文字置中 */
-            vertical-align: middle; /* 垂直置中 */
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
         }
 
         .users-table th {
-            background-color: #f8f9fa;
+            background-color: #008390;
+            color: white;
             font-weight: bold;
-            color: #555;
+            text-align: center;
         }
 
-        .users-table th:first-child {
-            width: 50%;
-        }
-
-        .users-table th:last-child {
-            width: 50%;
-        }
-
-        .users-table tr:nth-child(even) {
-            background-color: #fafafa;
+        .users-table td {
+            text-align: center;
         }
 
         .users-table tr:hover {
-            background-color: #f0f8f9;
+            background-color: #f8f9fa;
+        }
+
+        .users-table tr:last-child td {
+            border-bottom: none;
         }
 
         .role-select {
@@ -465,6 +488,10 @@
             .sidebar {
                 width: 250px;
             }
+
+            .group-list {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
         }
 
         @media (max-width: 768px) {
@@ -495,6 +522,10 @@
             .button-group button {
                 width: 200px;
             }
+
+            .group-list {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -504,25 +535,31 @@
     <div class="sidebar">
         <h2>篩選條件</h2>
 
-        <div class="filter-group">
-            <label for="searchGroupName">群組名稱</label>
-            <input type="text" id="searchGroupName" placeholder="輸入群組名稱">
+        <!-- 群組列表模式的篩選 -->
+        <div id="groupFilters">
+            <div class="filter-group">
+                <label for="searchGroupName">群組名稱</label>
+                <input type="text" id="searchGroupName" placeholder="輸入群組名稱">
+            </div>
         </div>
 
-        <div class="filter-group">
-            <label for="searchUserName">使用者名稱</label>
-            <input type="text" id="searchUserName" placeholder="輸入使用者名稱">
-        </div>
+        <!-- 群組詳情模式的篩選 -->
+        <div id="userFilters" style="display: none;">
+            <div class="filter-group">
+                <label for="searchUserName">使用者名稱</label>
+                <input type="text" id="searchUserName" placeholder="輸入使用者名稱">
+            </div>
 
-        <div class="filter-group">
-            <label for="searchRole">權限</label>
-            <select id="searchRole">
-                <option value="">請選擇</option>
-                <option value="1">1 - 管理員</option>
-                <option value="2">2 - 客戶</option>
-                <option value="3">3 - 業務</option>
-                <option value="4">4 - 生產單位</option>
-            </select>
+            <div class="filter-group">
+                <label for="searchRole">權限</label>
+                <select id="searchRole">
+                    <option value="">請選擇</option>
+                    <option value="1">1 - 管理員</option>
+                    <option value="2">2 - 客戶</option>
+                    <option value="3">3 - 業務</option>
+                    <option value="4">4 - 生產單位</option>
+                </select>
+            </div>
         </div>
 
         <div class="button-groupSearch">
@@ -537,26 +574,43 @@
             <h1>群組管理系統</h1>
         </div>
 
+        <!-- 麵包屑導航 -->
+        <div class="breadcrumb">
+            <span class="breadcrumb-item active" id="breadcrumbHome">群組列表</span>
+            <span class="breadcrumb-separator" id="breadcrumbSeparator" style="display: none;">></span>
+            <span class="breadcrumb-item" id="breadcrumbGroup" style="display: none;"></span>
+        </div>
+
         <div class="controls">
             <div class="items-per-page">
-                <label>每頁顯示：</label>
+                <label id="itemsLabel">每頁顯示：</label>
                 <select id="itemsPerPage">
-                    <option value="5">5個群組</option>
-                    <option value="10" selected>10個群組</option>
-                    <option value="20">20個群組</option>
-                    <option value="50">50個群組</option>
+                    <option value="5">5個項目</option>
+                    <option value="10" selected>10個項目</option>
+                    <option value="20">20個項目</option>
+                    <option value="50">50個項目</option>
                 </select>
-            </div>
-            <div class="expand-all-controls">
-                <button id="expandAllBtn">展開全部</button>
-                <button id="collapseAllBtn">收合全部</button>
             </div>
         </div>
 
         <div class="groups-container" id="groupsContainer">
-            <div class="loading-container">
-                <div class="spinner"></div>
-                <p>資料載入中，請稍候...</p>
+            <!-- 群組列表視圖 -->
+            <div id="groupListView">
+                <div class="loading-container">
+                    <div class="spinner"></div>
+                    <p>資料載入中，請稍候...</p>
+                </div>
+            </div>
+
+            <!-- 群組詳情視圖 -->
+            <div id="groupDetailView" class="group-detail">
+                <div class="group-detail-header">
+                    <div class="group-detail-title" id="currentGroupName">群組詳情</div>
+                    <div class="group-detail-subtitle">管理此群組的成員權限</div>
+                </div>
+                <div id="groupDetailContent">
+                    <!-- 這裡會動態載入群組成員表格 -->
+                </div>
             </div>
         </div>
 
@@ -575,6 +629,6 @@
     </div>
 </div>
 
-<script src="/page/script/GroupRole.js?v=97"></script>
+<script src="/page/script/GroupRole.js?v=98"></script>
 </body>
 </html>

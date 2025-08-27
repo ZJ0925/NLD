@@ -1,5 +1,6 @@
 package com.zj.nld.Controller;
 
+import com.zj.nld.Model.DTO.GroupRequest;
 import com.zj.nld.Model.DTO.UserGroupRoleRequest;
 import com.zj.nld.Model.Entity.UserGroupRole;
 import com.zj.nld.Service.RoleService;
@@ -24,17 +25,20 @@ public class RoleController {
     private UserGroupRoleService userGroupRoleService;
 
     @GetMapping("/Admin")
-    public List<UserGroupRoleRequest> getAdmin(){
-        List<UserGroupRole> groupRoles = userGroupRoleService.getAllRole();
-        return groupRoles.stream()
-                .map(UserGroupRoleRequest::new)
-                .collect(Collectors.toList());
+    public ResponseEntity<List<GroupRequest>> getAllGroups(){
+        List<GroupRequest>  groups = roleService.getUserGroup();
+
+        if(!groups.isEmpty()){
+            return new ResponseEntity<>(groups, HttpStatus.OK);
+        }else{
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
     }
 
-    // 取得所有使用者權限
-    @GetMapping("/GET/allUserGroupRole")
-    public ResponseEntity<List<UserGroupRoleRequest>> getAllUserGroupRole() {
-        List<UserGroupRoleRequest> userGroupRole = roleService.getAllUserGroupRole();
+    // 取得該群組的所有使用者權限
+    @GetMapping("/GET/UserGroup")
+    public ResponseEntity<List<UserGroupRoleRequest>> getUserGroup(String groupID) {
+        List<UserGroupRoleRequest> userGroupRole = roleService.getUserGroup(groupID);
 
         if (userGroupRole != null && !userGroupRole.isEmpty()) {
             return ResponseEntity.ok(userGroupRole);
@@ -55,12 +59,6 @@ public class RoleController {
         }
     }
 
-    // 新增使用者權限
-    @PostMapping("/POST/UserGroupRole")
-    public ResponseEntity<UserGroupRoleRequest> CreateUserGroupRole(@RequestBody UserGroupRoleRequest userGroupRoleRequest) {
-        UserGroupRoleRequest addUserGroupRole = roleService.createUserGroupRole(userGroupRoleRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(addUserGroupRole);
-    }
 
     // 更新使用者權限
     @PutMapping("/PUT/UserGroupRole/{externalID}")
@@ -83,19 +81,6 @@ public class RoleController {
         return updatedRoles.stream()
                 .map(UserGroupRoleRequest::new)
                 .collect(Collectors.toList());
-    }
-
-
-    // 刪除使用者權限
-    @DeleteMapping("/Delete/UserGroupRole/{externalID}")
-    public ResponseEntity<Void> deleteUserGroupRole(@PathVariable UUID externalID) {
-        UserGroupRoleRequest existing = roleService.getUserGroupRoleByExternalID(externalID);
-        if (existing != null) {
-            roleService.deleteUserGroupRole(externalID);
-            return ResponseEntity.noContent().build(); // 204 No Content
-        } else {
-            return ResponseEntity.notFound().build();
-        }
     }
 
 

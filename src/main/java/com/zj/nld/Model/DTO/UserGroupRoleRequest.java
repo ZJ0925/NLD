@@ -87,4 +87,7 @@ public class UserGroupRoleRequest {
         this.groupName = userGroupRole.getGroupName();
         this.roleID = userGroupRole.getRoleID();
     }
+
+    // 空建構子
+    public UserGroupRoleRequest() {}
 }

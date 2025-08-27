@@ -1,5 +1,6 @@
 package com.zj.nld.Service.impl;
 
+import com.zj.nld.Model.DTO.GroupRequest;
 import com.zj.nld.Model.DTO.UserGroupRoleRequest;
 import com.zj.nld.Model.Entity.UserGroupRole;
 import com.zj.nld.Repository.UserGroupRoleRepository;
@@ -19,14 +20,20 @@ public class RoleServiceImpl implements RoleService {
     @Autowired
     private UserGroupRoleRepository userGroupRoleRepository;
 
-    //取得所有使用者權限
+
     @Override
-    public List<UserGroupRoleRequest> getAllUserGroupRole() {
-        List<UserGroupRole> userGroupRole = userGroupRoleRepository.findAll();
+    public List<GroupRequest> getUserGroup() {
+        return userGroupRoleRepository.findDistinctGroups();
+    }
+
+    //取得該群組的所有使用者權限
+    @Override
+    public List<UserGroupRoleRequest> getUserGroup(String groupID) {
+        List<UserGroupRole> entities = userGroupRoleRepository.findUserGroupRolesByGroupID(groupID);
 
         // 建構子轉換 Entity → DTO
-        return userGroupRole.stream()
-                .map(UserGroupRoleRequest::new)
+        return entities.stream()
+                .map(UserGroupRoleRequest::new) // 直接 new DTO
                 .collect(Collectors.toList());
     }
 

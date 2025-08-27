@@ -1,5 +1,6 @@
 package com.zj.nld.Service;
 
+import com.zj.nld.Model.DTO.GroupRequest;
 import com.zj.nld.Model.DTO.UserGroupRoleRequest;
 import com.zj.nld.Model.Entity.UserGroupRole;
 
@@ -8,8 +9,10 @@ import java.util.UUID;
 
 public interface RoleService {
 
+    List<GroupRequest> getUserGroup();
+
     // 取得所有使用者權限
-    List<UserGroupRoleRequest> getAllUserGroupRole();
+    List<UserGroupRoleRequest> getUserGroup(String groupID);
 
     // 取得單筆使用者權限 (by externalID)
     UserGroupRoleRequest getUserGroupRoleByExternalID(UUID externalID);

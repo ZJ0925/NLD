@@ -1,5 +1,6 @@
 package com.zj.nld.Repository;
 
+import com.zj.nld.Model.DTO.GroupRequest;
 import com.zj.nld.Model.Entity.UserGroupRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -14,10 +15,14 @@ public interface UserGroupRoleRepository extends JpaRepository<UserGroupRole, UU
     // getAll
     List<UserGroupRole> findAll();
 
+    @Query("SELECT DISTINCT new com.zj.nld.Model.DTO.GroupRequest(u.groupID, u.groupName) FROM UserGroupRole u")
+    List<GroupRequest> findDistinctGroups();
+
+
 
     // 根據groupID找到該群組的userGroupRole
-    List<UserGroupRole> findUserGroupRoleByGroupID(String groupID);
-
+    @Query("SELECT u FROM UserGroupRole u WHERE u.groupID = :groupID")
+    List<UserGroupRole> findUserGroupRolesByGroupID(@Param("groupID") String groupID);
 
     // 根據externalID找到該筆權限
     UserGroupRole findUserGroupRoleByExternalID(UUID externalID);
