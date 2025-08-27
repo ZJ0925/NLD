@@ -1,6 +1,5 @@
 package com.zj.nld.Service.impl;
 
-import com.zj.nld.Model.DTO.GroupRoleRequest;
 import com.zj.nld.Model.DTO.UserGroupRoleRequest;
 import com.zj.nld.Model.Entity.UserGroupRole;
 import com.zj.nld.Repository.UserGroupRoleRepository;
@@ -17,7 +16,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-
 @Service
 public class UserGroupRoleServiceImpl implements UserGroupRoleService {
 
@@ -26,7 +24,6 @@ public class UserGroupRoleServiceImpl implements UserGroupRoleService {
 
     @Autowired
     private JwtService jwtService;
-
 
     //將新用戶加入權限
     @Override
@@ -47,19 +44,18 @@ public class UserGroupRoleServiceImpl implements UserGroupRoleService {
         UserGroupRole userGroupRole = userGroupRoleRepository.findByLineIDAndGroupID(lineId, groupId);
         if (userGroupRole != null) {
             return userGroupRole;
-        }else {
+        } else {
             return null;
         }
     }
 
-
-    // 在UserGroupRole根據lineID與groupID取得對應的權限ID
+    // 在UserGroupRole根據lineID取得權限資料
     @Override
     public UserGroupRole findByLineID(String lineId) {
         UserGroupRole userGroupRole = userGroupRoleRepository.findByLineID(lineId);
         if (userGroupRole != null) {
             return userGroupRole;
-        }else {
+        } else {
             return null;
         }
     }
@@ -68,7 +64,7 @@ public class UserGroupRoleServiceImpl implements UserGroupRoleService {
         try {
             userGroupRoleRepository.save(userGroupRole);
             return true;
-        }catch (Exception e) {
+        } catch (Exception e) {
             return false;
         }
     }
@@ -80,17 +76,16 @@ public class UserGroupRoleServiceImpl implements UserGroupRoleService {
         userGroupRoleRepository.deleteUserGroupRoleByGroupID(groupID);
     }
 
-    // 在GroupRole根據groupID取得對應的權限ID
+    // 在UserGroupRole根據groupID取得對應的權限資料 (用於群組層級操作)
     @Override
     public UserGroupRole getGroupRoleByGroupID(String groupID) {
-        UserGroupRole groupRole = userGroupRoleRepository.findUserGroupRoleByGroupID(groupID);
-        if (groupRole != null) {
-            return groupRole;
-        }else{
+        UserGroupRole userGroupRole = userGroupRoleRepository.findUserGroupRoleByGroupID(groupID);
+        if (userGroupRole != null) {
+            return userGroupRole;
+        } else{
             return null;
         }
     }
-
 
     @Override
     public List<UserGroupRole> getAdminByToken(String token) {
@@ -104,28 +99,19 @@ public class UserGroupRoleServiceImpl implements UserGroupRoleService {
         //從token讀取roleId
         int roleId = claims.get("roleId", Integer.class);
 
-
         // 找到該user所在的group可使用的權限
-        UserGroupRole userGroupRole = userGroupRoleService.getRoleId(lineId, groupId);
+        UserGroupRole userGroupRole = this.getRoleId(lineId, groupId);
 
-
-
-        if (((groupId == null) && (userGroupRole.getRoleID() == roleId)) ||
-                ((UserGroupRole.getRoleID() == userGroupRole.getRoleID()) &&
-                        (userGroupRole.getRoleID() == roleId) &&
-                        (groupRole.getRoleID() == roleId)))
+        if (userGroupRole.getRoleID() == roleId)
         {
             return switch (roleId) {
                 // 管理者
                 case 1 -> userGroupRoleRepository.findAll();
-                default -> null;
+                default -> Collections.emptyList();
             };
         }
         throw new RuntimeException("驗證失敗");
     }
-
-
-
 
     @Override
     @org.springframework.transaction.annotation.Transactional
@@ -140,7 +126,7 @@ public class UserGroupRoleServiceImpl implements UserGroupRoleService {
         Map<String, UserGroupRole> groupRoleMap = roles.stream()
                 .collect(Collectors.toMap(UserGroupRole::getGroupID, Function.identity()));
 
-        for (UserGroupRoleRequest req : userGroupRoleDTO){
+        for (UserGroupRoleRequest req : groupRolesDTO){
             UserGroupRole role = groupRoleMap.get(req.getGroupID());
             if (role != null){
                 role.setRoleID(req.getRoleID());
@@ -150,7 +136,5 @@ public class UserGroupRoleServiceImpl implements UserGroupRoleService {
 
         updatedEntities = userGroupRoleRepository.saveAll(roles);
         return updatedEntities;
-
-
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,7 @@ public class LineUtil {
 
         HttpEntity<String> request = new HttpEntity<>(headers);
 
+        JSONObject userProfile = null;
         try {
             ResponseEntity<String> response = rest.exchange(
                     USER_PROFILE_URL,
@@ -51,7 +53,7 @@ public class LineUtil {
             );
 
             if (response.getStatusCode() == HttpStatus.OK) {
-                JSONObject userProfile = JSON.parseObject(response.getBody());
+                userProfile = JSON.parseObject(response.getBody());
                 System.out.println("使用者ID: " + userProfile.getString("userId"));
                 System.out.println("顯示名稱: " + userProfile.getString("displayName"));
                 System.out.println("頭像URL: " + userProfile.getString("pictureUrl"));
@@ -63,7 +65,7 @@ public class LineUtil {
             System.err.println("取得使用者資料失敗: " + e.getMessage());
         }
 
-        return null;
+        return userProfile;
     }
 
     /**
@@ -145,6 +147,63 @@ public class LineUtil {
         return null;
     }
 
+
+    /**
+     * 取得群組成員 ID 列表
+     * @param groupId 群組ID
+     * @return 群組成員ID的List
+     */
+    public static List<String> getGroupUserID(String groupId) {
+        List<String> userIDList = new ArrayList<>();
+        String baseUrl = "https://api.line.me/v2/bot/group/" + groupId + "/members/ids";
+        RestTemplate rest = new RestTemplate();
+
+        // 設定 Header
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(TOKEN); // 確認這裡是 Messaging API 的長期 token
+
+        String nextToken = null;
+
+        try {
+            do {
+                // 如果有分頁 nextToken，要接在 query string 後面
+                String requestUrl = (nextToken == null) ? baseUrl : baseUrl + "?start=" + nextToken;
+
+                HttpEntity<String> request = new HttpEntity<>(headers);
+                ResponseEntity<String> response = rest.exchange(
+                        requestUrl,
+                        HttpMethod.GET,
+                        request,
+                        String.class
+                );
+
+                if (response.getStatusCode() == HttpStatus.OK) {
+                    JSONObject json = JSON.parseObject(response.getBody());
+
+                    // 加入本批成員
+                    List<String> memberIds = json.getJSONArray("memberIds").toJavaList(String.class);
+                    userIDList.addAll(memberIds);
+
+                    // 取得下一頁的 token（如果有的話）
+                    nextToken = json.getString("next");
+                } else {
+                    System.err.println("取得群組成員失敗，HTTP 狀態碼: " + response.getStatusCode());
+                    break;
+                }
+            } while (nextToken != null);
+
+            return userIDList;
+        } catch (Exception e) {
+            System.err.println("取得群組成員失敗: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return new ArrayList<>();
+    }
+
+
+
+
     /**
      * 僅取得群組名稱
      * @param groupId 群組ID
@@ -175,6 +234,7 @@ public class LineUtil {
 
         HttpEntity<String> request = new HttpEntity<>(headers);
 
+        JSONObject memberProfile = null;
         try {
             ResponseEntity<String> response = rest.exchange(
                     GROUP_MEMBER_PROFILE_URL,
@@ -184,7 +244,7 @@ public class LineUtil {
             );
 
             if (response.getStatusCode() == HttpStatus.OK) {
-                JSONObject memberProfile = JSON.parseObject(response.getBody());
+                memberProfile = JSON.parseObject(response.getBody());
                 System.out.println("群組成員ID: " + memberProfile.getString("userId"));
                 System.out.println("群組內顯示名稱: " + memberProfile.getString("displayName"));
                 System.out.println("群組內頭像URL: " + memberProfile.getString("pictureUrl"));
@@ -194,7 +254,7 @@ public class LineUtil {
             System.err.println("取得群組成員資料失敗: " + e.getMessage());
         }
 
-        return null;
+        return memberProfile;
     }
 
     /**

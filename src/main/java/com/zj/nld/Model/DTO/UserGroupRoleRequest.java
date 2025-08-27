@@ -1,6 +1,5 @@
 package com.zj.nld.Model.DTO;
 
-import com.zj.nld.Model.Entity.GroupRole;
 import com.zj.nld.Model.Entity.UserGroupRole;
 import jakarta.persistence.Column;
 

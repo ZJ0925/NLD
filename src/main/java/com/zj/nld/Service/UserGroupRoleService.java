@@ -1,6 +1,9 @@
 package com.zj.nld.Service;
 
+import com.zj.nld.Model.DTO.UserGroupRoleRequest;
 import com.zj.nld.Model.Entity.UserGroupRole;
+
+import java.util.List;
 
 public interface UserGroupRoleService {
 
@@ -13,9 +16,21 @@ public interface UserGroupRoleService {
     // 在UserGroupRole根據lineID與groupID取得對應的權限ID
     UserGroupRole getRoleId(String lineId, String groupId);
 
-    // 在UserGroupRole根據lineID與groupID取得對應的權限ID
+    // 在UserGroupRole根據lineID取得權限資料
     UserGroupRole findByLineID(String lineId);
 
-    // 更新使用者名稱
+    // 更新使用者權限
     boolean updateUserGroupRole(UserGroupRole userGroupRole);
+
+    // 刪除群組的所有權限
+    void deleteGroupRoleByGroupID(String groupID);
+
+    // 在UserGroupRole根據groupID取得對應的權限資料 (用於群組層級操作)
+    UserGroupRole getGroupRoleByGroupID(String groupID);
+
+    // 根據Token取得管理員權限資料
+    List<UserGroupRole> getAdminByToken(String token);
+
+    // 批量更新群組權限
+    List<UserGroupRole> updateGroupRoles(List<UserGroupRoleRequest> groupRolesDTO);
 }

@@ -2,9 +2,8 @@ package com.zj.nld.Service.impl;
 
 import com.zj.nld.Model.DTO.NLDRequest;
 import com.zj.nld.Model.Entity.Doctor;
-import com.zj.nld.Model.Entity.GroupRole;
 import com.zj.nld.Model.Entity.UserGroupRole;
-import com.zj.nld.Repository.GroupRoleRepository;
+import com.zj.nld.Repository.UserGroupRoleRepository;
 import com.zj.nld.Repository.NLDRepository;
 import com.zj.nld.Model.DTO.NLDProdUnitRequest;
 import com.zj.nld.Model.DTO.NldClientRequest;
@@ -28,15 +27,13 @@ public class NLDServiceImpl implements NLDService {
     private JwtService jwtService;
 
     @Autowired
-    private GroupRoleService groupRoleService;
-
-    @Autowired
     UserGroupRoleService userGroupRoleService;
 
     @Autowired
     DoctorService doctorService;
+
     @Autowired
-    private GroupRoleRepository groupRoleRepository;
+    private UserGroupRoleRepository userGroupRoleRepository;
 
     @Override
     public List<NLDRequest> AdminSearch() {
@@ -73,17 +70,15 @@ public class NLDServiceImpl implements NLDService {
         int roleId = claims.get("roleId", Integer.class);
 
         // 找到Group可以使用的權限
-        GroupRole groupRole = groupRoleService.getGroupRoleByGroupID(groupId);
+        UserGroupRole groupRole = userGroupRoleService.getGroupRoleByGroupID(groupId);
 
         // 找到該user所在的group可使用的權限
         UserGroupRole userGroupRole = userGroupRoleService.getRoleId(lineId, groupId);
 
-
-
         if (((groupId == null) && (userGroupRole.getRoleID() == roleId)) ||
-            ((groupRole.getRoleID() == userGroupRole.getRoleID()) &&
-            (userGroupRole.getRoleID() == roleId) &&
-            (groupRole.getRoleID() == roleId)))
+                ((groupRole.getRoleID() == userGroupRole.getRoleID()) &&
+                        (userGroupRole.getRoleID() == roleId) &&
+                        (groupRole.getRoleID() == roleId)))
         {
             return switch (roleId) {
                 // 管理者
@@ -108,7 +103,4 @@ public class NLDServiceImpl implements NLDService {
         }
         throw new RuntimeException("驗證失敗");
     }
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------
-
 }
