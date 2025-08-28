@@ -42,84 +42,173 @@
 </div>
 
 <script>
-
-
     window.addEventListener("DOMContentLoaded", () => {
-        // ✅ 登入前先清除可能存在的舊資料
+
+        // 清除可能存在的舊資料
         localStorage.removeItem("nldData");
 
-
         function base64UrlDecode(str) {
-            str = str.replace(/-/g, '+').replace(/_/g, '/');
-            while (str.length % 4) {
-                str += '=';
+            try {
+                // 更安全的 Base64 URL 解碼
+                str = str.replace(/-/g, '+').replace(/_/g, '/');
+                while (str.length % 4) {
+                    str += '=';
+                }
+
+                // 檢查字串是否為有效的 Base64
+                const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
+                if (!base64Regex.test(str)) {
+                    throw new Error('Invalid Base64 string');
+                }
+
+                return atob(str);
+            } catch (e) {
+                alert("除錯 - Base64 解碼失敗: " + e.message);
+                throw new Error("Token 格式錯誤");
             }
-            return atob(str);
         }
 
-        // 從 URL 解析參數
-        const urlParams = new URLSearchParams(window.location.search);
-        let type = urlParams.get('type');
-        let token = urlParams.get('token');
+        function parseParameters() {
+            // 優先從 URL 參數解析
+            const urlParams = new URLSearchParams(window.location.search);
+            let type = urlParams.get('type');
+            let token = urlParams.get('token');
 
-        // 如果沒有參數，嘗試從路徑解析
-        if (!type || !token) {
-            const pathParts = window.location.pathname.split("/");
-            // 尋找 route 後面的參數結構
+            // 如果 URL 參數存在，直接使用
+            if (type && token) {
+                return { type, token };
+            }
+
+            // 嘗試從路徑解析 (修正邏輯)
+            const pathParts = window.location.pathname.split("/").filter(part => part.length > 0);
+
+            // 尋找 route 的位置
             const routeIndex = pathParts.indexOf('route');
-            if (routeIndex !== -1 && pathParts.length >= routeIndex + 5) {
-                // route/NLD/token/Admin/token 結構
-                type = pathParts[routeIndex + 3];   // Admin
-                token = pathParts[routeIndex + 4];  // token
+            if (routeIndex !== -1) {
+
+
+                // 期望的路徑結構可能是: /route/NLD/token/Admin/tokenValue
+                // 或其他結構，我們需要更靈活的解析
+
+                // 方法1: 假設最後兩個參數是 type 和 token
+                if (pathParts.length >= 2) {
+                    const potentialType = pathParts[pathParts.length - 2];
+                    const potentialToken = pathParts[pathParts.length - 1];
+
+                    // 驗證 type 是否為預期的角色類型
+                    const validTypes = ['Admin', 'Client', 'Sales', 'ProdUnit'];
+                    if (validTypes.includes(potentialType) && potentialToken) {
+                        return { type: potentialType, token: potentialToken };
+                    }
+                }
+
+                // 方法2: 尋找已知的角色類型
+                const validTypes = ['Admin', 'Client', 'Sales', 'ProdUnit'];
+                for (let i = 0; i < pathParts.length - 1; i++) {
+                    if (validTypes.includes(pathParts[i]) && pathParts[i + 1]) {
+
+                        return { type: pathParts[i], token: pathParts[i + 1] };
+                    }
+                }
+            } else {
+                alert("除錯4 - 未找到route關鍵字");
             }
+
+            return { type: null, token: null };
         }
 
-        console.log("解析角色:", type);
-        console.log("Token:", token);
+        // 解析參數
+        const { type, token } = parseParameters();
+
 
         if (!type || !token) {
-            alert("缺少必要參數，請檢查連結");
+            alert("錯誤 - 缺少必要參數\n" +
+                "當前URL: " + window.location.href + "\n" +
+                "請檢查連結格式");
             return;
         }
 
-        // ✅ 儲存 token 到 localStorage
+        // 儲存 token 到 localStorage
         localStorage.setItem("jwtToken", token);
 
-        // ✅ 驗證 token 是否過期
+        // 驗證 token 是否過期
         try {
-            const payload = JSON.parse(base64UrlDecode(token.split('.')[1]));
+            // 分割 JWT token
+            const tokenParts = token.split('.');
+            if (tokenParts.length !== 3) {
+                throw new Error("JWT token 格式錯誤：應該包含3個部分，實際: " + tokenParts.length);
+            }
+
+
+            const payload = JSON.parse(base64UrlDecode(tokenParts[1]));
             const now = Math.floor(Date.now() / 1000);
+
             if (payload.exp && payload.exp < now) {
                 alert("登入已過期，請重新登入。");
                 localStorage.removeItem("jwtToken");
                 return;
             }
-            console.log("Token 驗證成功，有效期至:", new Date(payload.exp * 1000));
         } catch (e) {
-            console.error("無法解析 JWT:", e);
-            alert("Token 格式錯誤，請重新登入。");
+            alert("JWT 解析錯誤: " + e.message + "\n請重新登入。");
             localStorage.removeItem("jwtToken");
             return;
         }
 
-        // ✅ 動態建構 API URL (支援 localhost 和 ngrok)
+        // 建構 API URL
         const protocol = window.location.protocol;
         const host = window.location.host;
-        const apiUrl = `${protocol}//${host}/NLD/token/${type}/${token}`;
 
-        console.log("API URL:", apiUrl);
+        // 確保 token 正確編碼
+        const safeToken = encodeURIComponent(token);
+        const apiUrl = `${protocol}//${host}/NLD/token/${type}/${safeToken}`;
 
-        // ✅ 呼叫 API 取得資料
-        fetch(apiUrl)
+        // 呼叫 API 取得資料
+        fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                // 加入 ngrok 需要的 header// 重要!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                'ngrok-skip-browser-warning': 'true'
+            }
+        })
             .then(res => {
-                if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-                return res.json();
+
+                if (!res.ok) {
+                    return res.text().then(text => {
+                        throw new Error(`HTTP ${res.status}: ${res.statusText} - ${text}`);
+                    });
+                }
+
+                // 先取得原始文字內容來檢查
+                return res.text().then(text => {
+                    // 檢查是否為 HTML 回應（表示 API 路徑錯誤）
+                    if (text.trim().startsWith('<!DOCTYPE html') || text.trim().startsWith('<html')) {
+                        alert("錯誤：API回應是HTML頁面，不是JSON資料\n" +
+                            "這表示API路徑可能不正確\n" +
+                            "請檢查後端路由設定\n" +
+                            "回應開始: " + text.substring(0, 200));
+                        throw new Error("API路徑錯誤：回應是HTML而非JSON");
+                    }
+
+
+                    try {
+                        // 嘗試解析 JSON
+                        const data = JSON.parse(text);
+                        return data;
+                    } catch (jsonError) {
+                        alert("除錯12.3 - JSON解析失敗\n" +
+                            "錯誤: " + jsonError.message + "\n" +
+                            "原始內容前200字: " + text.substring(0, 200));
+                        throw new Error("JSON解析失敗: " + jsonError.message);
+                    }
+                });
             })
             .then(data => {
-                console.log("成功取得資料，準備跳轉頁面", data);
+
                 localStorage.setItem("nldData", JSON.stringify(data));
 
-                // ✅ 動態建構跳轉 URL
+                // 建構跳轉 URL
                 const baseUrl = `${protocol}//${host}`;
                 let redirectUrl;
 
@@ -141,12 +230,13 @@
                         return;
                 }
 
-                console.log("跳轉至:", redirectUrl);
                 window.location.href = redirectUrl;
             })
             .catch(err => {
-                console.error("API 錯誤", err);
-                alert("無法載入資料：" + err.message);
+                alert("API錯誤詳情\n" +
+                    "錯誤訊息: " + err.message + "\n" +
+                    "API URL: " + apiUrl + "\n" +
+                    "請截圖此訊息給開發人員");
             });
     });
 </script>

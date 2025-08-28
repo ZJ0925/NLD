@@ -134,7 +134,6 @@ public class LineServiceImpl implements LineService {
                                 mjUserGroupRole.setGroupID(joinGroupId);
                                 mjUserGroupRole.setGroupName(groupProfile.getString("groupName"));
                                 mjUserGroupRole.setRoleID(2);
-                                System.out.println("加入的使用者 ID: " + joinUserId);
 
                                 try {
                                     userGroupRoleService.ceateUserGroupRole(mjUserGroupRole);
@@ -148,7 +147,30 @@ public class LineServiceImpl implements LineService {
                         case "join" :
                             List<String> userIdList =  LineUtil.getGroupUserID(groupId);
                             System.out.println("1111111:  " + userIdList);
-                            UserGroupRole joinGroupRole = new UserGroupRole();
+                            JSONObject groupProfile = LineUtil.getGroupSummary(groupId);
+                            for (int j = 0; j < userIdList.size(); j++) {
+                                // 空物件
+                                UserGroupRole joinUserGroupRole = new UserGroupRole();
+                                //取得使用者資訊
+                                JSONObject joinUserProfile = LineUtil.getGroupMemberProfile(groupId, userIdList.get(j));
+
+
+                                joinUserGroupRole.setExternalID(UUID.randomUUID());
+                                joinUserGroupRole.setLineID(userIdList.get(j));
+                                joinUserGroupRole.setUserName(joinUserProfile.getString("displayName"));
+                                joinUserGroupRole.setGroupID(groupId);
+                                joinUserGroupRole.setGroupName(groupProfile.getString("groupName"));
+                                joinUserGroupRole.setRoleID(2);
+
+                                try {
+                                    userGroupRoleService.ceateUserGroupRole(joinUserGroupRole);
+                                    System.out.println("成功為使用者 " + userIdList.get(j) + " 建立權限");
+                                } catch (Exception e) {
+                                    System.err.println("為使用者 " + userIdList.get(j) + " 建立權限失敗: " + e.getMessage());
+                                }
+
+
+                            }
 
 
                             System.out.println("加入到新的群組");
