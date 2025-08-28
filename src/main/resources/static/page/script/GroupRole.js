@@ -108,10 +108,30 @@ async function loadGroupsFromAPI() {
     const apiUrl = `${window.location.protocol}//${window.location.host}/Role/Admin`;
 
     try {
-        const res = await fetch(apiUrl);
-        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        const res = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                // 加入 ngrok 需要的 header - 重要修正!!!
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
 
-        const data = await res.json();
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`HTTP ${res.status}: ${res.statusText} - ${errorText}`);
+        }
+
+        // 檢查回應內容
+        const text = await res.text();
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (jsonError) {
+            throw new Error("JSON解析失敗: " + jsonError.message);
+        }
+
         console.log("成功取得群組資料:", data);
         originalGroupData = Array.isArray(data) ? data : [];
 
@@ -138,7 +158,16 @@ async function loadGroupUsersFromAPI(groupId) {
     const apiUrl = `${window.location.protocol}//${window.location.host}/Role/GET/UserGroup?groupID=${encodeURIComponent(groupId)}`;
 
     try {
-        const res = await fetch(apiUrl);
+        const res = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                // 加入 ngrok 需要的 header - 重要修正!!!
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+
         if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
 
         const data = await res.json();
@@ -629,7 +658,9 @@ async function saveChanges() {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                // 加入 ngrok 需要的 header - 重要修正!!!
+                'ngrok-skip-browser-warning': 'true'
             },
             body: JSON.stringify(changedData)
         });
