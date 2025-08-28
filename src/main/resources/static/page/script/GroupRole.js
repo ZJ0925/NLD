@@ -30,7 +30,8 @@ const roleMap = {
     1: "管理員",
     2: "客戶",
     3: "業務",
-    4: "生產單位"
+    4: "生產單位",
+    5: "牙助"
 };
 
 // 1. 頁面載入初始化
@@ -461,7 +462,7 @@ function createUserRow(user) {
 
     let roleOptions = '';
     // 移除無權限選項，只顯示 1-4
-    for (let i = 1; i <= 4; i++) {
+    for (let i = 1; i <= 5; i++) {
         const selected = i === parseInt(user.roleID) ? 'selected' : '';
         roleOptions += `<option value="${i}" ${selected}>${i} - ${roleMap[i]}</option>`;
     }

@@ -88,6 +88,10 @@ public class NLDServiceImpl implements NLDService {
                 case 3 -> nldRepository.SalesSearch();
                 // 生產單位
                 case 4 -> nldRepository.ProdUnitSearch();
+                // 牙助單位
+                case 5 -> nldRepository.ClientSearch(userGroupRole.getUserName());
+
+
                 default -> null;
             };
         }
