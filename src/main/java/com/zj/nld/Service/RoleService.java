@@ -31,6 +31,6 @@ public interface RoleService {
     List<UserGroupRole> updateUserGroupRoles(List<UserGroupRoleDTO> groupRolesDTO);
 
     //批量更新群組名稱
-    List<UserGroupRoleDTO> updateGroupName(String groupID, String newGroupName);
+    List<GroupDTO> updateGroupName(List<String> groupIDs, List<String> newGroupNames);
 
 }

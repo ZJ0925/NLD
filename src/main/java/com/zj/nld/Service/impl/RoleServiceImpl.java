@@ -90,17 +90,27 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Transactional
-    public List<UserGroupRoleDTO> updateGroupName(String groupID, String newGroupName) {
-        // 更新所有對應的 UserGroupRole
-        userGroupRoleRepository.updateGroupNameByGroupID(groupID, newGroupName);
+    public List<GroupDTO> updateGroupName(List<String> groupIDs, List<String> newGroupNames) {
+        if (groupIDs.size() != newGroupNames.size()) {
+            throw new IllegalArgumentException("groupIDs 和 newGroupNames 數量不一致");
+        }
+
+        for (int i = 0; i < groupIDs.size(); i++) {
+            String groupID = groupIDs.get(i);
+            String newGroupName = newGroupNames.get(i);
+
+            // 拆分 newGroupName (格式: "clinicId-clinicName")
+            String[] parts = newGroupName.split("-", 2);
+            String groupNameID = parts[0];
+            String groupName = parts.length > 1 ? parts[1] : "";
+
+            // 更新單筆 UserGroupRole
+            userGroupRoleRepository.updateGroupNameAndIDByGroupID(groupID, groupName, groupNameID);
+        }
+
 
         // 取得更新後的資料
-        List<UserGroupRole> roles = userGroupRoleRepository.findByGroupID(groupID);
-
-        // 轉成 DTO
-        return roles.stream()
-                .map(UserGroupRoleDTO::new)
-                .collect(Collectors.toList());
+        return userGroupRoleRepository.findDistinctGroups();
     }
 
 
