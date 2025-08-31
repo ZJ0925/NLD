@@ -1,11 +1,6 @@
 package com.zj.nld.Model.DTO;
 
-import com.zj.nld.Model.Entity.UserGroupRole;
-
-import java.util.List;
-import java.util.UUID;
-
-public class GroupRequest {
+public class GroupDTO {
 
     private String groupID;
 
@@ -32,7 +27,7 @@ public class GroupRequest {
     }
 
 
-    public GroupRequest(String groupID, String groupName) {
+    public GroupDTO(String groupID, String groupName) {
         this.groupID = groupID;
         this.groupName = groupName;
     }

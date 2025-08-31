@@ -1,12 +1,11 @@
 package com.zj.nld.Model.DTO;
 
 import com.zj.nld.Model.Entity.UserGroupRole;
-import jakarta.persistence.Column;
 
 import java.util.List;
 import java.util.UUID;
 
-public class UserGroupRoleRequest {
+public class UserGroupRoleDTO {
 
     private UUID externalID; // 全域唯一值
 
@@ -20,7 +19,7 @@ public class UserGroupRoleRequest {
 
     private int roleID;
 
-    private List<UserGroupRoleRequest> groupList;
+    private List<UserGroupRoleDTO> groupList;
 
 
     public UUID getExternalID() {
@@ -71,15 +70,15 @@ public class UserGroupRoleRequest {
         this.roleID = roleID;
     }
 
-    public List<UserGroupRoleRequest> getGroupList() {
+    public List<UserGroupRoleDTO> getGroupList() {
         return groupList;
     }
 
-    public void setGroupList(List<UserGroupRoleRequest> groupList) {
+    public void setGroupList(List<UserGroupRoleDTO> groupList) {
         this.groupList = groupList;
     }
 
-    public UserGroupRoleRequest(UserGroupRole userGroupRole) {
+    public UserGroupRoleDTO(UserGroupRole userGroupRole) {
         this.externalID = userGroupRole.getExternalID();
         this.lineID = userGroupRole.getLineID();
         this.userName = userGroupRole.getUserName();
@@ -89,5 +88,5 @@ public class UserGroupRoleRequest {
     }
 
     // 空建構子
-    public UserGroupRoleRequest() {}
+    public UserGroupRoleDTO() {}
 }

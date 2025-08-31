@@ -13,8 +13,7 @@ public class DoctorServiceImpl implements DoctorService {
     private DoctorRepository doctorRepository;
 
     @Override
-    public Doctor findByDoctorName(String doctorName) {
+    public Doctor getDoctorByName(String doctorName) {
         return doctorRepository.findByDoctorName(doctorName);
     }
-
 }

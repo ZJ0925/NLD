@@ -1,13 +1,12 @@
 package com.zj.nld.Service.impl;
 
-import com.zj.nld.Model.DTO.NLDRequest;
-import com.zj.nld.Model.Entity.Doctor;
+import com.zj.nld.Model.DTO.NLDDTO;
+import com.zj.nld.Model.DTO.NLDProdUnitDTO;
+import com.zj.nld.Model.Entity.Clinic;
 import com.zj.nld.Model.Entity.UserGroupRole;
-import com.zj.nld.Repository.UserGroupRoleRepository;
 import com.zj.nld.Repository.NLDRepository;
-import com.zj.nld.Model.DTO.NLDProdUnitRequest;
-import com.zj.nld.Model.DTO.NldClientRequest;
-import com.zj.nld.Model.DTO.NldSalesRequest;
+import com.zj.nld.Model.DTO.NldClientDTO;
+import com.zj.nld.Model.DTO.NldSalesDTO;
 import com.zj.nld.Service.*;
 import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,33 +26,34 @@ public class NLDServiceImpl implements NLDService {
     private JwtService jwtService;
 
     @Autowired
-    UserGroupRoleService userGroupRoleService;
+    private UserGroupRoleService userGroupRoleService;
 
     @Autowired
-    DoctorService doctorService;
+    private ClinicService clinicService;
 
     @Autowired
-    private UserGroupRoleRepository userGroupRoleRepository;
+    private DoctorService doctorService;
+
 
     @Override
-    public List<NLDRequest> AdminSearch() {
+    public List<NLDDTO> AdminSearch() {
         return nldRepository.AdminSearch();
     }
 
     //客戶可取得的資料
     @Override
-    public List<NldClientRequest> getNLDByClient(String client) {
+    public List<NldClientDTO> getNLDByClient(String client) {
         return nldRepository.ClientSearch(client);
     }
     //業務可取得的資料
     @Override
-    public List<NldSalesRequest> getNLDBySales() {
+    public List<NldSalesDTO> getNLDBySales() {
         return nldRepository.SalesSearch();
     }
 
     //生產單位可取得的資料
     @Override
-    public List<NLDProdUnitRequest> getNLDByProdUnit() {
+    public List<NLDProdUnitDTO> getNLDByProdUnit() {
         return nldRepository.ProdUnitSearch();
     }
 
@@ -81,15 +81,18 @@ public class NLDServiceImpl implements NLDService {
                 case 1 -> nldRepository.AdminSearch();
                 // 客戶(需做診所篩選)
                 case 2 -> {
-                    Doctor doctor = doctorService.findByDoctorName(userGroupRole.getGroupName());
-                    yield nldRepository.ClientForDocSearch(doctor.getDocName(), userGroupRole.getUserName());
+                    Clinic clinic = clinicService.findByClinicName(userGroupRole.getGroupName());
+                    yield nldRepository.ClientForDocSearch(clinic.getClinicAbbr(), userGroupRole.getUserName());
                 }
                 // 業務
                 case 3 -> nldRepository.SalesSearch();
                 // 生產單位
                 case 4 -> nldRepository.ProdUnitSearch();
                 // 牙助單位
-                case 5 -> nldRepository.ClientSearch(userGroupRole.getUserName());
+                case 5 ->{
+                    Clinic clinic = clinicService.findByClinicName(userGroupRole.getGroupName());
+                    yield nldRepository.ClientSearch(clinic.getClinicAbbr());
+                }
 
 
                 default -> null;

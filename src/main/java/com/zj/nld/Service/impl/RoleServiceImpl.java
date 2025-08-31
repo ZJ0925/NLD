@@ -1,7 +1,7 @@
 package com.zj.nld.Service.impl;
 
-import com.zj.nld.Model.DTO.GroupRequest;
-import com.zj.nld.Model.DTO.UserGroupRoleRequest;
+import com.zj.nld.Model.DTO.GroupDTO;
+import com.zj.nld.Model.DTO.UserGroupRoleDTO;
 import com.zj.nld.Model.Entity.UserGroupRole;
 import com.zj.nld.Repository.UserGroupRoleRepository;
 import com.zj.nld.Service.RoleService;
@@ -23,74 +23,74 @@ public class RoleServiceImpl implements RoleService {
 
 
     @Override
-    public List<GroupRequest> getUserGroup() {
+    public List<GroupDTO> getUserGroup() {
         return userGroupRoleRepository.findDistinctGroups();
     }
 
     //取得該群組的所有使用者權限
     @Override
-    public List<UserGroupRoleRequest> getUserGroup(String groupID) {
-        List<UserGroupRole> entities = userGroupRoleRepository.findUserGroupRolesByGroupID(groupID);
+    public List<UserGroupRoleDTO> getUserGroup(String groupID) {
+        List<UserGroupRole> userGroupRole = userGroupRoleRepository.findUserGroupRolesByGroupID(groupID);
 
         // 建構子轉換 Entity → DTO
-        return entities.stream()
-                .map(UserGroupRoleRequest::new) // 直接 new DTO
+        return userGroupRole.stream()
+                .map(UserGroupRoleDTO::new) // 直接 new DTO
                 .collect(Collectors.toList());
     }
 
     // 取得單筆使用者權限 (by externalID)
     @Override
-    public UserGroupRoleRequest getUserGroupRoleByExternalID(UUID externalID) {
+    public UserGroupRoleDTO getUserGroupRoleByExternalID(UUID externalID) {
         UserGroupRole userGroupRole = userGroupRoleRepository.findUserGroupRoleByExternalID(externalID);
         if (userGroupRole != null) {
-            return new UserGroupRoleRequest(userGroupRole); // 手動轉 DTO
+            return new UserGroupRoleDTO(userGroupRole); // 手動轉 DTO
         }
         return null;
     }
 
     //新增使用者權限
     @Override
-    public UserGroupRoleRequest createUserGroupRole(UserGroupRoleRequest userGroupRoleRequest) {
+    public UserGroupRoleDTO createUserGroupRole(UserGroupRoleDTO userGroupRoleDTO) {
         // 將 DTO 轉成 Entity
         UserGroupRole userGroupRole = new UserGroupRole();
-        userGroupRole.setExternalID(userGroupRoleRequest.getExternalID());
-        userGroupRole.setLineID(userGroupRoleRequest.getLineID());
-        userGroupRole.setUserName(userGroupRoleRequest.getUserName());
-        userGroupRole.setGroupID(userGroupRoleRequest.getGroupID());
-        userGroupRole.setGroupName(userGroupRoleRequest.getGroupName());
+        userGroupRole.setExternalID(userGroupRoleDTO.getExternalID());
+        userGroupRole.setLineID(userGroupRoleDTO.getLineID());
+        userGroupRole.setUserName(userGroupRoleDTO.getUserName());
+        userGroupRole.setGroupID(userGroupRoleDTO.getGroupID());
+        userGroupRole.setGroupName(userGroupRoleDTO.getGroupName());
         userGroupRole.setRoleID(2);
 
         // 儲存 Entity
         UserGroupRole saved = userGroupRoleRepository.save(userGroupRole);
 
         // 回傳 DTO
-        return new UserGroupRoleRequest(saved);
+        return new UserGroupRoleDTO(saved);
     }
 
     //更新使用者權限 (by externalID)
     @Override
-    public UserGroupRoleRequest updateUserGroupRole(UUID externalID, UserGroupRoleRequest userGroupRoleRequest) {
+    public UserGroupRoleDTO updateUserGroupRole(UUID externalID, UserGroupRoleDTO userGroupRoleDTO) {
         try{
             UserGroupRole existing = userGroupRoleRepository.findUserGroupRoleByExternalID(externalID);
             if (existing == null) {
                 throw new EntityNotFoundException("UserGroupRole not found: " + externalID);
             }
 
-            existing.setLineID(userGroupRoleRequest.getLineID());
-            existing.setUserName(userGroupRoleRequest.getUserName());
-            existing.setGroupID(userGroupRoleRequest.getGroupID());
-            existing.setGroupName(userGroupRoleRequest.getGroupName());
-            existing.setRoleID(userGroupRoleRequest.getRoleID());
+            existing.setLineID(userGroupRoleDTO.getLineID());
+            existing.setUserName(userGroupRoleDTO.getUserName());
+            existing.setGroupID(userGroupRoleDTO.getGroupID());
+            existing.setGroupName(userGroupRoleDTO.getGroupName());
+            existing.setRoleID(userGroupRoleDTO.getRoleID());
 
             UserGroupRole updated = userGroupRoleRepository.save(existing);
-            return new UserGroupRoleRequest(updated);
+            return new UserGroupRoleDTO(updated);
         }catch (Exception e){
             throw new EntityNotFoundException("UserGroupRole not found: " + externalID);
         }
     }
 
     @Transactional
-    public List<UserGroupRoleRequest> updateGroupName(String groupID, String newGroupName) {
+    public List<UserGroupRoleDTO> updateGroupName(String groupID, String newGroupName) {
         // 更新所有對應的 UserGroupRole
         userGroupRoleRepository.updateGroupNameByGroupID(groupID, newGroupName);
 
@@ -99,7 +99,7 @@ public class RoleServiceImpl implements RoleService {
 
         // 轉成 DTO
         return roles.stream()
-                .map(UserGroupRoleRequest::new)
+                .map(UserGroupRoleDTO::new)
                 .collect(Collectors.toList());
     }
 
@@ -111,10 +111,10 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public List<UserGroupRole> updateUserGroupRoles(List<UserGroupRoleRequest> userGroupRoleDTOs) {
+    public List<UserGroupRole> updateUserGroupRoles(List<UserGroupRoleDTO> userGroupRoleDTOs) {
         List<UserGroupRole> updatedRoles = new ArrayList<>();
 
-        for (UserGroupRoleRequest dto : userGroupRoleDTOs) {
+        for (UserGroupRoleDTO dto : userGroupRoleDTOs) {
             try {
                 UserGroupRole userGroupRole = userGroupRoleRepository.findByLineIDAndGroupID(dto.getLineID(), dto.getGroupID());
 

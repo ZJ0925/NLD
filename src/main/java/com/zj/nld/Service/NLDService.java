@@ -1,25 +1,25 @@
 package com.zj.nld.Service;
 
-import com.zj.nld.Model.DTO.NLDProdUnitRequest;
-import com.zj.nld.Model.DTO.NLDRequest;
-import com.zj.nld.Model.DTO.NldClientRequest;
-import com.zj.nld.Model.DTO.NldSalesRequest;
+import com.zj.nld.Model.DTO.NLDDTO;
+import com.zj.nld.Model.DTO.NLDProdUnitDTO;
+import com.zj.nld.Model.DTO.NldClientDTO;
+import com.zj.nld.Model.DTO.NldSalesDTO;
 
 import java.util.List;
 
 public interface NLDService {
 
     //取得所有NLD
-    List<NLDRequest> AdminSearch();
+    List<NLDDTO> AdminSearch();
 
     //取得客戶NLD
-    List<NldClientRequest> getNLDByClient(String client);
+    List<NldClientDTO> getNLDByClient(String client);
 
     //取得業務NLD
-    List<NldSalesRequest> getNLDBySales();
+    List<NldSalesDTO> getNLDBySales();
 
      //取得生產單位NLD
-    List<NLDProdUnitRequest> getNLDByProdUnit();
+    List<NLDProdUnitDTO> getNLDByProdUnit();
 
     List<?> getNLDByToken(String token);
 

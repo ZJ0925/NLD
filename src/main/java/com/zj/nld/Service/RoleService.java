@@ -1,7 +1,7 @@
 package com.zj.nld.Service;
 
-import com.zj.nld.Model.DTO.GroupRequest;
-import com.zj.nld.Model.DTO.UserGroupRoleRequest;
+import com.zj.nld.Model.DTO.GroupDTO;
+import com.zj.nld.Model.DTO.UserGroupRoleDTO;
 import com.zj.nld.Model.Entity.UserGroupRole;
 
 import java.util.List;
@@ -9,28 +9,28 @@ import java.util.UUID;
 
 public interface RoleService {
 
-    List<GroupRequest> getUserGroup();
+    List<GroupDTO> getUserGroup();
 
     // 取得所有使用者權限
-    List<UserGroupRoleRequest> getUserGroup(String groupID);
+    List<UserGroupRoleDTO> getUserGroup(String groupID);
 
     // 取得單筆使用者權限 (by externalID)
-    UserGroupRoleRequest getUserGroupRoleByExternalID(UUID externalID);
+    UserGroupRoleDTO getUserGroupRoleByExternalID(UUID externalID);
 
 
     // 新增使用者權限
-    UserGroupRoleRequest createUserGroupRole(UserGroupRoleRequest userGroupRoleRequest);
+    UserGroupRoleDTO createUserGroupRole(UserGroupRoleDTO userGroupRoleDTO);
 
     // 更新使用者權限 (by externalID)
-    UserGroupRoleRequest updateUserGroupRole(UUID externalID, UserGroupRoleRequest userGroupRoleRequest);
+    UserGroupRoleDTO updateUserGroupRole(UUID externalID, UserGroupRoleDTO userGroupRoleDTO);
 
     // 刪除使用者權限 (by externalID)
     void deleteUserGroupRole(UUID externalID);
 
     //批量更新
-    List<UserGroupRole> updateUserGroupRoles(List<UserGroupRoleRequest> groupRolesDTO);
+    List<UserGroupRole> updateUserGroupRoles(List<UserGroupRoleDTO> groupRolesDTO);
 
     //批量更新群組名稱
-    List<UserGroupRoleRequest> updateGroupName(String groupID, String newGroupName);
+    List<UserGroupRoleDTO> updateGroupName(String groupID, String newGroupName);
 
 }

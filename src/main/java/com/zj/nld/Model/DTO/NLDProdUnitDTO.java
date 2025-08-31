@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import java.util.Date;
 
 
-public class NLDProdUnitRequest {
+public class NLDProdUnitDTO {
 
     private String workOrderNum; // 1.技工單號
 
@@ -57,7 +57,7 @@ public class NLDProdUnitRequest {
     //目前無12派工別--------------------------------------------------------------------------------
 
 
-    public NLDProdUnitRequest(
+    public NLDProdUnitDTO(
             String workOrderNum,
             String clinicName,
             String docName,

@@ -1,9 +1,9 @@
 package com.zj.nld.Repository;
 
-import com.zj.nld.Model.DTO.NLDProdUnitRequest;
-import com.zj.nld.Model.DTO.NLDRequest;
-import com.zj.nld.Model.DTO.NldClientRequest;
-import com.zj.nld.Model.DTO.NldSalesRequest;
+import com.zj.nld.Model.DTO.NLDDTO;
+import com.zj.nld.Model.DTO.NLDProdUnitDTO;
+import com.zj.nld.Model.DTO.NldClientDTO;
+import com.zj.nld.Model.DTO.NldSalesDTO;
 import com.zj.nld.Model.Entity.HVED;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -20,7 +20,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
 
     //回傳業務可查看的資料
     @Query("""
-    SELECT new com.zj.nld.Model.DTO.NldSalesRequest(
+    SELECT new com.zj.nld.Model.DTO.NldSalesDTO(
         h.workOrderNum,
         h.clinicName,
         h.docName,
@@ -47,12 +47,12 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
         h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%'
     """)
-    List<NldSalesRequest> SalesSearch();
+    List<NldSalesDTO> SalesSearch();
 
 
     //回傳客戶可查看的資料(診所)
     @Query("""
-    SELECT new com.zj.nld.Model.DTO.NldClientRequest(
+    SELECT new com.zj.nld.Model.DTO.NldClientDTO(
         h.workOrderNum,
         h.clinicName,
         h.docName,
@@ -73,14 +73,14 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
         h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%' AND h.clinicName = :clientName
 """)
-    List<NldClientRequest> ClientSearch(String clientName);
+    List<NldClientDTO> ClientSearch(String clientName);
 
 
 
 
     //回傳客戶可查看的資料(醫生)
     @Query("""
-    SELECT new com.zj.nld.Model.DTO.NldClientRequest(
+    SELECT new com.zj.nld.Model.DTO.NldClientDTO(
         h.workOrderNum,
         h.clinicName,
         h.docName,
@@ -101,13 +101,13 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
         h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%' AND h.clinicName = :clientName And h.docName = :docName
 """)
-    List<NldClientRequest> ClientForDocSearch(String clientName, String docName);
+    List<NldClientDTO> ClientForDocSearch(String clientName, String docName);
 
 
 
     //回傳生產單位可查看的資料
     @Query("""
-    SELECT new com.zj.nld.Model.DTO.NLDProdUnitRequest(
+    SELECT new com.zj.nld.Model.DTO.NLDProdUnitDTO(
         h.workOrderNum,
         h.clinicName,
         h.docName,
@@ -134,12 +134,12 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     WHERE h.compdh = '001'
     AND h.cundh LIKE 'K%'
 """)
-    List<NLDProdUnitRequest> ProdUnitSearch();
+    List<NLDProdUnitDTO> ProdUnitSearch();
 
 
 
     @Query("""
-    SELECT new com.zj.nld.Model.DTO.NLDRequest(
+    SELECT new com.zj.nld.Model.DTO.NLDDTO(
         h.workOrderNum,
         h.clinicName,
         h.docName,
@@ -168,7 +168,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     WHERE h.compdh = '001'
     AND h.cundh LIKE 'K%'
 """)
-    List<NLDRequest> AdminSearch();
+    List<NLDDTO> AdminSearch();
 
 
 }

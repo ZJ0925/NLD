@@ -1,6 +1,6 @@
 package com.zj.nld.Repository;
 
-import com.zj.nld.Model.DTO.GroupRequest;
+import com.zj.nld.Model.DTO.GroupDTO;
 import com.zj.nld.Model.Entity.UserGroupRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -15,8 +15,8 @@ public interface UserGroupRoleRepository extends JpaRepository<UserGroupRole, UU
     // getAll
     List<UserGroupRole> findAll();
 
-    @Query("SELECT DISTINCT new com.zj.nld.Model.DTO.GroupRequest(u.groupID, u.groupName) FROM UserGroupRole u")
-    List<GroupRequest> findDistinctGroups();
+    @Query("SELECT DISTINCT new com.zj.nld.Model.DTO.GroupDTO(u.groupID, u.groupName) FROM UserGroupRole u")
+    List<GroupDTO> findDistinctGroups();
 
 
 

@@ -1,14 +1,15 @@
 package com.zj.nld.Model.DTO;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.util.Date;
 
+public class NLDDTO {
 
-public class NldSalesRequest {
 
     private String workOrderNum; // 1.技工單號
 
-    private String clinicName; // 2.診所名稱
+    private String clinicName; // 2.醫院名稱
 
     private String docName; // 3.醫師名稱
 
@@ -20,7 +21,7 @@ public class NldSalesRequest {
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
     private Date deliveryDate; // 6.完成交件日
 
-    private String toothPosition; //8.齒位
+    private String toothPosition; // 8.齒位
 
     private String prodItem; // 9-1.製作項目
 
@@ -50,32 +51,17 @@ public class NldSalesRequest {
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
     private Date tryInReceivedDate; // 20.試戴收件日
 
-    private String remarks; // 21.備註
+    private String remarks; // 21.試戴收件日
+
+    private String salesName;  // 用來接收 Sales.Name
 
 
-    //建立constructor讓JPA函式可以讀取
-    public NldSalesRequest(
-            String workOrderNum,
-            String clinicName,
-            String docName,
-            String patientName,
-            Date receivedDate,
-            Date deliveryDate,
-            String toothPosition,
-            String prodItem,
-            String prodName,
-            Date tryInDate,
-            Date estFinishDate,
-            String workOrderStatus,
-            Date estTryInDate,
-            Integer price,
-            boolean isRemake,
-            boolean isNoCharge,
-            boolean isPaused,
-            boolean isVoided,
-            Date tryInReceivedDate,
-            String remarks
-    ) {
+    // 构造方法，参数顺序和查询返回的顺序一致
+    public NLDDTO(String workOrderNum, String clinicName, String docName, String patientName,
+                  Date receivedDate, Date deliveryDate, String toothPosition, String prodItem,
+                  String prodName, Date tryInDate, Date estFinishDate, String workOrderStatus,
+                  Date estTryInDate, Integer price, boolean isRemake, boolean isNoCharge, boolean isPaused,
+                  boolean isVoided, Date tryInReceivedDate, String remarks, String salesName) {
         this.workOrderNum = workOrderNum;
         this.clinicName = clinicName;
         this.docName = docName;
@@ -96,8 +82,8 @@ public class NldSalesRequest {
         this.isVoided = isVoided;
         this.tryInReceivedDate = tryInReceivedDate;
         this.remarks = remarks;
+        this.salesName = salesName;
     }
-
 
 
     public String getWorkOrderNum() {
@@ -147,7 +133,6 @@ public class NldSalesRequest {
     public void setDeliveryDate(Date deliveryDate) {
         this.deliveryDate = deliveryDate;
     }
-
 
     public String getToothPosition() {
         return toothPosition;
@@ -260,6 +245,31 @@ public class NldSalesRequest {
     public void setRemarks(String remarks) {
         this.remarks = remarks;
     }
+
+    public String getSalesName() {
+        return salesName;
+    }
+
+    public void setSalesName(String salesName) {
+        this.salesName = salesName;  // 設置 salesName
+    }
+
+    public boolean isRemake() {
+        return isRemake;
+    }
+
+    public boolean isNoCharge() {
+        return isNoCharge;
+    }
+
+    public boolean isPaused() {
+        return isPaused;
+    }
+
+    public boolean isVoided() {
+        return isVoided;
+    }
+
+
+
 }
-
-

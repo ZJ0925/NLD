@@ -1,23 +1,26 @@
 package com.zj.nld.Model.Entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
-import jakarta.persistence.*;
+import javax.sql.rowset.spi.SyncResolver;
 
+//醫生Table
 @Entity
-@Table(name = "doctor")
+@Table(name = "DOCTOR")
 public class Doctor {
 
     @Id
-    @Column(name = "NUM")
+    @Column(name = "NUM_D")
     private String doctorId;
 
-    @Column(name = "NAM_2")
-    private String  doctorName;
+    @Column(name = "NAM_D")
+    private String doctorName;
 
-
-    @Column(name = "NAM_4")
-    private String  docName;
-
+    @Column(name = "CNO_D")
+    private String clinicId;
 
     public String getDoctorId() {
         return doctorId;
@@ -35,12 +38,11 @@ public class Doctor {
         this.doctorName = doctorName;
     }
 
-
-    public String getDocName() {
-        return docName;
+    public String getClinicId() {
+        return clinicId;
     }
 
-    public void setDocName(String docName) {
-        this.docName = docName;
+    public void setClinicId(String clinicId) {
+        this.clinicId = clinicId;
     }
 }

@@ -1,7 +1,7 @@
 package com.zj.nld.Controller;
 
-import com.zj.nld.Model.DTO.GroupRequest;
-import com.zj.nld.Model.DTO.UserGroupRoleRequest;
+import com.zj.nld.Model.DTO.GroupDTO;
+import com.zj.nld.Model.DTO.UserGroupRoleDTO;
 import com.zj.nld.Model.Entity.UserGroupRole;
 import com.zj.nld.Service.RoleService;
 import com.zj.nld.Service.UserGroupRoleService;
@@ -25,8 +25,8 @@ public class RoleController {
     private UserGroupRoleService userGroupRoleService;
 
     @GetMapping("/Admin")
-    public ResponseEntity<List<GroupRequest>> getAllGroups(){
-        List<GroupRequest>  groups = roleService.getUserGroup();
+    public ResponseEntity<List<GroupDTO>> getAllGroups(){
+        List<GroupDTO>  groups = roleService.getUserGroup();
 
         if(!groups.isEmpty()){
             return new ResponseEntity<>(groups, HttpStatus.OK);
@@ -37,8 +37,8 @@ public class RoleController {
 
     // 取得該群組的所有使用者權限
     @GetMapping("/GET/UserGroup")
-    public ResponseEntity<List<UserGroupRoleRequest>> getUserGroup(String groupID) {
-        List<UserGroupRoleRequest> userGroupRole = roleService.getUserGroup(groupID);
+    public ResponseEntity<List<UserGroupRoleDTO>> getUserGroup(String groupID) {
+        List<UserGroupRoleDTO> userGroupRole = roleService.getUserGroup(groupID);
 
         if (userGroupRole != null && !userGroupRole.isEmpty()) {
             return ResponseEntity.ok(userGroupRole);
@@ -49,8 +49,8 @@ public class RoleController {
 
     // 取得單筆使用者權限
     @GetMapping("/GET/UserGroupRole/{externalID}")
-    public ResponseEntity<UserGroupRoleRequest> GetUserGroupRole(@PathVariable UUID externalID) {
-        UserGroupRoleRequest userGroupRole = roleService.getUserGroupRoleByExternalID(externalID);
+    public ResponseEntity<UserGroupRoleDTO> GetUserGroupRole(@PathVariable UUID externalID) {
+        UserGroupRoleDTO userGroupRole = roleService.getUserGroupRoleByExternalID(externalID);
 
         if (userGroupRole != null) {
             return ResponseEntity.ok(userGroupRole);
@@ -62,11 +62,11 @@ public class RoleController {
 
     // 更新使用者權限
     @PutMapping("/PUT/UserGroupRole/{externalID}")
-    public ResponseEntity<UserGroupRoleRequest> UpdateUserGroupRole(@PathVariable UUID externalID, @RequestBody UserGroupRoleRequest userGroupRoleRequest) {
+    public ResponseEntity<UserGroupRoleDTO> UpdateUserGroupRole(@PathVariable UUID externalID, @RequestBody UserGroupRoleDTO userGroupRoleDTO) {
 
-        UserGroupRoleRequest userGroupRole = roleService.getUserGroupRoleByExternalID(externalID);
+        UserGroupRoleDTO userGroupRole = roleService.getUserGroupRoleByExternalID(externalID);
         if (userGroupRole != null) {
-            UserGroupRoleRequest updated = roleService.updateUserGroupRole(externalID, userGroupRoleRequest);
+            UserGroupRoleDTO updated = roleService.updateUserGroupRole(externalID, userGroupRoleDTO);
             return ResponseEntity.ok(updated);
         } else {
             return ResponseEntity.notFound().build();
@@ -75,21 +75,21 @@ public class RoleController {
 
     //批量更新
     @PutMapping("update")
-    public List<UserGroupRoleRequest> updateGroupRole(@RequestBody List<UserGroupRoleRequest> groupRolesDTO){
+    public List<UserGroupRoleDTO> updateGroupRole(@RequestBody List<UserGroupRoleDTO> groupRolesDTO){
         List<UserGroupRole> updatedRoles = roleService.updateUserGroupRoles(groupRolesDTO);
 
         return updatedRoles.stream()
-                .map(UserGroupRoleRequest::new)
+                .map(UserGroupRoleDTO::new)
                 .collect(Collectors.toList());
     }
 
 
     //批量更新群組名稱
     @PutMapping("/update/GroupName")
-    public ResponseEntity<List<UserGroupRoleRequest>> updateGroupName(
+    public ResponseEntity<List<UserGroupRoleDTO>> updateGroupName(
             @RequestParam String groupID,
             @RequestParam String newGroupName) {
-        List<UserGroupRoleRequest> result = roleService.updateGroupName(groupID, newGroupName);
+        List<UserGroupRoleDTO> result = roleService.updateGroupName(groupID, newGroupName);
         return ResponseEntity.ok(result);
     }
 
