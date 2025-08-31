@@ -107,7 +107,8 @@ public class LineServiceImpl implements LineService {
                             }
                             break;
 
-                        case "memberJoined" :
+                        case "memberJoined":
+                            // 取得加入事件的群組 ID
                             String joinGroupId = event.getJSONObject("source").getString("groupId");
                             System.out.println("加入群組ID: " + joinGroupId);
 
@@ -116,32 +117,49 @@ public class LineServiceImpl implements LineService {
                             // 取得 members 陣列
                             JSONArray joinMembers = joined.getJSONArray("members");
 
-                            // 取出每一個 member
+                            // 查找同一群組的既有成員
+                            List<UserGroupRole> existingRoles = userGroupRoleService.findByGroupID(joinGroupId);
+
+                            // 從既有成員中找第一個 GroupNameID 與 GroupName 都不為 null 的成員作為參考
+                            Optional<UserGroupRole> referenceRole = existingRoles.stream()
+                                    .filter(r -> r.getGroupNameID() != null && r.getGroupName() != null)
+                                    .findFirst();
+
+                            // 取得參考資料，如果沒有既有成員則生成新的 GroupNameID
+                            String referenceGroupNameID = referenceRole
+                                    .map(UserGroupRole::getGroupNameID)
+                                    .orElse(UUID.randomUUID().toString());
+
+                            String referenceGroupName = referenceRole
+                                    .map(UserGroupRole::getGroupName)
+                                    .orElse("DefaultGroupName");
+
+                            // 處理每一個新加入成員
                             for (int j = 0; j < joinMembers.size(); j++) {
                                 JSONObject member = joinMembers.getJSONObject(j);
                                 String joinUserId = member.getString("userId");
 
-                                JSONObject groupProfile = LineUtil.getGroupSummary(groupId);
-                                JSONObject userProfile = LineUtil.getGroupMemberProfile(groupId, joinUserId);
+                                // 取得新成員個人資訊
+                                JSONObject userProfile = LineUtil.getGroupMemberProfile(joinGroupId, joinUserId);
 
-
-
-                                // 關鍵修正：為每個新成員創建新的 UserGroupRole 物件
+                                // 創建新的 UserGroupRole 物件
                                 UserGroupRole mjUserGroupRole = new UserGroupRole();
-                                mjUserGroupRole.setExternalID(UUID.randomUUID());
-                                mjUserGroupRole.setLineID(joinUserId);
-                                mjUserGroupRole.setUserName(userProfile.getString("displayName"));
-                                mjUserGroupRole.setGroupID(joinGroupId);
-                                mjUserGroupRole.setGroupName(groupProfile.getString("groupName"));
-                                mjUserGroupRole.setRoleID(2);
+                                mjUserGroupRole.setExternalID(UUID.randomUUID());         // 唯一 ID
+                                mjUserGroupRole.setLineID(joinUserId);                    // Line ID
+                                mjUserGroupRole.setUserName(userProfile.getString("displayName")); // 使用者名稱
+                                mjUserGroupRole.setGroupID(joinGroupId);                  // 群組 ID
+                                mjUserGroupRole.setGroupName(referenceGroupName);         // 套用參考群組名稱
+                                mjUserGroupRole.setGroupNameID(referenceGroupNameID);     // 套用參考群組名稱 ID
+                                mjUserGroupRole.setRoleID(2);                             // 預設角色 ID
 
                                 try {
-                                    userGroupRoleService.ceateUserGroupRole(mjUserGroupRole);
+                                    userGroupRoleService.ceateUserGroupRole(mjUserGroupRole); // 儲存到資料庫
                                     System.out.println("成功為使用者 " + joinUserId + " 建立權限");
                                 } catch (Exception e) {
                                     System.err.println("為使用者 " + joinUserId + " 建立權限失敗: " + e.getMessage());
                                 }
                             }
+                            break;
 
                         //機器人加入群組(先不實作)
                         case "join" :

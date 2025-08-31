@@ -24,8 +24,9 @@ public class ClinicServiceImpl implements ClinicService {
         List<Clinic> clinics = clinicRepository.findAll();
         // 建構子轉換 Entity → DTO
         return clinics.stream()
-                .map(ClinicDTO::new) // 直接 new DTO
+                .map(ClinicDTO::new)
                 .collect(Collectors.toList());
+
     }
 
     @Override

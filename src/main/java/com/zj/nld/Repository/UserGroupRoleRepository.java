@@ -20,6 +20,7 @@ public interface UserGroupRoleRepository extends JpaRepository<UserGroupRole, UU
 
 
 
+
     // 根據groupID找到該群組的userGroupRole
     @Query("SELECT u FROM UserGroupRole u WHERE u.groupID = :groupID")
     List<UserGroupRole> findUserGroupRolesByGroupID(@Param("groupID") String groupID);

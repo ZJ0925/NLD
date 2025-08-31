@@ -3,6 +3,7 @@ package com.zj.nld.Controller;
 import com.zj.nld.Model.DTO.ClinicDTO;
 import com.zj.nld.Model.DTO.UserGroupRoleDTO;
 import com.zj.nld.Service.ClinicService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +15,7 @@ import java.util.List;
 @RequestMapping("/Clinic")
 public class ClinicController {
 
+    @Autowired
     private ClinicService clinicService;
 
     // 取得該群組的所有使用者權限

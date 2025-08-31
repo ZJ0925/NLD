@@ -1,6 +1,5 @@
 // GroupRole.js - 群組管理系統（重構版）
-
-// 全域變數
+// 全域變數 - 替換原有的變數宣告部分
 let originalGroupData = []; // 儲存群組列表的原始資料
 let filteredGroupData = []; // 儲存篩選後的群組列表
 let originalUserData = []; // 儲存選中群組的使用者原始資料
@@ -12,6 +11,8 @@ let currentGroupId = null;
 let changedRows = new Set();
 let currentChanges = new Map(); // 儲存當前的變更數據
 let currentSort = 'none'; // 'none', 'asc', 'desc'
+let allClinics = []; // 儲存所有診所資料
+let groupNameChanges = new Map(); // 儲存群組名稱的變更
 
 // DOM 元素
 const searchGroupName = document.getElementById('searchGroupName');
@@ -372,11 +373,15 @@ function renderGroupList() {
 
     groupListView.innerHTML = htmlContent;
 
-    // 為每個群組卡片綁定點擊事件
+    // 為每個群組卡片綁定事件
     currentPageData.forEach(group => {
-        const groupCard = document.querySelector(`[data-group-id="${group.groupID}"]`);
-        if (groupCard) {
-            groupCard.addEventListener('click', () => {
+        // 綁定群組名稱下拉選單事件
+        bindGroupNameDropdownEvents(group.groupID);
+
+        // 綁定點擊進入群組詳情的事件
+        const clickableArea = document.querySelector(`[data-group-id="${group.groupID}"] .group-card-clickable-area`);
+        if (clickableArea) {
+            clickableArea.addEventListener('click', () => {
                 switchToGroupDetailView(group.groupID, group.groupName);
             });
         }
@@ -387,8 +392,18 @@ function renderGroupList() {
 function createGroupCard(group) {
     return `
         <div class="group-card" data-group-id="${group.groupID}">
-            <div class="group-card-name">${safeValue(group.groupName)}</div>
-            <div class="group-card-info">點擊查看群組成員</div>
+            <div class="group-name-dropdown-container">
+                <button type="button" class="group-name-display" data-group-id="${group.groupID}">
+                    ${safeValue(group.groupName)}
+                </button>
+                <div class="clinic-options">
+                    <input type="text" class="clinic-search" placeholder="搜尋診所...">
+                    <div class="clinic-options-list">
+                        ${createClinicOptionsList()}
+                    </div>
+                </div>
+            </div>
+            <div class="group-card-info group-card-clickable-area">點擊查看群組成員</div>
         </div>
     `;
 }
@@ -620,7 +635,7 @@ function updateSaveButtonVisibility() {
     const saveChangesBtn = document.getElementById('saveChangesBtn');
     const cancelChangesBtn = document.getElementById('cancelChangesBtn');
 
-    const hasChanges = changedRows.size > 0;
+    const hasChanges = changedRows.size > 0 || groupNameChanges.size > 0;
 
     if (hasChanges) {
         if (saveChangesBtn) saveChangesBtn.style.display = 'inline-block';
@@ -633,78 +648,89 @@ function updateSaveButtonVisibility() {
 
 // 21. 儲存變更
 async function saveChanges() {
-    const changedData = getChangedData();
+    // 收集所有要儲存的變更
+    const allChanges = [];
+
+    // 收集群組名稱變更
+    const groupNameChangesList = Array.from(groupNameChanges.values());
+
+    // 收集成員權限變更
+    const memberRoleChangesList = getChangedData();
+
+    // 計算總變更數量
+    const totalChanges = groupNameChangesList.length + memberRoleChangesList.length;
 
     console.log('=== 準備儲存變更 ===');
-    console.log('changedRows:', Array.from(changedRows));
-    console.log('currentChanges:', Array.from(currentChanges.entries()));
-    console.log('準備傳送的資料:', JSON.stringify(changedData, null, 2));
+    console.log('群組名稱變更:', groupNameChangesList.length, '筆');
+    console.log('成員權限變更:', memberRoleChangesList.length, '筆');
+    console.log('總計變更:', totalChanges, '筆');
 
-    if (changedData.length === 0) {
+    if (totalChanges === 0) {
         alert('沒有資料需要儲存');
         return;
     }
 
-    if (!confirm(`確定要儲存 ${changedData.length} 筆變更嗎？`)) {
+    // 確認是否要儲存
+    if (!confirm(`確定要儲存 ${totalChanges} 筆變更嗎？`)) {
         return;
     }
 
     try {
-        const apiUrl = `${window.location.protocol}//${window.location.host}/Role/update`;
-
-        console.log('準備發送請求到:', apiUrl);
-        console.log('請求內容:', JSON.stringify(changedData, null, 2));
-
-        const response = await fetch(apiUrl, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                // 加入 ngrok 需要的 header - 重要修正!!!
-                'ngrok-skip-browser-warning': 'true'
-            },
-            body: JSON.stringify(changedData)
-        });
-
-        console.log('收到回應狀態:', response.status);
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('錯誤回應內容:', errorText);
-            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+        // 先儲存群組名稱變更
+        if (groupNameChangesList.length > 0) {
+            await saveGroupNameChanges();
         }
 
-        const result = await response.json();
-        console.log('儲存成功回應:', result);
+        // 再儲存成員權限變更
+        if (memberRoleChangesList.length > 0) {
+            const apiUrl = `${window.location.protocol}//${window.location.host}/Role/update`;
 
+            const response = await fetch(apiUrl, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify(memberRoleChangesList)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+            }
+
+            const result = await response.json();
+            console.log('成員權限儲存成功:', result);
+
+            // 將變更應用到原始數據
+            currentChanges.forEach((changes, changeKey) => {
+                const [groupId, externalId] = changeKey.split('-');
+                const originalIndex = originalUserData.findIndex(user =>
+                    user.groupID === groupId && user.externalID === externalId
+                );
+                if (originalIndex !== -1) {
+                    originalUserData[originalIndex] = { ...originalUserData[originalIndex], ...changes };
+                }
+            });
+
+            // 清除成員權限變更標記
+            changedRows.clear();
+            currentChanges.clear();
+
+            // 更新 filteredUserData
+            if (currentView === 'groupDetail') {
+                rebuildFilteredUserData();
+            }
+        }
+
+        // 所有儲存完成後的處理
         alert('變更已成功儲存');
 
-        // 立即將當前頁面上所有紅色框框變成綠色
-        document.querySelectorAll('.changed').forEach(element => {
-            element.classList.remove('changed');
-            element.classList.add('saved');
-        });
-
-        // 儲存成功後，將變更應用到原始數據
-        currentChanges.forEach((changes, changeKey) => {
-            const [groupId, externalId] = changeKey.split('-');
-            const originalIndex = originalUserData.findIndex(user =>
-                user.groupID === groupId && user.externalID === externalId
-            );
-            if (originalIndex !== -1) {
-                originalUserData[originalIndex] = { ...originalUserData[originalIndex], ...changes };
-            }
-        });
-
-        // 清除變更標記
-        changedRows.clear();
-        currentChanges.clear();
+        // 立即隱藏儲存按鈕
         updateSaveButtonVisibility();
 
-        // 更新 filteredUserData 以保持數據同步
-        rebuildFilteredUserData();
-
-        // 3秒後將綠色框框淡化
+        // 2秒後開始綠色框框淡化動畫
         setTimeout(() => {
             document.querySelectorAll('.saved').forEach(element => {
                 element.classList.add('saved-fadeout');
@@ -731,47 +757,46 @@ function cancelChanges() {
     }
 
     console.log('開始取消變更...');
-    console.log('取消前 - changedRows:', changedRows.size, 'currentChanges:', currentChanges.size);
+    console.log('取消前 - changedRows:', changedRows.size, 'currentChanges:', currentChanges.size, 'groupNameChanges:', groupNameChanges.size);
+
+    // 恢復群組名稱變更 - 參照成員權限的恢復邏輯
+    groupNameChanges.forEach((change, groupId) => {
+        const groupNameBtn = document.querySelector(`.group-name-display[data-group-id="${groupId}"]`);
+        if (groupNameBtn) {
+            groupNameBtn.textContent = change.originalGroupName;
+        }
+
+        // 移除變更樣式
+        const groupCard = document.querySelector(`[data-group-id="${groupId}"]`);
+        if (groupCard) {
+            groupCard.classList.remove('changed');
+        }
+    });
 
     // 清除所有變更記錄
     changedRows.clear();
     currentChanges.clear();
+    groupNameChanges.clear();
 
     // 移除所有變更樣式
     document.querySelectorAll('.changed').forEach(el => {
         el.classList.remove('changed');
     });
 
-    // 重建 filteredUserData（此時 currentChanges 已清空，所以會還原到原始狀態）
-    rebuildFilteredUserData();
-
-    // 重新渲染
-    renderGroupDetail();
-    updateSaveButtonVisibility();
-
-    console.log('取消後 - changedRows:', changedRows.size, 'currentChanges:', currentChanges.size);
-    console.log('已取消所有變更，數據已還原到原始狀態');
-}
-
-// 新增排序切換功能
-function toggleSort() {
-    if (currentSort === 'none') {
-        currentSort = 'asc';
-    } else if (currentSort === 'asc') {
-        currentSort = 'desc';
-    } else {
-        currentSort = 'none';
+    // 如果在群組詳情頁面，重建 filteredUserData（此時 currentChanges 已清空，所以會還原到原始狀態）
+    if (currentView === 'groupDetail') {
+        rebuildFilteredUserData();
+        renderGroupDetail();
+    } else if (currentView === 'groupList') {
+        // 如果在群組列表頁面，重建 filteredGroupData
+        rebuildFilteredGroupData();
+        renderGroupList();
     }
 
-    console.log('排序模式切換為:', currentSort);
+    updateSaveButtonVisibility();
 
-    // 重新應用篩選和排序
-    rebuildFilteredUserData();
-
-    // 重新渲染當前頁面
-    currentPage = 1; // 排序後回到第一頁
-    renderGroupDetail();
-    updatePagination();
+    console.log('取消後 - changedRows:', changedRows.size, 'currentChanges:', currentChanges.size, 'groupNameChanges:', groupNameChanges.size);
+    console.log('已取消所有變更，數據已還原到原始狀態');
 }
 
 // 23. 取得變更資料
@@ -825,13 +850,231 @@ function showError(message) {
 }
 
 // 27. 初始化頁面
-function initializePage() {
+async function initializePage() {
+    await loadAllClinics();
     loadGroupsFromAPI();
 }
 
 // 28. 安全處理null值
 function safeValue(value) {
     return (value === null || value === undefined || value === "NULL") ? '' : value;
+}
+
+// 以下新增函數加在JavaScript文件的末尾
+
+// 載入所有診所資料
+async function loadAllClinics() {
+    const apiUrl = `${window.location.protocol}//${window.location.host}/Clinic/GET/AllClinic`;
+
+    try {
+        const res = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+
+        const data = await res.json();
+        allClinics = Array.isArray(data) ? data : [];
+        console.log("成功載入診所資料:", allClinics);
+
+        // 診所資料載入完成後，更新已存在的下拉選單
+        updateAllClinicDropdowns();
+
+    } catch (err) {
+        console.error("診所 API 錯誤", err);
+        allClinics = [];
+    }
+}
+
+// 更新所有診所下拉選單的內容
+function updateAllClinicDropdowns() {
+    const allOptionsLists = document.querySelectorAll('.clinic-options-list');
+    allOptionsLists.forEach(optionsList => {
+        optionsList.innerHTML = createClinicOptionsList();
+    });
+}
+
+// 創建診所選項列表HTML
+function createClinicOptionsList() {
+    if (allClinics.length === 0) {
+        return '<div class="clinic-option">載入診所資料中...</div>';
+    }
+
+    let optionsHtml = '';
+    allClinics.forEach(clinic => {
+        const displayText = `${clinic.clinicId}-${clinic.clinicName}`;
+        optionsHtml += `<div class="clinic-option" data-clinic-id="${clinic.clinicId}" data-clinic-name="${clinic.clinicName}">${displayText}</div>`;
+    });
+    return optionsHtml;
+}
+
+// 綁定群組名稱下拉選單事件
+function bindGroupNameDropdownEvents(groupId) {
+    const groupNameBtn = document.querySelector(`.group-name-display[data-group-id="${groupId}"]`);
+    const optionsContainer = document.querySelector(`[data-group-id="${groupId}"] .clinic-options`);
+    const searchInput = document.querySelector(`[data-group-id="${groupId}"] .clinic-search`);
+    const optionsList = document.querySelector(`[data-group-id="${groupId}"] .clinic-options-list`);
+
+    if (!groupNameBtn || !optionsContainer || !searchInput || !optionsList) return;
+
+    // 點擊群組名稱按鈕顯示下拉選單
+    groupNameBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+
+        // 關閉其他已開啟的下拉選單
+        document.querySelectorAll('.clinic-options').forEach(el => {
+            if (el !== optionsContainer) {
+                el.style.display = 'none';
+            }
+        });
+
+        // 切換當前下拉選單
+        const isVisible = optionsContainer.style.display === 'block';
+        optionsContainer.style.display = isVisible ? 'none' : 'block';
+
+        if (!isVisible) {
+            searchInput.focus();
+            searchInput.value = '';
+            filterClinicOptions(groupId, '');
+        }
+    });
+
+    // 搜尋輸入事件
+    searchInput.addEventListener('input', function(e) {
+        e.stopPropagation();
+        const searchTerm = this.value.toLowerCase();
+        filterClinicOptions(groupId, searchTerm);
+    });
+
+    // 防止搜尋框點擊事件冒泡
+    searchInput.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+
+    // 點擊選項事件
+    optionsList.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (e.target.classList.contains('clinic-option')) {
+            const clinicId = e.target.dataset.clinicId;
+            const clinicName = e.target.dataset.clinicName;
+            const newGroupName = `${clinicId}-${clinicName}`;
+
+            // 更新顯示文字
+            groupNameBtn.textContent = newGroupName;
+
+            // 隱藏下拉選單
+            optionsContainer.style.display = 'none';
+
+            // 處理變更
+            handleGroupNameChange(groupId, newGroupName);
+        }
+    });
+
+    // 點擊外部關閉下拉選單
+    const closeDropdown = function(e) {
+        if (!groupNameBtn.contains(e.target) && !optionsContainer.contains(e.target)) {
+            optionsContainer.style.display = 'none';
+        }
+    };
+
+    document.addEventListener('click', closeDropdown);
+}
+
+// 過濾診所選項
+function filterClinicOptions(groupId, searchTerm) {
+    const options = document.querySelectorAll(`[data-group-id="${groupId}"] .clinic-option`);
+
+    options.forEach(option => {
+        const text = option.textContent.toLowerCase();
+        option.style.display = text.includes(searchTerm) ? 'block' : 'none';
+    });
+}
+
+// 處理群組名稱變更
+function handleGroupNameChange(groupId, newGroupName) {
+    const originalGroup = originalGroupData.find(g => g.groupID === groupId);
+    if (!originalGroup) return;
+
+    const groupCard = document.querySelector(`[data-group-id="${groupId}"]`);
+
+    if (originalGroup.groupName !== newGroupName) {
+        // 有變更
+        groupNameChanges.set(groupId, {
+            groupID: groupId,
+            newGroupName: newGroupName,
+            originalGroupName: originalGroup.groupName
+        });
+        groupCard.classList.add('changed');
+    } else {
+        // 沒有變更
+        groupNameChanges.delete(groupId);
+        groupCard.classList.remove('changed');
+    }
+
+    updateSaveButtonVisibility();
+}
+
+// 保存群組名稱變更
+async function saveGroupNameChanges() {
+    if (groupNameChanges.size === 0) {
+        return;
+    }
+
+    const changes = Array.from(groupNameChanges.values());
+    const groupIDs = changes.map(c => c.groupID);
+    const newGroupNames = changes.map(c => c.newGroupName);
+
+    try {
+        const apiUrl = `${window.location.protocol}//${window.location.host}/Role/update/GroupName`;
+        const params = new URLSearchParams();
+
+        groupIDs.forEach(id => params.append('groupIDs', id));
+        newGroupNames.forEach(name => params.append('newGroupNames', name));
+
+        const response = await fetch(`${apiUrl}?${params}`, {
+            method: 'PUT',
+            headers: {
+                'Accept': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        console.log('群組名稱更新成功');
+
+        // 將紅色邊框改為綠色表示已保存
+        groupNameChanges.forEach((change, groupId) => {
+            const originalGroup = originalGroupData.find(g => g.groupID === groupId);
+            if (originalGroup) {
+                originalGroup.groupName = change.newGroupName;
+            }
+
+            const groupCard = document.querySelector(`[data-group-id="${groupId}"]`);
+            if (groupCard) {
+                groupCard.classList.remove('changed');
+                groupCard.classList.add('saved');
+            }
+        });
+
+        // 清除變更記錄
+        groupNameChanges.clear();
+
+        // 重建資料
+        rebuildFilteredGroupData();
+        if (currentView === 'groupList') {
+            renderGroupList();
+        }
+
+    } catch (error) {
+        console.error('保存群組名稱失敗:', error);
+        throw error;
+    }
 }
 
 // 將函數暴露到全域作用域，供外部調用

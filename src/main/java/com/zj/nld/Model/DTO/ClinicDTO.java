@@ -15,8 +15,7 @@ public class ClinicDTO {
 
     private String clinicAbbr;
 
-    public ClinicDTO(Clinic clinic) {
-    }
+
 
     public String getClinicId() {
         return clinicId;
@@ -42,13 +41,13 @@ public class ClinicDTO {
         this.clinicAbbr = clinicAbbr;
     }
 
-    public ClinicDTO(String clinicId, String clinicName, String clinicAbbr) {
-        this.clinicId = clinicId;
-        this.clinicName = clinicName;
-        this.clinicAbbr = clinicAbbr;
+    public ClinicDTO(Clinic clinic) {
+        this.clinicId = clinic.getClinicId();
+        this.clinicName = clinic.getClinicName();
+        this.clinicAbbr = clinic.getClinicAbbr();
     }
 
-    public ClinicDTO() {}
+
 
 
 }

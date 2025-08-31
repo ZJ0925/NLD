@@ -6,6 +6,9 @@ import java.util.List;
 
 public interface UserGroupRoleService {
 
+    // 查詢同一群組的所有成員
+    List<UserGroupRole> findByGroupID(String groupID);
+
     //建立使用者權限
     UserGroupRole ceateUserGroupRole(UserGroupRole userGroupRole);
 

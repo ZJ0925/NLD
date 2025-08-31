@@ -20,6 +20,11 @@ public class UserGroupRoleServiceImpl implements UserGroupRoleService {
     @Autowired
     private JwtService jwtService;
 
+    @Override
+    public List<UserGroupRole> findByGroupID(String groupID) {
+        return userGroupRoleRepository.findByGroupID(groupID);
+    }
+
     //將新用戶加入權限
     @Override
     public UserGroupRole ceateUserGroupRole(UserGroupRole userGroupRole) {

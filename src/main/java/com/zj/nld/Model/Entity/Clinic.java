@@ -19,7 +19,6 @@ public class Clinic {
     @Column(name = "NAM_4")
     private String clinicAbbr;
 
-
     public String getClinicId() {
         return clinicId;
     }
@@ -43,5 +42,4 @@ public class Clinic {
     public void setClinicAbbr(String clinicAbbr) {
         this.clinicAbbr = clinicAbbr;
     }
-
 }
