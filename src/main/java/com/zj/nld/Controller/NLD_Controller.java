@@ -1,6 +1,8 @@
 package com.zj.nld.Controller;
 
 
+import com.zj.nld.Model.DTO.NldDTO;
+import com.zj.nld.Repository.NLDRepository;
 import com.zj.nld.Service.NLDService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +11,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/NLD")
 public class NLD_Controller {
@@ -16,9 +20,19 @@ public class NLD_Controller {
     @Autowired
     private NLDService nldService;
 
+    @Autowired
+    private NLDRepository nldRepository;
+
     // 根據權限取得NLD
     @GetMapping("token/{type}/{token}")
     public ResponseEntity<?> getNLDByToken(@PathVariable String type,@PathVariable String token){
         return ResponseEntity.ok(nldService.getNLDByToken(token));
+    }
+
+    // 根據權限取得NLD
+    @GetMapping("ALL")
+    public ResponseEntity<?> getNLD(){
+        List<NldDTO> dto = nldRepository.AdminSearch();
+        return ResponseEntity.ok(dto);
     }
 }

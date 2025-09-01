@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.util.Date;
 
-public class NLDDTO {
+public class NldDTO {
 
 
     private String workOrderNum; // 1.技工單號
@@ -57,7 +57,7 @@ public class NLDDTO {
 
 
     // 构造方法，参数顺序和查询返回的顺序一致
-    public NLDDTO(String workOrderNum, String clinicName, String docName, String patientName,
+    public NldDTO(String workOrderNum, String clinicName, String docName, String patientName,
                   Date receivedDate, Date deliveryDate, String toothPosition, String prodItem,
                   String prodName, Date tryInDate, Date estFinishDate, String workOrderStatus,
                   Date estTryInDate, Integer price, boolean isRemake, boolean isNoCharge, boolean isPaused,

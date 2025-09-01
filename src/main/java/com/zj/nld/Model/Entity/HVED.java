@@ -2,6 +2,7 @@ package com.zj.nld.Model.Entity;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.zj.nld.Converter.FTBooleanConverter;
 import jakarta.persistence.*;
 
 import java.util.Date;
@@ -54,15 +55,19 @@ public class HVED {
     private Date estTryInDate; // 14.預計試戴日
 
     @Column(name = "UN3E_DH")
+    @Convert(converter = FTBooleanConverter.class)
     private boolean isRemake; // 16.重製
 
     @Column(name = "CRM_DH")
+    @Convert(converter = FTBooleanConverter.class)
     private boolean isNoCharge; // 17.不計價
 
     @Column(name = "UN3_DH")
+    @Convert(converter = FTBooleanConverter.class)
     private boolean isPaused; // 18.暫停
 
     @Column(name = "UN2_DH")
+    @Convert(converter = FTBooleanConverter.class)
     private boolean isVoided; // 19.作廢
 
     @Column(name = "DAT_22_DH")

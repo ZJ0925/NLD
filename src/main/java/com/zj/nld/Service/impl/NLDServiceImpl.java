@@ -1,6 +1,6 @@
 package com.zj.nld.Service.impl;
 
-import com.zj.nld.Model.DTO.NLDDTO;
+import com.zj.nld.Model.DTO.NldDTO;
 import com.zj.nld.Model.DTO.NLDProdUnitDTO;
 import com.zj.nld.Model.Entity.Clinic;
 import com.zj.nld.Model.Entity.UserGroupRole;
@@ -36,7 +36,7 @@ public class NLDServiceImpl implements NLDService {
 
 
     @Override
-    public List<NLDDTO> AdminSearch() {
+    public List<NldDTO> AdminSearch() {
         return nldRepository.AdminSearch();
     }
 

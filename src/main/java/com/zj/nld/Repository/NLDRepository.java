@@ -1,6 +1,6 @@
 package com.zj.nld.Repository;
 
-import com.zj.nld.Model.DTO.NLDDTO;
+import com.zj.nld.Model.DTO.NldDTO;
 import com.zj.nld.Model.DTO.NLDProdUnitDTO;
 import com.zj.nld.Model.DTO.NldClientDTO;
 import com.zj.nld.Model.DTO.NldSalesDTO;
@@ -139,7 +139,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
 
 
     @Query("""
-    SELECT new com.zj.nld.Model.DTO.NLDDTO(
+    SELECT new com.zj.nld.Model.DTO.NldDTO(
         h.workOrderNum,
         h.clinicName,
         h.docName,
@@ -168,7 +168,6 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     WHERE h.compdh = '001'
     AND h.cundh LIKE 'K%'
 """)
-    List<NLDDTO> AdminSearch();
-
+    List<NldDTO> AdminSearch();
 
 }

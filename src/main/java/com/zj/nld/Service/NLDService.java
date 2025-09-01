@@ -1,6 +1,6 @@
 package com.zj.nld.Service;
 
-import com.zj.nld.Model.DTO.NLDDTO;
+import com.zj.nld.Model.DTO.NldDTO;
 import com.zj.nld.Model.DTO.NLDProdUnitDTO;
 import com.zj.nld.Model.DTO.NldClientDTO;
 import com.zj.nld.Model.DTO.NldSalesDTO;
@@ -10,7 +10,7 @@ import java.util.List;
 public interface NLDService {
 
     //取得所有NLD
-    List<NLDDTO> AdminSearch();
+    List<NldDTO> AdminSearch();
 
     //取得客戶NLD
     List<NldClientDTO> getNLDByClient(String client);
