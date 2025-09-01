@@ -134,7 +134,6 @@ async function loadGroupsFromAPI() {
             throw new Error("JSON解析失敗: " + jsonError.message);
         }
 
-        console.log("成功取得群組資料:", data);
         originalGroupData = Array.isArray(data) ? data : [];
 
         // 初始化時重建 filteredGroupData
@@ -173,7 +172,6 @@ async function loadGroupUsersFromAPI(groupId) {
         if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
 
         const data = await res.json();
-        console.log("成功取得群組使用者資料:", data);
         originalUserData = Array.isArray(data) ? data : [];
 
         // 重建篩選後的使用者資料
@@ -507,8 +505,6 @@ function bindUserRowEvents(user) {
 
 // 16. 處理權限變更 - 修正版
 function handleRoleChange(element, groupId, externalId, newRoleId) {
-    console.log('=== 權限變更處理開始 ===');
-    console.log('參數:', { groupId, externalId, newRoleId });
 
     const originalUser = originalUserData.find(user =>
         user.groupID === groupId && user.externalID === externalId
@@ -526,12 +522,6 @@ function handleRoleChange(element, groupId, externalId, newRoleId) {
     const isChanged = originalRole !== newRole;
     const changeKey = `${groupId}-${externalId}`;
 
-    console.log('比較結果:', {
-        isChanged,
-        originalRole,
-        newRole,
-        changeKey
-    });
 
     if (isChanged) {
         // 有變更：加入紅色樣式和記錄變更
@@ -579,11 +569,6 @@ function handleRoleChange(element, groupId, externalId, newRoleId) {
             }
         }
     }, 50);
-
-    console.log('當前狀態:', {
-        changedRowsSize: changedRows.size,
-        currentChangesSize: currentChanges.size
-    });
 
     updateSaveButtonVisibility();
 }
@@ -654,13 +639,6 @@ function updateSaveButtonVisibility() {
     const hasGroupNameChanges = groupNameChanges.size > 0;
     const hasChanges = hasRoleChanges || hasGroupNameChanges;
 
-    console.log('更新儲存按鈕顯示狀態:', {
-        hasRoleChanges,
-        hasGroupNameChanges,
-        hasChanges,
-        changedRowsSize: changedRows.size,
-        groupNameChangesSize: groupNameChanges.size
-    });
 
     if (hasChanges) {
         if (saveChangesBtn) saveChangesBtn.style.display = 'inline-block';
@@ -671,31 +649,18 @@ function updateSaveButtonVisibility() {
     }
 }
 
-// 21. 儲存變更 - 修正版
+// 21. 儲存變更 - UUID 兼容版本
 async function saveChanges() {
     // 收集所有要儲存的變更
-    const allChanges = [];
-
-    // 收集群組名稱變更
     const groupNameChangesList = Array.from(groupNameChanges.values());
-
-    // 收集成員權限變更
     const memberRoleChangesList = getChangedData();
-
-    // 計算總變更數量
     const totalChanges = groupNameChangesList.length + memberRoleChangesList.length;
-
-    console.log('=== 準備儲存變更 ===');
-    console.log('群組名稱變更:', groupNameChangesList.length, '筆');
-    console.log('成員權限變更:', memberRoleChangesList.length, '筆');
-    console.log('總計變更:', totalChanges, '筆');
 
     if (totalChanges === 0) {
         alert('沒有資料需要儲存');
         return;
     }
 
-    // 確認是否要儲存
     if (!confirm(`確定要儲存 ${totalChanges} 筆變更嗎？`)) {
         return;
     }
@@ -706,10 +671,10 @@ async function saveChanges() {
             await saveGroupNameChanges();
         }
 
-        // 再儲存成員權限變更
+        // 儲存成員權限變更
         if (memberRoleChangesList.length > 0) {
-            const apiUrl = `${window.location.protocol}//${window.location.host}/Role/update`;
 
+            const apiUrl = `${window.location.protocol}//${window.location.host}/Role/update`;
             const response = await fetch(apiUrl, {
                 method: 'PUT',
                 headers: {
@@ -726,82 +691,91 @@ async function saveChanges() {
             }
 
             const result = await response.json();
-            console.log('成員權限儲存成功:', result);
 
-            // 將變更應用到原始數據
-            currentChanges.forEach((changes, changeKey) => {
-                const [groupId, externalId] = changeKey.split('-');
-                const originalIndex = originalUserData.findIndex(user =>
-                    user.groupID === groupId && user.externalID === externalId
-                );
+            // *** 新方法：直接用變更清單來更新原始數據 ***
+            memberRoleChangesList.forEach(change => {
+
+                const originalIndex = originalUserData.findIndex(user => {
+                    // 直接比較 UUID，不需要字串分割
+                    const groupMatch = String(user.groupID) === String(change.groupID);
+                    const externalMatch = String(user.externalID) === String(change.externalID);
+
+                    if (groupMatch && externalMatch) {
+                        return true;
+                    }
+                    return false;
+                });
+
                 if (originalIndex !== -1) {
-                    originalUserData[originalIndex] = { ...originalUserData[originalIndex], ...changes };
+                    const oldRoleID = originalUserData[originalIndex].roleID;
+                    const newRoleID = change.roleID;
+
+                    // 直接更新 roleID
+                    originalUserData[originalIndex].roleID = newRoleID;
+
+                } else {
+                    console.error(`找不到對應的用戶:`, change);
+
+                    // 列出前幾筆原始數據供診斷
+                    originalUserData.slice(0, 3).forEach((user, idx) => {
+                        console.log(`  [${idx}] groupID: "${user.groupID}", externalID: "${user.externalID}", userName: "${user.userName}"`);
+                    });
                 }
             });
 
-            // 處理成員權限的視覺效果
-            currentChanges.forEach((changes, changeKey) => {
-                const [groupId, externalId] = changeKey.split('-');
-                const roleSelect = document.querySelector(`select[data-group-id="${groupId}"][data-external-id="${externalId}"]`);
-                if (roleSelect) {
-                    // 移除紅色樣式，添加綠色樣式
-                    roleSelect.classList.remove('changed');
-                    roleSelect.classList.add('saved');
-                }
-            });
-
-            // 清除成員權限變更標記
+            // *** 清除變更記錄 ***
             changedRows.clear();
             currentChanges.clear();
 
-            // 更新 filteredUserData
+            // *** 重新建構並渲染數據 ***
             if (currentView === 'groupDetail') {
                 rebuildFilteredUserData();
                 renderGroupDetail();
 
-                // 重新應用綠色樣式到新渲染的元素
+                // *** 應用視覺效果 ***
                 setTimeout(() => {
+                    let appliedCount = 0;
+
                     memberRoleChangesList.forEach(change => {
                         const roleSelect = document.querySelector(`select[data-group-id="${change.groupID}"][data-external-id="${change.externalID}"]`);
                         if (roleSelect) {
+                            roleSelect.classList.remove('changed');
                             roleSelect.classList.add('saved');
+                            appliedCount++;
+                        } else {
+                            console.error(`找不到元素: groupID=${change.groupID}, externalID=${change.externalID}`);
                         }
                     });
-                }, 50);
+
+                }, 100);
             }
         }
 
         // 所有儲存完成後的處理
         alert('變更已成功儲存');
-
-        // 立即隱藏儲存按鈕
         updateSaveButtonVisibility();
 
         // 2秒後開始綠色框框淡化動畫
         setTimeout(() => {
+
             // 處理群組名稱的淡化效果
             document.querySelectorAll('.group-card.saved').forEach(element => {
                 element.classList.add('saved-fadeout');
             });
 
             // 處理成員權限的淡化效果
-            document.querySelectorAll('.role-select.saved').forEach(element => {
+            const savedElements = document.querySelectorAll('.role-select.saved');
+            savedElements.forEach(element => {
                 element.classList.add('saved-fadeout');
             });
 
             // 再過1秒完全移除樣式
             setTimeout(() => {
-                // 移除群組名稱的所有儲存樣式
-                document.querySelectorAll('.group-card.saved').forEach(element => {
-                    element.classList.remove('saved', 'saved-fadeout');
-                });
-
-                // 移除成員權限的所有儲存樣式
-                document.querySelectorAll('.role-select.saved').forEach(element => {
+                document.querySelectorAll('.group-card.saved, .role-select.saved').forEach(element => {
                     element.classList.remove('saved', 'saved-fadeout');
                 });
             }, 1000);
-        }, 1000);
+        }, 2000);
 
     } catch (error) {
         console.error('儲存失敗:', error);
@@ -816,8 +790,6 @@ function cancelChanges() {
         return;
     }
 
-    console.log('開始取消變更...');
-    console.log('取消前 - changedRows:', changedRows.size, 'currentChanges:', currentChanges.size, 'groupNameChanges:', groupNameChanges.size);
 
     // 恢復群組名稱變更 - 參照成員權限的恢復邏輯
     groupNameChanges.forEach((change, groupId) => {
@@ -855,8 +827,6 @@ function cancelChanges() {
 
     updateSaveButtonVisibility();
 
-    console.log('取消後 - changedRows:', changedRows.size, 'currentChanges:', currentChanges.size, 'groupNameChanges:', groupNameChanges.size);
-    console.log('已取消所有變更，數據已還原到原始狀態');
 }
 
 // 23. 取得變更資料
@@ -940,7 +910,6 @@ async function loadAllClinics() {
 
         const data = await res.json();
         allClinics = Array.isArray(data) ? data : [];
-        console.log("成功載入診所資料:", allClinics);
 
         // 診所資料載入完成後，更新已存在的下拉選單
         updateAllClinicDropdowns();
@@ -1072,12 +1041,6 @@ function handleGroupNameChange(groupId, newGroupName) {
     const originalGroupName = originalGroup.groupName;
     const isChanged = originalGroupName !== newGroupName;
 
-    console.log('群組名稱變更處理:', {
-        groupId,
-        originalGroupName,
-        newGroupName,
-        isChanged
-    });
 
     if (isChanged) {
         // 有變更：加入紅色樣式和記錄變更
@@ -1095,10 +1058,6 @@ function handleGroupNameChange(groupId, newGroupName) {
         groupNameChanges.delete(groupId);
     }
 
-    console.log('群組名稱變更狀態:', {
-        groupNameChangesSize: groupNameChanges.size,
-        cardClasses: groupCard.className
-    });
 
     updateSaveButtonVisibility();
 }
@@ -1130,7 +1089,7 @@ async function saveGroupNameChanges() {
 
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-        console.log('群組名稱更新成功');
+
 
         // 將紅色邊框改為綠色表示已保存
         groupNameChanges.forEach((change, groupId) => {

@@ -135,8 +135,6 @@ public class RoleServiceImpl implements RoleService {
 
                     updatedRoles.add(userGroupRole); // 更新成功才加到結果
                 } else {
-                    // 找不到的處理方式：可以忽略、丟例外、或直接建立新資料
-                    // 這裡我先選擇忽略
                     System.out.println("UserGroupRole not found for lineID: " + dto.getLineID());
                 }
 

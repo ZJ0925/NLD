@@ -52,7 +52,7 @@ public class JwtServiceImpl implements JwtService {
 
         return switch (roleId) {
             case 1 -> "type=Admin&token=" + jWT;
-            case 2 -> "type=Client&token=" + jWT;
+            case 2, 5 -> "type=Client&token=" + jWT;
             case 3 -> "type=Sales&token=" + jWT;
             case 4 -> "type=ProdUnit&token=" + jWT;
             default -> null;
