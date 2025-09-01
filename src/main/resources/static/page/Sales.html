@@ -1,196 +1,610 @@
-<!DOCTYPE html> <!-- 宣告 HTML 文件的型別 -->
-<html lang="zh-Hant"> <!-- 設定語言為繁體中文 -->
+<!DOCTYPE html>
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8" /> <!-- 設定文件的字元編碼為 UTF-8 -->
-    <title>Sales技工單查詢</title> <!-- 網頁標題 -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales技工單查詢</title>
     <style>
-        /* 全域樣式設定 */
-        body {
-            font-family: sans-serif; /* 使用無襯線字體 */
-            display: flex; /* 使用 Flexbox 排版 */
+        * {
             margin: 0;
             padding: 0;
-        }
-        .sidebar {
-            width: 300px; /* 側邊欄寬度 */
-            background-color: #eee; /* 背景色 */
-            padding: 10px; /* 內距 */
-            box-sizing: border-box; /* 包含 padding 在內計算寬度 */
-            min-height: 100vh; /* 高度滿版 */
-            overflow-y: auto; /* 垂直滾動條 */
-            flex-shrink: 0; /* 不被壓縮 */
-        }
-        .sidebar label {
-            display: block;
-            margin-top: 8px;
-            font-weight: bold;
-        }
-        .sidebar input, .sidebar select {
-            width: 100%;
-            padding: 5px;
-            border: 1px solid #ccc;
-            border-radius: 3px;
             box-sizing: border-box;
-            margin-top: 3px;
         }
-        .date-range {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-top: 3px;
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
         }
-        .date-range input {
-            width: auto;
-            flex: 1;
-        }
-        .price-range {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-top: 3px;
-        }
-        .price-range input {
-            width: 80px;
-        }
-        .checkbox-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-top: 8px;
-        }
-        .checkbox-item input {
-            width: auto;
-        }
-        .checkbox-item label {
-            margin: 0;
-            font-weight: normal;
-        }
-        .button-section {
-            margin-top: 15px;
-            text-align: center;
-        }
-        .button-section button {
-            padding: 8px 20px;
-            margin: 0 5px;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        #filterBtn {
-            background-color: #009688;
-            color: white;
-        }
-        #filterBtn:hover {
-            background-color: #00796b;
-        }
-        #resetBtn {
-            background-color: #666;
-            color: white;
-        }
-        #resetBtn:hover {
-            background-color: #555;
-        }
-        .main {
-            flex-grow: 1; /* 主區塊自動填滿剩餘空間 */
+
+        /* 固定搜尋區域 */
+        .search-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-bottom: 1px solid #ddd;
+            z-index: 1000;
             padding: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .table-container {
-            overflow-x: auto; /* 橫向滾動條 */
-            border: 1px solid #ccc;
-        }
-        table {
-            border-collapse: collapse; /* 表格框線合併 */
+
+        .search-input {
             width: 100%;
-            min-width: 1500px; /* 最小寬度避免欄位太擠 */
-        }
-        thead {
-            background-color: #009688; /* 表頭背景色 */
-            color: white;
-        }
-        th, td {
+            padding: 12px 16px;
             border: 1px solid #ccc;
-            padding: 8px;
-            text-align: left;
-            white-space: nowrap;
-            min-width: 80px;
+            border-radius: 25px;
+            font-size: 16px;
+            background-color: #f8f8f8;
         }
-        th {
-            text-align: center;
-        }
-        tbody {
+
+        .search-input:focus {
+            outline: none;
+            border-color: #009688;
             background-color: white;
         }
+
+        /* 主要內容區域 */
+        .main-content {
+            margin-top: 70px;
+            padding: 10px;
+        }
+
+        /* 列表視圖 */
+        .list-view {
+            display: block;
+        }
+
+        .work-item {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .work-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .work-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .clinic-name {
+            font-weight: bold;
+            font-size: 16px;
+            color: #009688;
+        }
+
+        .work-order-num {
+            font-size: 12px;
+            color: #666;
+            background: #f0f0f0;
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+
+        .work-item-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .work-item-field {
+            font-size: 14px;
+        }
+
+        .work-item-field .label {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .work-item-field .value {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .status-tags {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .status-tag {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            color: white;
+        }
+
+        .status-remake { background-color: #ff9800; }
+        .status-nocharge { background-color: #2196f3; }
+        .status-pause { background-color: #ff5722; }
+        .status-void { background-color: #795548; }
+
+        /* 詳細視圖 */
+        .detail-view {
+            display: none;
+            background: white;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .detail-header {
+            background: #009688;
+            color: white;
+            padding: 20px 16px;
+            position: relative;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 16px;
+            top: 20px; /* 調整到與技工單號同高度 */
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 8px;
+            z-index: 10; /* 確保在最上層 */
+        }
+
+        .detail-work-num {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            padding-left: 40px; /* 給返回按鈕留出空間 */
+        }
+
+        .detail-top-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            text-align: center;
+        }
+
+        .detail-top-info .info-item {
+            background: rgba(255,255,255,0.1);
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .detail-top-info .info-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .detail-top-info .info-value {
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+
+        .detail-content {
+            padding: 20px 16px;
+        }
+
+        .detail-section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #009688;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .detail-field {
+            background: #f8f8f8;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .detail-field .field-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .detail-field .field-value {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .detail-field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .calendar-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #009688;
+            color: white;
+            border: none;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,150,136,0.3);
+            z-index: 100;
+            touch-action: manipulation; /* 防止雙擊縮放 */
+            user-select: none; /* 防止選取文字 */
+        }
+
+        /* 日曆視圖 */
+        .calendar-view {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            z-index: 2000;
+        }
+
+        .calendar-header {
+            background: #009688;
+            color: white;
+            padding: 20px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .calendar-nav {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .calendar-nav-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 18px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            touch-action: manipulation; /* 防止雙擊縮放 */
+            user-select: none; /* 防止選取文字 */
+        }
+
+        .calendar-nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .calendar-nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .calendar-title {
+            font-size: 18px;
+            font-weight: bold;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .calendar-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation; /* 防止雙擊縮放 */
+            user-select: none; /* 防止選取文字 */
+        }
+
+        .calendar-content {
+            padding: 20px 16px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #666;
+            padding: 8px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            background-color: #f0f0f0;
+        }
+
+        .calendar-day.has-event {
+            background-color: #e0f7fa;
+            font-weight: bold;
+        }
+
+        .calendar-day.receive-date {
+            background-color: #ffeb3b;
+            color: #333;
+        }
+
+        .calendar-day.delivery-date {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .calendar-day.try-in-date {
+            background-color: #ff9800;
+            color: white;
+        }
+
+        .calendar-day.try-receive-date {
+            background-color: #9c27b0;
+            color: white;
+        }
+
+        .calendar-legend {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        /* 載入中狀態 */
         .loading {
             text-align: center;
-            padding: 20px;
+            padding: 40px;
             color: #666;
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 480px) {
+            .detail-top-info {
+                grid-template-columns: 1fr;
+                gap: 4px;
+            }
+
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .calendar-grid {
+                gap: 4px;
+            }
+
+            .calendar-day {
+                min-height: 30px;
+                font-size: 12px;
+            }
+        }
+
+        /* 電腦版優化 */
+        @media (min-width: 768px) {
+            .calendar-content {
+                padding: 30px;
+                max-width: 600px;
+                margin: 0 auto;
+            }
+
+            .calendar-grid {
+                gap: 12px;
+                margin-bottom: 30px;
+            }
+
+            .calendar-day {
+                min-height: 45px;
+                font-size: 16px;
+            }
+
+            .calendar-day-header {
+                font-size: 14px;
+                padding: 12px 8px;
+            }
+
+            .legend-item {
+                font-size: 16px;
+                padding: 12px;
+            }
         }
     </style>
 </head>
 <body>
-<!-- 側邊欄搜尋區塊 -->
-<div class="sidebar">
-    <!-- 各種輸入欄位與篩選條件 -->
-    <label>技工單號：<input type="text" id="jobId" /></label>
-    <label>醫院名稱：<input type="text" id="hospital" /></label>
-    <label>醫生姓名：<input type="text" id="doctor" /></label>
-    <label>患者姓名：<input type="text" id="patientName" /></label>
-    <label>收件日：<div class="date-range"><input type="date" id="receiveStart" /> 至 <input type="date" id="receiveEnd" /></div></label>
-    <label>完成交件：<div class="date-range"><input type="date" id="deliveryStart" /> 至 <input type="date" id="deliveryEnd" /></div></label>
-    <label>齒位：<input type="text" id="toothPosition" /></label>
-    <label>產品名稱：<input type="text" id="productName" /></label>
-    <label>試戴交件：<div class="date-range"><input type="date" id="tryInStart" /> 至 <input type="date" id="tryInEnd" /></div></label>
-    <label>預計完成日：<div class="date-range"><input type="date" id="expectedStart" /> 至 <input type="date" id="expectedEnd" /></div></label>
-    <label>工單現況：<input type="text" id="currentStatus" /></label>
-    <label>預計試戴日：<div class="date-range"><input type="date" id="testStart" /> 至 <input type="date" id="testEnd" /></div></label>
-    <label>單價：<div class="price-range"><input type="number" id="priceMin" /> 到 <input type="number" id="priceMax" /></div></label>
-    <label>試戴收件日：<div class="date-range"><input type="date" id="productStart" /> 至 <input type="date" id="productEnd" /></div></label>
-    <label>備註：<input type="text" id="remarks" /></label>
+<!-- 固定搜尋區域 -->
+<div class="search-header">
+    <input type="text" class="search-input" placeholder="搜尋技工單號、診所、患者姓名..." id="searchInput">
+</div>
 
-    <!-- 篩選條件勾選框 -->
-    <div class="checkbox-item"><input type="checkbox" id="remake" /><label for="remake">重製工單</label></div>
-    <div class="checkbox-item"><input type="checkbox" id="noCharge" /><label for="noCharge">不計價</label></div>
-    <div class="checkbox-item"><input type="checkbox" id="pause" /><label for="pause">暫停</label></div>
-    <div class="checkbox-item"><input type="checkbox" id="cancel" /><label for="cancel">作廢</label></div>
+<!-- 主要內容區域 -->
+<div class="main-content">
+    <!-- 列表視圖 -->
+    <div class="list-view" id="listView">
+        <div class="loading">資料載入中...</div>
+    </div>
 
-    <!-- 查詢與重設按鈕 -->
-    <div class="button-section">
-        <button id="filterBtn">查詢</button>
-        <button id="resetBtn">重設</button>
+    <!-- 詳細視圖 -->
+    <div class="detail-view" id="detailView">
+        <div class="detail-header">
+            <button class="back-btn" id="backBtn">←</button>
+            <div class="detail-work-num" id="detailWorkNum">2025123456</div>
+            <div class="detail-top-info">
+                <div class="info-item">
+                    <div class="info-label">診所</div>
+                    <div class="info-value" id="detailClinic">固德</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">醫師</div>
+                    <div class="info-value" id="detailDoctor">黃H</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">患者</div>
+                    <div class="info-value" id="detailPatient">陶喆</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-content">
+            <div class="detail-section">
+                <div class="section-title">基本資訊</div>
+                <div class="detail-grid">
+                    <div class="detail-field">
+                        <div class="field-label">齒位</div>
+                        <div class="field-value" id="detailToothPosition">11, 21</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="field-label">單價</div>
+                        <div class="field-value" id="detailPrice">$8,000</div>
+                    </div>
+                    <div class="detail-field full-width">
+                        <div class="field-label">產品名稱</div>
+                        <div class="field-value" id="detailProductName">彩瓷冠 - 臨時牙</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <div class="section-title">日期資訊</div>
+                <div class="detail-grid">
+                    <div class="detail-field">
+                        <div class="field-label">收件日</div>
+                        <div class="field-value" id="detailReceiveDate">5/2</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="field-label">預計完成日</div>
+                        <div class="field-value" id="detailExpectedDate">5/5</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="field-label">試戴交件日</div>
+                        <div class="field-value" id="detailTryInDate">-</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="field-label">完成交件日</div>
+                        <div class="field-value" id="detailDeliveryDate">-</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="field-label">試戴收件日</div>
+                        <div class="field-value" id="detailTryReceiveDate">-</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="field-label">預計試戴日</div>
+                        <div class="field-value" id="detailExpectedTryDate">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <div class="section-title">狀態資訊</div>
+                <div class="detail-grid">
+                    <div class="detail-field">
+                        <div class="field-label">工單現況</div>
+                        <div class="field-value" id="detailStatus">進行中</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="field-label">特殊標記</div>
+                        <div class="field-value" id="detailTags">-</div>
+                    </div>
+                    <div class="detail-field full-width">
+                        <div class="field-label">備註</div>
+                        <div class="field-value" id="detailRemarks">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="calendar-btn" id="calendarBtn">📅</button>
+    </div>
+
+    <!-- 日曆視圖 -->
+    <div class="calendar-view" id="calendarView">
+        <div class="calendar-header">
+            <div class="calendar-nav">
+                <button class="calendar-nav-btn" id="prevYear">‹‹</button>
+                <button class="calendar-nav-btn" id="prevMonth">‹</button>
+                <div class="calendar-title" id="calendarTitle">2025年11月</div>
+                <button class="calendar-nav-btn" id="nextMonth">›</button>
+                <button class="calendar-nav-btn" id="nextYear">››</button>
+            </div>
+            <button class="calendar-close" id="calendarClose">×</button>
+        </div>
+        <div class="calendar-content">
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- 星期標題 -->
+                <div class="calendar-day-header">日</div>
+                <div class="calendar-day-header">一</div>
+                <div class="calendar-day-header">二</div>
+                <div class="calendar-day-header">三</div>
+                <div class="calendar-day-header">四</div>
+                <div class="calendar-day-header">五</div>
+                <div class="calendar-day-header">六</div>
+                <!-- 日期格子將由JS動態生成 -->
+            </div>
+            <div class="calendar-legend">
+                <!-- 圖例將由 JS 動態生成 -->
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- 主內容區：資料表格 -->
-<div class="main">
-    <div class="table-container">
-        <table>
-            <thead>
-            <tr>
-                <th>技工單號</th>
-                <th>醫院名稱</th>
-                <th>醫生姓名</th>
-                <th>患者姓名</th>
-                <th>收件日</th>
-                <th>完成交件</th>
-                <th>齒位</th>
-                <th>產品名稱</th>
-                <th>試戴交件</th>
-                <th>預計完成日</th>
-                <th>工單現況</th>
-                <th>預計試戴日</th>
-                <th>單價</th>
-                <th>試戴收件日</th>
-                <th>備註</th>
-            </tr>
-            </thead>
-            <tbody id="dataBody">
-            <tr><td colspan="15" class="loading">資料載入中...</td></tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-<!-- 引入 JS 檔案：負責查詢邏輯等行為 -->
-<script src="/page/script/SalesScript.js"></script>
+<!-- 引入 JS 檔案 -->
+<script src="/page/script/SalesScript.js?v=5853"></script>
 </body>
 </html>
