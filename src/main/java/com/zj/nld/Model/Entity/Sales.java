@@ -12,24 +12,25 @@ public class Sales {
 
     @Column(name = "NO_P1")
     @Id
-    private String ID;
+    private String id;
 
     @Column(name = "NAM_P1")
-    private String Name;
+    private String name;
 
-    public String getID() {
-        return ID;
+
+    public String getId() {
+        return id;
     }
 
-    public void setID(String ID) {
-        this.ID = ID;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {
-        return Name;
+        return name;
     }
 
     public void setName(String name) {
-        Name = name;
+        this.name = name;
     }
 }

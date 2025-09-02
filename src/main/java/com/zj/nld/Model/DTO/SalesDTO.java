@@ -5,30 +5,29 @@ import com.zj.nld.Model.Entity.Sales;
 // 業務DTO
 public class SalesDTO {
 
-    private String ID;
+    private String id;
 
 
-    private String Name;
+    private String name;
 
-
-    public String getID() {
-        return ID;
+    public String getId() {
+        return id;
     }
 
-    public void setID(String ID) {
-        this.ID = ID;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {
-        return Name;
+        return name;
     }
 
     public void setName(String name) {
-        Name = name;
+        this.name = name;
     }
 
     public SalesDTO(Sales sales) {
-        this.ID = getID();
-        this.Name = getName();
+        this.id = sales.getId();
+        this.name = sales.getName();
     }
 }

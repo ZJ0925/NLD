@@ -126,11 +126,11 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
         h.isVoided,
         h.tryInReceivedDate,
         h.remarks,
-        s.Name as salesName
+        s.name as salesName
     )
     FROM HVED h
     JOIN VED v ON h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
-    JOIN Sales s ON h.salesIdNum = s.ID
+    JOIN Sales s ON h.salesIdNum = s.id
     WHERE h.compdh = '001'
     AND h.cundh LIKE 'K%'
 """)
@@ -160,11 +160,11 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
         h.isVoided,
         h.tryInReceivedDate,
         h.remarks,
-        s.Name as salesName
+        s.name as salesName
     )
     FROM HVED h
     JOIN VED v ON h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
-    JOIN Sales s ON h.salesIdNum = s.ID
+    JOIN Sales s ON h.salesIdNum = s.id
     WHERE h.compdh = '001'
     AND h.cundh LIKE 'K%'
 """)

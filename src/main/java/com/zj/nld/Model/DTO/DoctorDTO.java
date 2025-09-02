@@ -28,7 +28,7 @@ public class DoctorDTO {
     }
 
     public DoctorDTO(Doctor doctor) {
-        this.doctorId = getDoctorId();
-        this.doctorName = getDoctorName();
+        this.doctorId = doctor.getDoctorId();
+        this.doctorName = doctor.getDoctorName();
     }
 }

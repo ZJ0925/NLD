@@ -1,5 +1,7 @@
 // GroupRole.js - 群組管理系統（重構版）
 // 全域變數 - 替換原有的變數宣告部分
+let allSalesPersons = []; // 儲存所有業務人員資料
+let allDoctors = []; // 儲存所有醫生資料
 let originalGroupData = []; // 儲存群組列表的原始資料
 let filteredGroupData = []; // 儲存篩選後的群組列表
 let originalUserData = []; // 儲存選中群組的使用者原始資料
@@ -104,6 +106,56 @@ window.addEventListener('DOMContentLoaded', () => {
     // 初始化頁面
     initializePage();
 });
+
+// 載入業務人員資料
+async function loadAllSalesPersons() {
+    const apiUrl = `${window.location.protocol}//${window.location.host}/Person/GET/Sales`;
+
+    try {
+        const res = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+
+        const data = await res.json();
+        allSalesPersons = Array.isArray(data) ? data : [];
+
+    } catch (err) {
+        console.error("業務人員 API 錯誤", err);
+        allSalesPersons = [];
+    }
+}
+
+// 載入醫生資料
+async function loadAllDoctors() {
+    const apiUrl = `${window.location.protocol}//${window.location.host}/Person/GET/Doctor`;
+
+    try {
+        const res = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+
+        const data = await res.json();
+        allDoctors = Array.isArray(data) ? data : [];
+
+    } catch (err) {
+        console.error("醫生 API 錯誤", err);
+        allDoctors = [];
+    }
+}
 
 // 2. 從 API 載入群組列表資料
 async function loadGroupsFromAPI() {
@@ -298,10 +350,19 @@ function switchToGroupListView() {
     updatePagination();
 }
 
-// 9. 切換到群組詳情視圖
+// 切換到群組詳情視圖
 async function switchToGroupDetailView(groupId, groupName) {
     currentView = 'groupDetail';
     currentGroupId = groupId;
+
+    // 判斷是否為業務群組並載入對應的人員資料
+    const isBusinessGroup = groupName.includes('業務');
+
+    if (isBusinessGroup && allSalesPersons.length === 0) {
+        await loadAllSalesPersons();
+    } else if (!isBusinessGroup && allDoctors.length === 0) {
+        await loadAllDoctors();
+    }
 
     // 更新 UI
     document.getElementById('groupListView').style.display = 'none';
@@ -457,7 +518,7 @@ function renderGroupDetail() {
     });
 }
 
-// 14. 創建使用者行HTML - 只顯示使用者名稱和權限設定
+// 創建使用者行HTML - 修正版本
 function createUserRow(user) {
     const originalUser = originalUserData.find(orig =>
         orig.groupID === user.groupID && orig.externalID === user.externalID
@@ -474,7 +535,6 @@ function createUserRow(user) {
     }
 
     let roleOptions = '';
-    // 移除無權限選項，只顯示 1-4
     for (let i = 1; i <= 5; i++) {
         const selected = i === parseInt(user.roleID) ? 'selected' : '';
         roleOptions += `<option value="${i}" ${selected}>${i} - ${roleMap[i]}</option>`;
@@ -482,7 +542,20 @@ function createUserRow(user) {
 
     return `
         <tr>
-            <td>${safeValue(user.userName)}</td>
+            <td>
+                <div class="user-name-dropdown-container" data-group-id="${user.groupID}" data-external-id="${user.externalID}" style="position: relative;">
+                    <button type="button" class="user-name-display" style="background: transparent; border: 1px solid transparent; border-radius: 4px; padding: 8px 12px; cursor: pointer; width: 100%; text-align: left; font-size: 14px; transition: all 0.3s; position: relative;">
+                        ${safeValue(user.userName)}
+                        <span style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #008390;">▼</span>
+                    </button>
+                    <div class="user-options" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 2px solid #008390; border-radius: 4px; max-height: 180px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
+                        <input type="text" class="user-search" placeholder="搜尋人員..." style="width: 100%; padding: 8px 12px; border: none; border-bottom: 1px solid #eee; font-size: 14px; outline: none; box-sizing: border-box;">
+                        <div class="user-options-list" style="max-height: 140px; overflow-y: auto;">
+                            <!-- 這裡會動態載入人員選項 -->
+                        </div>
+                    </div>
+                </div>
+            </td>
             <td>
                 <select class="${roleSelectClass}" data-group-id="${user.groupID}" data-external-id="${user.externalID}">
                     ${roleOptions}
@@ -492,7 +565,26 @@ function createUserRow(user) {
     `;
 }
 
-// 15. 綁定使用者行事件
+// 創建人員選項列表HTML - 修正版本
+function createUserOptionsList(isBusinessGroup) {
+    const persons = isBusinessGroup ? allSalesPersons : allDoctors;
+
+    if (persons.length === 0) {
+        return '<div class="user-option" style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee; transition: background-color 0.2s; font-size: 14px;">載入人員資料中...</div>';
+    }
+
+    let optionsHtml = '';
+    persons.forEach(person => {
+        // 根據不同的API回傳結構調整顯示內容
+        const displayName = person.name || person.doctorName || person.salesName || person.userName || '未知';
+        const personId = person.id || person.doctorId || person.salesId || person.personId || '';
+
+        optionsHtml += `<div class="user-option" data-person-id="${personId}" data-person-name="${displayName}" style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee; transition: background-color 0.2s; font-size: 14px;" onmouseover="this.style.backgroundColor='#f8f9fa'" onmouseout="this.style.backgroundColor='white'">${displayName}</div>`;
+    });
+    return optionsHtml;
+}
+
+// 綁定使用者行事件
 function bindUserRowEvents(user) {
     const roleSelect = document.querySelector(`select[data-group-id="${user.groupID}"][data-external-id="${user.externalID}"]`);
     if (roleSelect) {
@@ -501,6 +593,129 @@ function bindUserRowEvents(user) {
             handleRoleChange(e.target, user.groupID, user.externalID, newRoleId);
         });
     }
+
+    // 綁定使用者名稱下拉選單事件
+    bindUserNameDropdownEvents(user);
+}
+
+// 綁定使用者名稱下拉選單事件 - 修正版本
+function bindUserNameDropdownEvents(user) {
+    const container = document.querySelector(`.user-name-dropdown-container[data-group-id="${user.groupID}"][data-external-id="${user.externalID}"]`);
+    const userNameBtn = container?.querySelector('.user-name-display');
+    const optionsContainer = container?.querySelector('.user-options');
+    const searchInput = optionsContainer?.querySelector('.user-search');
+    const optionsList = optionsContainer?.querySelector('.user-options-list');
+
+    if (!userNameBtn || !optionsContainer || !searchInput || !optionsList) {
+        console.error('找不到必要的元素:', { userNameBtn, optionsContainer, searchInput, optionsList });
+        return;
+    }
+
+    // 判斷是否為業務群組
+    const currentGroup = originalGroupData.find(g => g.groupID === currentGroupId);
+    const isBusinessGroup = currentGroup?.groupName?.includes('業務') || false;
+
+    // 點擊使用者名稱按鈕顯示下拉選單
+    userNameBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+
+        // 關閉其他已開啟的下拉選單
+        document.querySelectorAll('.user-options').forEach(el => {
+            if (el !== optionsContainer) {
+                el.style.display = 'none';
+            }
+        });
+
+        // 切換當前下拉選單
+        const isVisible = optionsContainer.style.display === 'block';
+        optionsContainer.style.display = isVisible ? 'none' : 'block';
+
+        if (!isVisible) {
+            searchInput.focus();
+            searchInput.value = '';
+
+            // 載入人員選項
+            optionsList.innerHTML = createUserOptionsList(isBusinessGroup);
+            filterUserOptions(container, '');
+        }
+    });
+
+    // 搜尋輸入事件
+    searchInput.addEventListener('input', function(e) {
+        e.stopPropagation();
+        const searchTerm = this.value.toLowerCase();
+        filterUserOptions(container, searchTerm);
+    });
+
+    // 防止搜尋框點擊事件冒泡
+    searchInput.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+
+    // 點擊選項事件
+    optionsList.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (e.target.classList.contains('user-option')) {
+            const personId = e.target.dataset.personId;
+            const personName = e.target.dataset.personName;
+
+            // 更新顯示文字
+            userNameBtn.childNodes[0].textContent = personName; // 只更新文字部分，保留下拉箭頭
+
+            // 隱藏下拉選單
+            optionsContainer.style.display = 'none';
+
+            // 處理使用者名稱變更
+            handleUserNameChange(user.groupID, user.externalID, personName);
+        }
+    });
+
+    // 點擊外部關閉下拉選單
+    const closeDropdown = function(e) {
+        if (!container.contains(e.target)) {
+            optionsContainer.style.display = 'none';
+        }
+    };
+
+    document.addEventListener('click', closeDropdown);
+}
+
+// 修正過濾人員選項函數
+function filterUserOptions(container, searchTerm) {
+    const options = container.querySelectorAll('.user-option');
+
+    options.forEach(option => {
+        const text = option.textContent.toLowerCase();
+        option.style.display = text.includes(searchTerm) ? 'block' : 'none';
+    });
+}
+
+// 處理使用者名稱變更
+function handleUserNameChange(groupId, externalId, newUserName) {
+    const changeKey = `${groupId}-${externalId}`;
+
+    // 更新當前變更記錄中的使用者名稱
+    if (currentChanges.has(changeKey)) {
+        currentChanges.get(changeKey).userName = newUserName;
+    } else {
+        const originalUser = originalUserData.find(user =>
+            user.groupID === groupId && user.externalID === externalId
+        );
+
+        if (originalUser) {
+            currentChanges.set(changeKey, {
+                externalID: externalId,
+                lineID: originalUser.lineID,
+                userName: newUserName,
+                groupID: groupId,
+                groupName: originalUser.groupName,
+                roleID: originalUser.roleID
+            });
+        }
+    }
+
+    // 重建 filteredUserData
+    rebuildFilteredUserData();
 }
 
 // 16. 處理權限變更 - 修正版
@@ -879,9 +1094,10 @@ function showError(message) {
     }
 }
 
-// 27. 初始化頁面
+// 初始化頁面
 async function initializePage() {
     await loadAllClinics();
+    // 不需要在這裡預先載入所有人員資料，因為會在需要時才載入
     loadGroupsFromAPI();
 }
 
@@ -911,12 +1127,23 @@ async function loadAllClinics() {
         const data = await res.json();
         allClinics = Array.isArray(data) ? data : [];
 
+        // 在診所資料後面加入"業務"選項
+        allClinics.push({
+            clinicId: "Sales0001",
+            clinicName: "業務"
+        });
+
         // 診所資料載入完成後，更新已存在的下拉選單
         updateAllClinicDropdowns();
 
     } catch (err) {
         console.error("診所 API 錯誤", err);
-        allClinics = [];
+        // 即使 API 失敗，也要加入業務選項
+        allClinics = [{
+            clinicId: "Sales0001",
+            clinicName: "業務"
+        }];
+        updateAllClinicDropdowns();
     }
 }
 
@@ -936,6 +1163,7 @@ function createClinicOptionsList() {
 
     let optionsHtml = '';
     allClinics.forEach(clinic => {
+        // 統一使用 clinicId-clinicName 的格式
         const displayText = `${clinic.clinicId}-${clinic.clinicName}`;
         optionsHtml += `<div class="clinic-option" data-clinic-id="${clinic.clinicId}" data-clinic-name="${clinic.clinicName}">${displayText}</div>`;
     });
