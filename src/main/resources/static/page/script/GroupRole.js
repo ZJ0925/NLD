@@ -894,7 +894,7 @@ function safeValue(value) {
 
 // 載入所有診所資料
 async function loadAllClinics() {
-    const apiUrl = `${window.location.protocol}//${window.location.host}/Clinic/GET/AllClinic`;
+    const apiUrl = `${window.location.protocol}//${window.location.host}/Person/GET/Clinic`;
 
     try {
         const res = await fetch(apiUrl, {

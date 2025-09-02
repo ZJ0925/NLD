@@ -29,7 +29,7 @@ public class NLDServiceImpl implements NLDService {
     private UserGroupRoleService userGroupRoleService;
 
     @Autowired
-    private ClinicService clinicService;
+    private PersonService clinicService;
 
     @Autowired
     private DoctorService doctorService;
