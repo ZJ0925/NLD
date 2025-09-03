@@ -598,7 +598,7 @@ function bindUserRowEvents(user) {
     bindUserNameDropdownEvents(user);
 }
 
-// 綁定使用者名稱下拉選單事件 - 修正版本
+// 綁定使用者名稱下拉選單事件 - 參照群組名稱搜尋功能修正版
 function bindUserNameDropdownEvents(user) {
     const container = document.querySelector(`.user-name-dropdown-container[data-group-id="${user.groupID}"][data-external-id="${user.externalID}"]`);
     const userNameBtn = container?.querySelector('.user-name-display');
@@ -628,23 +628,33 @@ function bindUserNameDropdownEvents(user) {
 
         // 切換當前下拉選單
         const isVisible = optionsContainer.style.display === 'block';
-        optionsContainer.style.display = isVisible ? 'none' : 'block';
 
         if (!isVisible) {
+            // 計算按鈕位置並設定 fixed 定位
+            const btnRect = userNameBtn.getBoundingClientRect();
+            optionsContainer.style.position = 'fixed';
+            optionsContainer.style.top = `${btnRect.bottom + 2}px`;
+            optionsContainer.style.left = `${btnRect.left}px`;
+            optionsContainer.style.width = `${btnRect.width}px`;
+            optionsContainer.style.display = 'block';
+
             searchInput.focus();
             searchInput.value = '';
 
             // 載入人員選項
             optionsList.innerHTML = createUserOptionsList(isBusinessGroup);
-            filterUserOptions(container, '');
+            // 參照群組搜尋：初始化時不過濾，顯示所有選項
+            filterUserOptions(user.groupID, user.externalID, '');
+        } else {
+            optionsContainer.style.display = 'none';
         }
     });
 
-    // 搜尋輸入事件
+    // 搜尋輸入事件 - 參照群組名稱搜尋的方式
     searchInput.addEventListener('input', function(e) {
         e.stopPropagation();
         const searchTerm = this.value.toLowerCase();
-        filterUserOptions(container, searchTerm);
+        filterUserOptions(user.groupID, user.externalID, searchTerm);
     });
 
     // 防止搜尋框點擊事件冒泡
@@ -660,7 +670,7 @@ function bindUserNameDropdownEvents(user) {
             const personName = e.target.dataset.personName;
 
             // 更新顯示文字
-            userNameBtn.childNodes[0].textContent = personName; // 只更新文字部分，保留下拉箭頭
+            userNameBtn.childNodes[0].textContent = personName;
 
             // 隱藏下拉選單
             optionsContainer.style.display = 'none';
@@ -680,9 +690,9 @@ function bindUserNameDropdownEvents(user) {
     document.addEventListener('click', closeDropdown);
 }
 
-// 修正過濾人員選項函數
-function filterUserOptions(container, searchTerm) {
-    const options = container.querySelectorAll('.user-option');
+// 過濾使用者選項 - 參照群組名稱搜尋的實現方式
+function filterUserOptions(groupId, externalId, searchTerm) {
+    const options = document.querySelectorAll(`[data-group-id="${groupId}"][data-external-id="${externalId}"] .user-option`);
 
     options.forEach(option => {
         const text = option.textContent.toLowerCase();
@@ -690,33 +700,6 @@ function filterUserOptions(container, searchTerm) {
     });
 }
 
-// 處理使用者名稱變更
-function handleUserNameChange(groupId, externalId, newUserName) {
-    const changeKey = `${groupId}-${externalId}`;
-
-    // 更新當前變更記錄中的使用者名稱
-    if (currentChanges.has(changeKey)) {
-        currentChanges.get(changeKey).userName = newUserName;
-    } else {
-        const originalUser = originalUserData.find(user =>
-            user.groupID === groupId && user.externalID === externalId
-        );
-
-        if (originalUser) {
-            currentChanges.set(changeKey, {
-                externalID: externalId,
-                lineID: originalUser.lineID,
-                userName: newUserName,
-                groupID: groupId,
-                groupName: originalUser.groupName,
-                roleID: originalUser.roleID
-            });
-        }
-    }
-
-    // 重建 filteredUserData
-    rebuildFilteredUserData();
-}
 
 // 16. 處理權限變更 - 修正版
 function handleRoleChange(element, groupId, externalId, newRoleId) {
@@ -1170,7 +1153,7 @@ function createClinicOptionsList() {
     return optionsHtml;
 }
 
-// 綁定群組名稱下拉選單事件
+// 綁定群組名稱下拉選單事件 - 確認這個函數是否存在且正確
 function bindGroupNameDropdownEvents(groupId) {
     const groupNameBtn = document.querySelector(`.group-name-display[data-group-id="${groupId}"]`);
     const optionsContainer = document.querySelector(`[data-group-id="${groupId}"] .clinic-options`);
@@ -1242,7 +1225,8 @@ function bindGroupNameDropdownEvents(groupId) {
     document.addEventListener('click', closeDropdown);
 }
 
-// 過濾診所選項
+
+// 過濾診所選項 - 確認這個函數是否存在
 function filterClinicOptions(groupId, searchTerm) {
     const options = document.querySelectorAll(`[data-group-id="${groupId}"] .clinic-option`);
 

@@ -315,7 +315,7 @@
         /* 群組容器樣式 */
         .groups-container {
             flex: 1;
-            overflow-y: auto;
+            overflow: visible !important;
             padding: 20px;
         }
 
@@ -388,8 +388,24 @@
             border-collapse: collapse;
             background-color: white;
             border-radius: 8px;
-            overflow: hidden;
+            overflow: visible !important;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+        }
+
+
+        /* 使用者下拉選單 - 提高 z-index 並確保不被遮蓋 */
+        .user-options {
+            position: fixed !important; /* 改為 fixed 定位，確保不受父元素影響 */
+            background: white;
+            border: 2px solid #008390;
+            border-radius: 4px;
+            max-height: 180px;
+            overflow-y: auto;
+            z-index: 10000 !important; /* 大幅提高 z-index */
+            display: none;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            min-width: 200px;
         }
 
         .users-table th,
@@ -782,6 +798,6 @@
     </div>
 </div>
 
-<script src="/page/script/GroupRole.js?v=452282"></script>
+<script src="/page/script/GroupRole.js?v=5224782"></script>
 </body>
 </html>
