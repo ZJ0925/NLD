@@ -973,8 +973,9 @@ function getCurrentTotalPages() {
     return Math.ceil(totalItems / itemsPerPage);
 }
 
-// 修正 updateSaveButtonVisibility 函數，確保正確檢查所有變更狀態
+// 加強的 updateSaveButtonVisibility 函數
 function updateSaveButtonVisibility() {
+
     const saveChangesBtn = document.getElementById('saveChangesBtn');
     const cancelChangesBtn = document.getElementById('cancelChangesBtn');
 
@@ -985,16 +986,26 @@ function updateSaveButtonVisibility() {
 
 
     if (hasChanges) {
-        if (saveChangesBtn) saveChangesBtn.style.display = 'inline-block';
-        if (cancelChangesBtn) cancelChangesBtn.style.display = 'inline-block';
+        if (saveChangesBtn) {
+            saveChangesBtn.style.display = 'inline-block';
+        } else {
+            console.error('找不到 saveChangesBtn 元素');
+        }
+        if (cancelChangesBtn) {
+            cancelChangesBtn.style.display = 'inline-block';
+        } else {
+            console.error('找不到 cancelChangesBtn 元素');
+        }
     } else {
         if (saveChangesBtn) saveChangesBtn.style.display = 'none';
         if (cancelChangesBtn) cancelChangesBtn.style.display = 'none';
     }
 }
 
-// 修正後的 saveChanges 函數，恢復綠色漸變效果
+
+// 加強的 saveChanges 函數開頭部分
 async function saveChanges() {
+
     // 收集所有要儲存的變更
     const groupNameChangesList = Array.from(groupNameChanges.values());
     const memberRoleChangesList = getChangedData();
@@ -1009,135 +1020,103 @@ async function saveChanges() {
         return;
     }
 
+
     try {
-        // 準備統一的資料陣列，包含所有變更
-        let allChangesData = [];
+        // 記錄需要變成綠色的元素
+        const elementsToTurnGreen = [];
 
-        // 加入成員變更資料（權限和使用者名稱變更）
-        if (memberRoleChangesList.length > 0) {
-            allChangesData = allChangesData.concat(memberRoleChangesList);
-        }
-
-        // 加入群組名稱變更資料，轉換為相同的DTO格式
+        // 處理群組名稱變更
         if (groupNameChangesList.length > 0) {
-            groupNameChangesList.forEach(groupChange => {
-                const groupMembers = originalUserData.filter(user => user.groupID === groupChange.groupID);
-                if (groupMembers.length > 0) {
-                    const representative = groupMembers[0];
-                    allChangesData.push({
-                        externalID: representative.externalID,
-                        lineID: representative.lineID,
-                        userName: representative.userName,
-                        groupID: groupChange.groupID,
-                        groupName: groupChange.newGroupName,
-                        roleID: representative.roleID
+            // 記錄群組名稱元素（變更前先記錄，因為 saveGroupNameChanges 會更新 DOM）
+            groupNameChangesList.forEach(change => {
+                const groupCard = document.querySelector(`[data-group-id="${change.groupID}"]`);
+                if (groupCard && groupCard.classList.contains('changed')) {
+                    elementsToTurnGreen.push({
+                        type: 'groupName',
+                        element: groupCard
                     });
                 }
             });
+
+            // 直接調用群組名稱更新函數
+            await saveGroupNameChanges();
         }
 
-        if (allChangesData.length === 0) {
-            alert('沒有有效的資料需要儲存');
-            return;
-        }
+        // 處理成員權限變更
+        if (memberRoleChangesList.length > 0) {
+            // 記錄使用者名稱和權限元素
+            memberRoleChangesList.forEach(change => {
+                const originalUser = originalUserData.find(user =>
+                    String(user.groupID) === String(change.groupID) &&
+                    String(user.externalID) === String(change.externalID)
+                );
 
-        // 在發送請求前，記錄哪些元素目前是紅色的（需要變成綠色）
-        const elementsToTurnGreen = [];
+                if (originalUser) {
+                    // 檢查使用者名稱是否有變更
+                    if (originalUser.userName !== change.userName) {
+                        const userNameBtn = document.querySelector(`[data-group-id="${change.groupID}"][data-external-id="${change.externalID}"] .user-name-display`);
+                        if (userNameBtn && userNameBtn.style.color === 'rgb(220, 53, 69)') {
+                            elementsToTurnGreen.push({
+                                type: 'userName',
+                                element: userNameBtn
+                            });
+                        }
+                    }
 
-        // 記錄使用者名稱元素
-        memberRoleChangesList.forEach(change => {
-            const originalUser = originalUserData.find(user =>
-                String(user.groupID) === String(change.groupID) &&
-                String(user.externalID) === String(change.externalID)
-            );
-
-            if (originalUser) {
-                // 檢查使用者名稱是否有變更
-                if (originalUser.userName !== change.userName) {
-                    const userNameBtn = document.querySelector(`[data-group-id="${change.groupID}"][data-external-id="${change.externalID}"] .user-name-display`);
-                    if (userNameBtn && userNameBtn.style.color === 'rgb(220, 53, 69)') { // 紅色
-                        elementsToTurnGreen.push({
-                            type: 'userName',
-                            element: userNameBtn
-                        });
+                    // 檢查權限是否有變更
+                    if (parseInt(originalUser.roleID) !== parseInt(change.roleID)) {
+                        const roleSelect = document.querySelector(`select[data-group-id="${change.groupID}"][data-external-id="${change.externalID}"]`);
+                        if (roleSelect && roleSelect.classList.contains('changed')) {
+                            elementsToTurnGreen.push({
+                                type: 'role',
+                                element: roleSelect
+                            });
+                        }
                     }
                 }
-
-                // 檢查權限是否有變更
-                if (parseInt(originalUser.roleID) !== parseInt(change.roleID)) {
-                    const roleSelect = document.querySelector(`select[data-group-id="${change.groupID}"][data-external-id="${change.externalID}"]`);
-                    if (roleSelect && roleSelect.classList.contains('changed')) {
-                        elementsToTurnGreen.push({
-                            type: 'role',
-                            element: roleSelect
-                        });
-                    }
-                }
-            }
-        });
-
-        // 記錄群組名稱元素
-        groupNameChangesList.forEach(change => {
-            const groupCard = document.querySelector(`[data-group-id="${change.groupID}"]`);
-            if (groupCard && groupCard.classList.contains('changed')) {
-                elementsToTurnGreen.push({
-                    type: 'groupName',
-                    element: groupCard
-                });
-            }
-        });
-
-        // 統一送到 /Role/update API
-        const apiUrl = `${window.location.protocol}//${window.location.host}/Role/update`;
-        const response = await fetch(apiUrl, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'ngrok-skip-browser-warning': 'true'
-            },
-            body: JSON.stringify(allChangesData)
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
-        }
-
-        const result = await response.json();
-
-        // *** 更新原始數據 ***
-        // 更新群組名稱的原始數據
-        groupNameChangesList.forEach(change => {
-            const originalGroup = originalGroupData.find(g => g.groupID === change.groupID);
-            if (originalGroup) {
-                originalGroup.groupName = change.newGroupName;
-            }
-        });
-
-        // 更新成員資料的原始數據
-        memberRoleChangesList.forEach(change => {
-            const originalIndex = originalUserData.findIndex(user => {
-                const groupMatch = String(user.groupID) === String(change.groupID);
-                const externalMatch = String(user.externalID) === String(change.externalID);
-                return groupMatch && externalMatch;
             });
 
-            if (originalIndex !== -1) {
-                originalUserData[originalIndex].roleID = change.roleID;
-                originalUserData[originalIndex].userName = change.userName;
-            }
-        });
+            // 調用成員權限更新 API
+            const apiUrl = `${window.location.protocol}//${window.location.host}/Role/update`;
+            const response = await fetch(apiUrl, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify(memberRoleChangesList)
+            });
 
-        // *** 清除所有變更記錄 ***
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+            }
+
+            // 更新成員資料的原始數據
+            memberRoleChangesList.forEach(change => {
+                const originalIndex = originalUserData.findIndex(user => {
+                    const groupMatch = String(user.groupID) === String(change.groupID);
+                    const externalMatch = String(user.externalID) === String(change.externalID);
+                    return groupMatch && externalMatch;
+                });
+
+                if (originalIndex !== -1) {
+                    originalUserData[originalIndex].roleID = change.roleID;
+                    originalUserData[originalIndex].userName = change.userName;
+                }
+            });
+        }
+
+        // 清除所有變更記錄
         changedRows.clear();
         currentChanges.clear();
         groupNameChanges.clear();
 
-        // *** 立即應用綠色效果到之前記錄的紅色元素 ***
+        // 立即應用綠色效果到之前記錄的元素
         elementsToTurnGreen.forEach(item => {
             if (item.type === 'userName') {
-                item.element.style.color = '#28a745'; // 綠色
+                item.element.style.color = '#28a745';
                 item.element.style.fontWeight = 'bold';
                 item.element.classList.remove('changed');
                 item.element.classList.add('saved');
@@ -1174,7 +1153,7 @@ async function saveChanges() {
         alert('變更已成功儲存');
         updateSaveButtonVisibility();
 
-        // *** 2秒後開始綠色漸變動畫 ***
+        // 2秒後開始綠色漸變動畫
         setTimeout(() => {
             // 處理群組名稱的淡化效果
             document.querySelectorAll('.group-card.saved').forEach(element => {
@@ -1194,7 +1173,7 @@ async function saveChanges() {
                 element.classList.add('saved-fadeout');
             });
 
-            // *** 再過1秒完全移除樣式 ***
+            // 再過1秒完全移除樣式
             setTimeout(() => {
                 document.querySelectorAll('.group-card.saved, .role-select.saved').forEach(element => {
                     element.classList.remove('saved', 'saved-fadeout');
@@ -1404,14 +1383,19 @@ function createClinicOptionsList() {
     return optionsHtml;
 }
 
-// 綁定群組名稱下拉選單事件 - 確認這個函數是否存在且正確
+// 在 bindGroupNameDropdownEvents 函數中加入更多調試資訊
 function bindGroupNameDropdownEvents(groupId) {
+
     const groupNameBtn = document.querySelector(`.group-name-display[data-group-id="${groupId}"]`);
     const optionsContainer = document.querySelector(`[data-group-id="${groupId}"] .clinic-options`);
     const searchInput = document.querySelector(`[data-group-id="${groupId}"] .clinic-search`);
     const optionsList = document.querySelector(`[data-group-id="${groupId}"] .clinic-options-list`);
 
-    if (!groupNameBtn || !optionsContainer || !searchInput || !optionsList) return;
+
+    if (!groupNameBtn || !optionsContainer || !searchInput || !optionsList) {
+        console.error('缺少必要元素，無法綁定事件');
+        return;
+    }
 
     // 點擊群組名稱按鈕顯示下拉選單
     groupNameBtn.addEventListener('click', function(e) {
@@ -1435,38 +1419,39 @@ function bindGroupNameDropdownEvents(groupId) {
         }
     });
 
-    // 搜尋輸入事件
+    // 點擊選項事件
+    optionsList.addEventListener('click', function(e) {
+        e.stopPropagation();
+
+        if (e.target.classList.contains('clinic-option')) {
+            const clinicId = e.target.dataset.clinicId;
+            const clinicName = e.target.dataset.clinicName;
+            const newGroupName = `${clinicId}-${clinicName}`;
+
+
+            // 更新顯示文字
+            const oldText = groupNameBtn.textContent;
+            groupNameBtn.textContent = newGroupName;
+
+            // 隱藏下拉選單
+            optionsContainer.style.display = 'none';
+
+            // 處理變更 - 這是關鍵步驟
+            handleGroupNameChange(groupId, newGroupName);
+        }
+    });
+
+    // 其他事件綁定...
     searchInput.addEventListener('input', function(e) {
         e.stopPropagation();
         const searchTerm = this.value.toLowerCase();
         filterClinicOptions(groupId, searchTerm);
     });
 
-    // 防止搜尋框點擊事件冒泡
     searchInput.addEventListener('click', function(e) {
         e.stopPropagation();
     });
 
-    // 點擊選項事件
-    optionsList.addEventListener('click', function(e) {
-        e.stopPropagation();
-        if (e.target.classList.contains('clinic-option')) {
-            const clinicId = e.target.dataset.clinicId;
-            const clinicName = e.target.dataset.clinicName;
-            const newGroupName = `${clinicId}-${clinicName}`;
-
-            // 更新顯示文字
-            groupNameBtn.textContent = newGroupName;
-
-            // 隱藏下拉選單
-            optionsContainer.style.display = 'none';
-
-            // 處理變更
-            handleGroupNameChange(groupId, newGroupName);
-        }
-    });
-
-    // 點擊外部關閉下拉選單
     const closeDropdown = function(e) {
         if (!groupNameBtn.contains(e.target) && !optionsContainer.contains(e.target)) {
             optionsContainer.style.display = 'none';
@@ -1487,8 +1472,145 @@ function filterClinicOptions(groupId, searchTerm) {
     });
 }
 
-// 處理群組名稱變更 - 修正版
+// 調試版本的 handleGroupNameChange 函數（已加強）
 function handleGroupNameChange(groupId, newGroupName) {
+
+
+    const originalGroup = originalGroupData.find(g => {
+        return g.groupID === groupId;
+    });
+
+    if (!originalGroup) {
+        console.error('找不到原始群組資料，groupId:', groupId);
+        return;
+    }
+
+
+    const groupCard = document.querySelector(`[data-group-id="${groupId}"]`);
+
+
+    if (!groupCard) {
+        console.error('找不到群組卡片元素，groupId:', groupId);
+        // 列出所有存在的群組卡片
+        const allCards = document.querySelectorAll('[data-group-id]');
+        return;
+    }
+
+    const originalGroupName = originalGroup.groupName;
+    const isChanged = originalGroupName !== newGroupName;
+
+    if (isChanged) {
+
+        // 有變更：加入紅色樣式和記錄變更
+        groupCard.classList.remove('saved', 'saved-fadeout');
+        groupCard.classList.add('changed');
+
+        const changeData = {
+            groupID: groupId,
+            newGroupName: newGroupName,
+            originalGroupName: originalGroupName
+        };
+
+
+        groupNameChanges.set(groupId, changeData);
+
+
+    } else {
+
+        // 沒有變更：移除紅色樣式和變更記錄
+        groupCard.classList.remove('changed', 'saved', 'saved-fadeout');
+        groupNameChanges.delete(groupId);
+
+
+    }
+
+    updateSaveButtonVisibility();
+}
+
+// 調試版本的 saveGroupNameChanges 函數
+async function saveGroupNameChanges() {
+
+
+    if (groupNameChanges.size === 0) {
+        return;
+    }
+
+    const changes = Array.from(groupNameChanges.values());
+    const groupIDs = changes.map(c => c.groupID);
+    const newGroupNames = changes.map(c => c.newGroupName);
+
+
+
+    try {
+        const apiUrl = `${window.location.protocol}//${window.location.host}/Role/update/GroupName`;
+        const params = new URLSearchParams();
+
+        groupIDs.forEach(id => params.append('groupIDs', id));
+        newGroupNames.forEach(name => params.append('newGroupNames', name));
+
+        const finalUrl = `${apiUrl}?${params}`;
+
+        const response = await fetch(finalUrl, {
+            method: 'PUT',
+            headers: {
+                'Accept': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('API 錯誤響應:', errorText);
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+
+        const responseText = await response.text();
+
+        // 更新原始數據
+        groupNameChanges.forEach((change, groupId) => {
+            const originalGroup = originalGroupData.find(g => g.groupID === groupId);
+            if (originalGroup) {
+                originalGroup.groupName = change.newGroupName;
+            }
+
+            const groupCard = document.querySelector(`[data-group-id="${groupId}"]`);
+            if (groupCard) {
+                groupCard.classList.remove('changed');
+                groupCard.classList.add('saved');
+            }
+        });
+
+
+        groupNameChanges.clear();
+
+        // 重建資料
+        rebuildFilteredGroupData();
+        if (currentView === 'groupList') {
+            renderGroupList();
+
+            // 重新應用綠色樣式到新渲染的元素
+            setTimeout(() => {
+                changes.forEach(change => {
+                    const groupCard = document.querySelector(`[data-group-id="${change.groupID}"]`);
+                    if (groupCard) {
+                        groupCard.classList.add('saved');
+                        console.log(`重新應用 saved 樣式到群組 ${change.groupID}`);
+                    }
+                });
+            }, 50);
+        }
+
+
+    } catch (error) {
+        console.error('保存群組名稱失敗:', error);
+        throw error;
+    }
+}
+
+// 調試版本的 handleGroupNameChange 函數
+function handleGroupNameChange(groupId, newGroupName) {
+
+
     const originalGroup = originalGroupData.find(g => g.groupID === groupId);
     if (!originalGroup) {
         console.error('找不到原始群組資料:', groupId);
@@ -1505,93 +1627,28 @@ function handleGroupNameChange(groupId, newGroupName) {
     const isChanged = originalGroupName !== newGroupName;
 
 
+
     if (isChanged) {
         // 有變更：加入紅色樣式和記錄變更
-        groupCard.classList.remove('saved', 'saved-fadeout'); // 移除可能存在的綠色樣式
+        groupCard.classList.remove('saved', 'saved-fadeout');
         groupCard.classList.add('changed');
 
-        groupNameChanges.set(groupId, {
+        const changeData = {
             groupID: groupId,
             newGroupName: newGroupName,
             originalGroupName: originalGroupName
-        });
+        };
+
+        groupNameChanges.set(groupId, changeData);
+
     } else {
         // 沒有變更：移除紅色樣式和變更記錄
-        groupCard.classList.remove('changed', 'saved', 'saved-fadeout'); // 移除所有變更相關樣式
+        groupCard.classList.remove('changed', 'saved', 'saved-fadeout');
         groupNameChanges.delete(groupId);
-    }
 
+    }
 
     updateSaveButtonVisibility();
-}
-
-// 修正 saveGroupNameChanges 函數，確保正確應用綠色樣式
-async function saveGroupNameChanges() {
-    if (groupNameChanges.size === 0) {
-        return;
-    }
-
-    const changes = Array.from(groupNameChanges.values());
-    const groupIDs = changes.map(c => c.groupID);
-    const newGroupNames = changes.map(c => c.newGroupName);
-
-    try {
-        const apiUrl = `${window.location.protocol}//${window.location.host}/Role/update/GroupName`;
-        const params = new URLSearchParams();
-
-        groupIDs.forEach(id => params.append('groupIDs', id));
-        newGroupNames.forEach(name => params.append('newGroupNames', name));
-
-        const response = await fetch(`${apiUrl}?${params}`, {
-            method: 'PUT',
-            headers: {
-                'Accept': 'application/json',
-                'ngrok-skip-browser-warning': 'true'
-            }
-        });
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-
-
-        // 將紅色邊框改為綠色表示已保存
-        groupNameChanges.forEach((change, groupId) => {
-            const originalGroup = originalGroupData.find(g => g.groupID === groupId);
-            if (originalGroup) {
-                originalGroup.groupName = change.newGroupName;
-            }
-
-            const groupCard = document.querySelector(`[data-group-id="${groupId}"]`);
-            if (groupCard) {
-                // 移除紅色樣式，添加綠色樣式
-                groupCard.classList.remove('changed');
-                groupCard.classList.add('saved');
-            }
-        });
-
-        // 清除變更記錄
-        groupNameChanges.clear();
-
-        // 重建資料
-        rebuildFilteredGroupData();
-        if (currentView === 'groupList') {
-            renderGroupList();
-
-            // 重新應用綠色樣式到新渲染的元素
-            setTimeout(() => {
-                changes.forEach(change => {
-                    const groupCard = document.querySelector(`[data-group-id="${change.groupID}"]`);
-                    if (groupCard) {
-                        groupCard.classList.add('saved');
-                    }
-                });
-            }, 50);
-        }
-
-    } catch (error) {
-        console.error('保存群組名稱失敗:', error);
-        throw error;
-    }
 }
 
 // 將函數暴露到全域作用域，供外部調用

@@ -39,10 +39,10 @@ public interface UserGroupRoleRepository extends JpaRepository<UserGroupRole, UU
 
     // 直接用 JPA 更新 groupName
     @Modifying
-    @Query("UPDATE UserGroupRole u SET u.groupName = :groupName, u.groupNameID = :groupNameID WHERE u.groupID = :groupID")
-    int updateGroupNameAndIDByGroupID(@Param("groupID") String groupID,
-                                      @Param("groupName") String groupName,
-                                      @Param("groupNameID") String groupNameID);
+    @Query(value = "UPDATE UserGroupRole SET groupName = :groupName, groupNameID = :groupNameID WHERE groupID = :groupID", nativeQuery = true)
+    void updateGroupNameAndIDByGroupIDNative(@Param("groupID") String groupID,
+                                            @Param("groupName") String groupName,
+                                            @Param("groupNameID") String groupNameID);
 
     // 用externalID刪除使用者權限 (by externalID)
     @Modifying

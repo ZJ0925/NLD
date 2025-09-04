@@ -86,11 +86,11 @@ public class RoleController {
 
     //批量更新群組名稱
     @PutMapping("/update/GroupName")
-    public ResponseEntity<List<GroupDTO>> updateGroupName(
+    public ResponseEntity<Void> updateGroupName(
             @RequestParam List<String> groupIDs,
             @RequestParam List<String> newGroupNames) {
-        List<GroupDTO> result = roleService.updateGroupName(groupIDs, newGroupNames);
-        return ResponseEntity.ok(result);
+       roleService.updateGroupName(groupIDs, newGroupNames);
+        return ResponseEntity.ok().build();
     }
 
 

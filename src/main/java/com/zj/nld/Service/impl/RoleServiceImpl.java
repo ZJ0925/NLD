@@ -90,27 +90,20 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Transactional
-    public List<GroupDTO> updateGroupName(List<String> groupIDs, List<String> newGroupNames) {
+    public void updateGroupName(List<String> groupIDs, List<String> newGroupNames) {
+        System.out.println("updateGroupName 被呼叫"); // 確認方法進來
         if (groupIDs.size() != newGroupNames.size()) {
             throw new IllegalArgumentException("groupIDs 和 newGroupNames 數量不一致");
         }
-
         for (int i = 0; i < groupIDs.size(); i++) {
             String groupID = groupIDs.get(i);
             String newGroupName = newGroupNames.get(i);
-
-            // 拆分 newGroupName (格式: "clinicId-clinicName")
             String[] parts = newGroupName.split("-", 2);
-            String groupNameID = parts[0];
-            String groupName = parts.length > 1 ? parts[1] : "";
-
-            // 更新單筆 UserGroupRole
-            userGroupRoleRepository.updateGroupNameAndIDByGroupID(groupID, groupName, groupNameID);
+            String groupNameID = parts[0].trim();
+            String groupName = (parts.length > 1 ? parts[1].trim() : "");
+            System.out.println("更新 groupID=" + groupID + ", groupNameID=" + groupNameID + ", groupName=" + groupName);
+            userGroupRoleRepository.updateGroupNameAndIDByGroupIDNative(groupID, groupName, groupNameID);
         }
-
-
-        // 取得更新後的資料
-        return userGroupRoleRepository.findDistinctGroups();
     }
 
 
