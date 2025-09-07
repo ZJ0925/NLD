@@ -46,6 +46,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     JOIN VED v ON
         h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%'
+    ORDER BY h.deliveryDate DESC
     """)
     List<NldSalesDTO> SalesSearch();
 
@@ -72,6 +73,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     JOIN VED v ON
         h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%' AND h.clinicName = :clientName
+    ORDER BY h.deliveryDate DESC
 """)
     List<NldClientDTO> ClientSearch(String clientName);
 
@@ -100,6 +102,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     JOIN VED v ON
         h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%' AND h.clinicName = :clientName And h.docName = :docName
+    ORDER BY h.deliveryDate DESC
 """)
     List<NldClientDTO> ClientForDocSearch(String clientName, String docName);
 
@@ -131,8 +134,8 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     FROM HVED h
     JOIN VED v ON h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     JOIN Sales s ON h.salesIdNum = s.id
-    WHERE h.compdh = '001'
-    AND h.cundh LIKE 'K%'
+    WHERE h.compdh = '001' AND h.cundh LIKE 'K%'
+    ORDER BY h.deliveryDate DESC
 """)
     List<NLDProdUnitDTO> ProdUnitSearch();
 
@@ -165,8 +168,8 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     FROM HVED h
     JOIN VED v ON h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     JOIN Sales s ON h.salesIdNum = s.id
-    WHERE h.compdh = '001'
-    AND h.cundh LIKE 'K%'
+    WHERE h.compdh = '001' AND h.cundh LIKE 'K%'
+    ORDER BY h.deliveryDate DESC
 """)
     List<NldDTO> AdminSearch();
 
