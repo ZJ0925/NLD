@@ -1,3 +1,197 @@
+// ===== 第1部分：在 SalesScript.js 開頭添加這個存儲類 =====
+// 在所有現有代碼之前添加
+
+class NLDStorage {
+    constructor() {
+        this.dbName = 'NLDDatabase';
+        this.version = 1;
+        this.db = null;
+        this.isReady = false;
+    }
+
+    async init() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(this.dbName, this.version);
+
+            request.onerror = () => {
+                console.error('IndexedDB 初始化失敗，回退到 localStorage');
+                this.isReady = false;
+                resolve(false); // 失敗時回退到 localStorage
+            };
+
+            request.onsuccess = () => {
+                this.db = request.result;
+                this.isReady = true;
+                console.log('IndexedDB 初始化成功');
+                resolve(true);
+            };
+
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains('nldData')) {
+                    db.createObjectStore('nldData', { keyPath: 'id' });
+                }
+            };
+        });
+    }
+
+    async saveData(data) {
+        if (!this.isReady) {
+            // 回退到 localStorage，但加上錯誤處理
+            return this.saveToLocalStorage(data);
+        }
+
+        try {
+            return new Promise((resolve, reject) => {
+                const transaction = this.db.transaction(['nldData'], 'readwrite');
+                const store = transaction.objectStore('nldData');
+
+                // 清空舊數據並儲存新數據
+                const clearRequest = store.clear();
+                clearRequest.onsuccess = () => {
+                    const addRequest = store.add({ id: 'workOrders', data: data, timestamp: Date.now() });
+                    addRequest.onsuccess = () => {
+                        console.log('數據已儲存到 IndexedDB');
+                        resolve(true);
+                    };
+                    addRequest.onerror = () => reject(addRequest.error);
+                };
+                clearRequest.onerror = () => reject(clearRequest.error);
+            });
+        } catch (error) {
+            console.error('IndexedDB 儲存失敗，回退到 localStorage:', error);
+            return this.saveToLocalStorage(data);
+        }
+    }
+
+    async getData() {
+        if (!this.isReady) {
+            // 回退到 localStorage
+            return this.getFromLocalStorage();
+        }
+
+        try {
+            return new Promise((resolve, reject) => {
+                const transaction = this.db.transaction(['nldData'], 'readonly');
+                const store = transaction.objectStore('nldData');
+                const request = store.get('workOrders');
+
+                request.onsuccess = () => {
+                    if (request.result && request.result.data) {
+                        console.log('從 IndexedDB 獲取數據成功');
+                        resolve(request.result.data);
+                    } else {
+                        // IndexedDB 中沒有數據，嘗試從 localStorage 獲取
+                        resolve(this.getFromLocalStorage());
+                    }
+                };
+
+                request.onerror = () => {
+                    console.error('IndexedDB 讀取失敗，回退到 localStorage');
+                    resolve(this.getFromLocalStorage());
+                };
+            });
+        } catch (error) {
+            console.error('IndexedDB 讀取失敗，回退到 localStorage:', error);
+            return this.getFromLocalStorage();
+        }
+    }
+
+    async clearData() {
+        if (this.isReady && this.db) {
+            try {
+                return new Promise((resolve) => {
+                    const transaction = this.db.transaction(['nldData'], 'readwrite');
+                    const store = transaction.objectStore('nldData');
+                    const request = store.clear();
+
+                    request.onsuccess = () => {
+                        console.log('IndexedDB 數據已清理');
+                        resolve();
+                    };
+
+                    request.onerror = () => {
+                        console.error('IndexedDB 清理失敗');
+                        resolve();
+                    };
+                });
+            } catch (error) {
+                console.error('IndexedDB 清理錯誤:', error);
+            }
+        }
+
+        // 同時清理 localStorage
+        try {
+            localStorage.removeItem("nldData");
+            console.log('localStorage 數據已清理');
+        } catch (error) {
+            console.error('localStorage 清理失敗:', error);
+        }
+    }
+
+    // localStorage 回退方法
+    saveToLocalStorage(data) {
+        try {
+            const compressedData = this.compressData(data);
+            localStorage.setItem("nldData", JSON.stringify(compressedData));
+            console.log('數據已儲存到 localStorage（壓縮後）');
+            return true;
+        } catch (error) {
+            console.error('localStorage 儲存也失敗:', error);
+            if (error.name === 'QuotaExceededError') {
+                alert('儲存空間不足，請聯繫開發人員優化數據結構');
+            }
+            return false;
+        }
+    }
+
+    getFromLocalStorage() {
+        try {
+            const raw = localStorage.getItem("nldData");
+            if (raw) {
+                console.log('從 localStorage 獲取數據');
+                return JSON.parse(raw);
+            }
+            return null;
+        } catch (error) {
+            console.error('localStorage 讀取失敗:', error);
+            return null;
+        }
+    }
+
+    // 數據壓縮（用於 localStorage 回退）
+    compressData(data) {
+        if (!Array.isArray(data)) return data;
+
+        return data.map(item => ({
+            workOrderNum: item.workOrderNum,
+            clinicName: item.clinicName,
+            patientName: item.patientName,
+            docName: item.docName,
+            toothPosition: item.toothPosition ? String(item.toothPosition).substring(0, 50) : null,
+            price: item.price,
+            prodItem: item.prodItem,
+            prodName: item.prodName ? String(item.prodName).substring(0, 100) : null,
+            receivedDate: item.receivedDate,
+            estFinishDate: item.estFinishDate,
+            tryInDate: item.tryInDate,
+            deliveryDate: item.deliveryDate,
+            tryInReceivedDate: item.tryInReceivedDate,
+            estTryInDate: item.estTryInDate,
+            workOrderStatus: item.workOrderStatus,
+            isRemake: item.isRemake,
+            isNoCharge: item.isNoCharge,
+            isPaused: item.isPaused,
+            isVoided: item.isVoided,
+            remarks: item.remarks ? String(item.remarks).substring(0, 200) : null
+        })).filter(item => item.workOrderNum); // 過濾掉無效數據
+    }
+}
+
+// 創建全局存儲實例
+const nldStorage = new NLDStorage();
+
+
 // Token檢查相關函數
 function base64UrlDecode(str) {
     // base64url 轉 base64
@@ -45,11 +239,14 @@ function base64UrlDecode(str) {
     }
 })();
 
-// 新增：當使用者嘗試離開頁面或訪問其他網址時的檢查
-function checkTokenBeforeNavigation() {
+// ===== 第4部分：替換現有的 checkTokenBeforeNavigation 函數 =====
+// 找到你現有的 checkTokenBeforeNavigation 函數，完全替換為以下版本
+
+async function checkTokenBeforeNavigation() {
     const token = localStorage.getItem("jwtToken");
 
     if (!token || token.split('.').length !== 3) {
+        await nldStorage.clearData(); // 清理數據
         localStorage.removeItem("jwtToken");
         window.location.href = "/index.html";
         return false;
@@ -63,19 +260,156 @@ function checkTokenBeforeNavigation() {
         const now = Math.floor(Date.now() / 1000);
         if (payload.exp && payload.exp < now) {
             alert("登入已過期，請重新登入。");
+            await nldStorage.clearData(); // 清理數據
             localStorage.removeItem("jwtToken");
-            localStorage.removeItem("nldData");
             window.location.href = "/index.html";
             return false;
         }
         return true;
     } catch (e) {
         console.error("無法解析 JWT:", e);
+        await nldStorage.clearData(); // 清理數據
         localStorage.removeItem("jwtToken");
         window.location.href = "/index.html";
         return false;
     }
 }
+
+// ===== 第5部分：在文件末尾添加緊急清理功能 =====
+
+// 緊急清理功能
+async function emergencyCleanup() {
+    try {
+        await nldStorage.clearData();
+        localStorage.clear();
+        console.log("緊急清理完成");
+        alert("已清理所有儲存數據，請重新載入頁面");
+        window.location.reload();
+    } catch (error) {
+        console.error("緊急清理失敗:", error);
+        alert("清理失敗，請手動清除瀏覽器數據");
+    }
+}
+
+// 暴露緊急清理功能到全局
+window.emergencyCleanup = emergencyCleanup;
+
+// ===== 修改 DOMContentLoaded 事件監聽器 =====
+// 找到你現有的 window.addEventListener("DOMContentLoaded", ...)
+// 完全替換為以下版本：
+
+window.addEventListener("DOMContentLoaded", async () => {
+    console.log("DOM載入完成，開始初始化...");
+
+    // 檢查關鍵元素是否存在
+    const listView = document.getElementById('listView');
+    const searchInput = document.getElementById('searchInput');
+    const backBtn = document.getElementById('backBtn');
+
+    console.log("關鍵元素檢查:", {
+        listView: !!listView,
+        searchInput: !!searchInput,
+        backBtn: !!backBtn
+    });
+
+    // 初始化資料（這會自動初始化存儲系統）
+    await initializeData();
+
+    // 綁定事件監聽器
+    if (searchInput) {
+        searchInput.addEventListener('input', filterData);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                filterData();
+            }
+        });
+    }
+
+    if (backBtn) {
+        backBtn.addEventListener('click', showList);
+    }
+
+    // 日曆按鈕 - 防止雙擊縮放
+    const calendarBtn = document.getElementById('calendarBtn');
+    if (calendarBtn) {
+        let touchHandled = false;
+
+        calendarBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchHandled = true;
+            showCalendar();
+        });
+
+        calendarBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!touchHandled) {
+                showCalendar();
+            }
+            touchHandled = false;
+        });
+    }
+
+    // 日曆關閉按鈕 - 防止雙擊縮放
+    const calendarClose = document.getElementById('calendarClose');
+    if (calendarClose) {
+        let touchHandled = false;
+
+        calendarClose.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchHandled = true;
+            document.getElementById('calendarView').style.display = 'none';
+        });
+
+        calendarClose.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!touchHandled) {
+                document.getElementById('calendarView').style.display = 'none';
+            }
+            touchHandled = false;
+        });
+    }
+
+    // 使用 touchstart 和 click 事件，並防止預設行為
+    function addNavigationListener(element, direction) {
+        if (!element) return;
+
+        let touchHandled = false;
+
+        element.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // 防止雙擊縮放
+            touchHandled = true;
+            navigateCalendar(direction);
+        });
+
+        element.addEventListener('click', (e) => {
+            e.preventDefault(); // 防止雙擊縮放
+            if (!touchHandled) {
+                navigateCalendar(direction);
+            }
+            touchHandled = false;
+        });
+    }
+
+    // 綁定日曆導航按鈕 - 防止雙擊縮放
+    const prevYear = document.getElementById('prevYear');
+    const nextYear = document.getElementById('nextYear');
+    const prevMonth = document.getElementById('prevMonth');
+    const nextMonth = document.getElementById('nextMonth');
+
+    addNavigationListener(prevYear, 'prevYear');
+    addNavigationListener(nextYear, 'nextYear');
+    addNavigationListener(prevMonth, 'prevMonth');
+    addNavigationListener(nextMonth, 'nextMonth');
+
+    // 添加重新整理功能（可選）
+    window.refreshData = function() {
+        console.log("手動重新整理資料");
+        initializeData();
+    };
+
+    console.log("所有事件監聽器綁定完成");
+});
+
 
 // 監聽頁面離開事件（可選）
 window.addEventListener('beforeunload', function(e) {
@@ -114,7 +448,9 @@ let currentDetailItem = null;
 let currentCalendarYear = new Date().getFullYear();
 let currentCalendarMonth = new Date().getMonth();
 
-// 從API獲取資料的函數
+// ===== 第2部分：替換現有的 fetchDataFromAPI 函數 =====
+// 找到你現有的 fetchDataFromAPI 函數，完全替換為以下版本
+
 async function fetchDataFromAPI() {
     const token = localStorage.getItem("jwtToken");
     if (!token) {
@@ -125,7 +461,6 @@ async function fetchDataFromAPI() {
     try {
         console.log("正在從API獲取資料...");
 
-        // 這裡需要根據你的實際API路徑調整
         const response = await fetch('/api/sales/workorders', {
             method: 'GET',
             headers: {
@@ -139,30 +474,34 @@ async function fetchDataFromAPI() {
 
         if (response.ok) {
             const data = await response.json();
-            console.log("API回應資料:", data);
+            console.log("API回應資料筆數:", Array.isArray(data) ? data.length : "非陣列格式");
 
-            // 儲存到localStorage作為備份
-            localStorage.setItem("nldData", JSON.stringify(data));
+            // 使用新的存儲系統
+            const saveSuccess = await nldStorage.saveData(data);
+            if (saveSuccess) {
+                console.log("數據儲存成功");
+            } else {
+                console.warn("數據儲存失敗，但不影響當前使用");
+            }
+
             return data;
         } else {
             console.error("API請求失敗:", response.status, response.statusText);
-
-            // 如果API失敗，嘗試使用localStorage的備份資料
-            const backupData = localStorage.getItem("nldData");
+            // API失敗時從存儲中獲取備份數據
+            const backupData = await nldStorage.getData();
             if (backupData) {
-                console.log("使用localStorage備份資料");
-                return JSON.parse(backupData);
+                console.log("使用備份資料");
+                return backupData;
             }
             return null;
         }
     } catch (error) {
         console.error('獲取資料時發生錯誤:', error);
-
-        // 網路錯誤時，嘗試使用localStorage的備份資料
-        const backupData = localStorage.getItem("nldData");
+        // 網路錯誤時從存儲中獲取備份數據
+        const backupData = await nldStorage.getData();
         if (backupData) {
-            console.log("網路錯誤，使用localStorage備份資料");
-            return JSON.parse(backupData);
+            console.log("網路錯誤，使用備份資料");
+            return backupData;
         }
         return null;
     }
@@ -670,8 +1009,10 @@ function filterData() {
     renderListView(filteredData);
 }
 
-// 初始化資料 - 修改為使用localStorage，符合手機版架構
-function initializeData() {
+// ===== 第3部分：替換現有的 initializeData 函數 =====
+// 找到你現有的 initializeData 函數，完全替換為以下版本
+
+async function initializeData() {
     console.log("開始初始化資料...");
 
     const listViewElement = document.getElementById("listView");
@@ -683,29 +1024,33 @@ function initializeData() {
     // 先顯示載入中
     listViewElement.innerHTML = '<div class="loading">資料載入中...</div>';
 
-    const raw = localStorage.getItem("nldData");
-    if (!raw) {
-        console.log("localStorage中沒有找到 nldData");
-        listViewElement.innerHTML = '<div class="loading" style="color: red;">找不到資料，請重新登入</div>';
-        return;
-    }
-
     try {
-        const data = JSON.parse(raw);
-        console.log("成功解析localStorage資料，筆數:", Array.isArray(data) ? data.length : "非陣列格式");
+        // 初始化存儲系統
+        const storageReady = await nldStorage.init();
+        console.log('存儲系統狀態:', storageReady ? 'IndexedDB' : 'localStorage備用');
 
-        originalData = Array.isArray(data) ? data : [];
-        filteredData = [...originalData];
+        // 從存儲中獲取數據
+        const data = await nldStorage.getData();
 
-        if (originalData.length > 0) {
-            console.log("第一筆資料樣本:", originalData[0]);
+        if (data) {
+            console.log("成功從存儲獲取資料，筆數:", Array.isArray(data) ? data.length : "非陣列格式");
+
+            originalData = Array.isArray(data) ? data : [];
+            filteredData = [...originalData];
+
+            if (originalData.length > 0) {
+                console.log("第一筆資料樣本:", originalData[0]);
+            }
+
+            renderListView(filteredData);
+            console.log("資料載入完成！");
+        } else {
+            console.log("存儲中沒有資料，顯示提示");
+            listViewElement.innerHTML = '<div class="loading" style="color: orange;">找不到資料，請重新登入或聯繫管理員</div>';
         }
-
-        renderListView(filteredData);
-        console.log("資料載入完成！");
-    } catch (e) {
-        console.error("localStorage資料格式錯誤:", e);
-        listViewElement.innerHTML = '<div class="loading" style="color: red;">資料格式錯誤，請重新登入</div>';
+    } catch (error) {
+        console.error("初始化過程中發生錯誤:", error);
+        listViewElement.innerHTML = '<div class="loading" style="color: red;">資料載入失敗，請重新整理頁面</div>';
     }
 }
 

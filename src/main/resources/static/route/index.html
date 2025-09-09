@@ -42,10 +42,127 @@
 </div>
 
 <script>
-    window.addEventListener("DOMContentLoaded", () => {
+    // ===== 修改 index.html 的 JavaScript 部分 =====
+    // 在 <script> 標籤內，完全替換現有的 JavaScript 代碼
+
+    window.addEventListener("DOMContentLoaded", async () => {
+
+        // ===== 添加 IndexedDB 存儲類（簡化版本） =====
+        class SimpleNLDStorage {
+            constructor() {
+                this.dbName = 'NLDDatabase';
+                this.version = 1;
+                this.db = null;
+                this.isReady = false;
+            }
+
+            async init() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(this.dbName, this.version);
+
+                    request.onerror = () => {
+                        console.error('IndexedDB 初始化失敗，回退到 localStorage');
+                        this.isReady = false;
+                        resolve(false);
+                    };
+
+                    request.onsuccess = () => {
+                        this.db = request.result;
+                        this.isReady = true;
+                        console.log('IndexedDB 初始化成功');
+                        resolve(true);
+                    };
+
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains('nldData')) {
+                            db.createObjectStore('nldData', { keyPath: 'id' });
+                        }
+                    };
+                });
+            }
+
+            async clearData() {
+                // 清理 IndexedDB
+                if (this.isReady && this.db) {
+                    try {
+                        return new Promise((resolve) => {
+                            const transaction = this.db.transaction(['nldData'], 'readwrite');
+                            const store = transaction.objectStore('nldData');
+                            const request = store.clear();
+
+                            request.onsuccess = () => {
+                                console.log('IndexedDB 數據已清理');
+                                resolve();
+                            };
+
+                            request.onerror = () => {
+                                console.error('IndexedDB 清理失敗');
+                                resolve();
+                            };
+                        });
+                    } catch (error) {
+                        console.error('IndexedDB 清理錯誤:', error);
+                    }
+                }
+
+                // 同時清理 localStorage
+                try {
+                    localStorage.removeItem("nldData");
+                    console.log('localStorage 數據已清理');
+                } catch (error) {
+                    console.error('localStorage 清理失敗:', error);
+                }
+            }
+
+            async saveData(data) {
+                if (!this.isReady) {
+                    return this.saveToLocalStorage(data);
+                }
+
+                try {
+                    return new Promise((resolve, reject) => {
+                        const transaction = this.db.transaction(['nldData'], 'readwrite');
+                        const store = transaction.objectStore('nldData');
+
+                        const clearRequest = store.clear();
+                        clearRequest.onsuccess = () => {
+                            const addRequest = store.add({ id: 'workOrders', data: data, timestamp: Date.now() });
+                            addRequest.onsuccess = () => {
+                                console.log('數據已儲存到 IndexedDB');
+                                resolve(true);
+                            };
+                            addRequest.onerror = () => reject(addRequest.error);
+                        };
+                        clearRequest.onerror = () => reject(clearRequest.error);
+                    });
+                } catch (error) {
+                    console.error('IndexedDB 儲存失敗，回退到 localStorage:', error);
+                    return this.saveToLocalStorage(data);
+                }
+            }
+
+            saveToLocalStorage(data) {
+                try {
+                    localStorage.setItem("nldData", JSON.stringify(data));
+                    console.log('數據已儲存到 localStorage');
+                    return true;
+                } catch (error) {
+                    console.error('localStorage 儲存失敗:', error);
+                    if (error.name === 'QuotaExceededError') {
+                        alert('儲存空間不足，數據量過大');
+                    }
+                    return false;
+                }
+            }
+        }
+
+        // 創建存儲實例並初始化
+        const storage = new SimpleNLDStorage();
+        await storage.init();
 
         // 清除可能存在的舊資料
-        localStorage.removeItem("nldData");
+        await storage.clearData();
 
         function base64UrlDecode(str) {
             try {
@@ -85,8 +202,6 @@
             // 尋找 route 的位置
             const routeIndex = pathParts.indexOf('route');
             if (routeIndex !== -1) {
-
-
                 // 期望的路徑結構可能是: /route/NLD/token/Admin/tokenValue
                 // 或其他結構，我們需要更靈活的解析
 
@@ -106,7 +221,6 @@
                 const validTypes = ['Admin', 'Client', 'Sales', 'ProdUnit'];
                 for (let i = 0; i < pathParts.length - 1; i++) {
                     if (validTypes.includes(pathParts[i]) && pathParts[i + 1]) {
-
                         return { type: pathParts[i], token: pathParts[i + 1] };
                     }
                 }
@@ -119,7 +233,6 @@
 
         // 解析參數
         const { type, token } = parseParameters();
-
 
         if (!type || !token) {
             alert("錯誤 - 缺少必要參數\n" +
@@ -138,7 +251,6 @@
             if (tokenParts.length !== 3) {
                 throw new Error("JWT token 格式錯誤：應該包含3個部分，實際: " + tokenParts.length);
             }
-
 
             const payload = JSON.parse(base64UrlDecode(tokenParts[1]));
             const now = Math.floor(Date.now() / 1000);
@@ -168,12 +280,11 @@
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                // 加入 ngrok 需要的 header// 重要!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                // 加入 ngrok 需要的 header
                 'ngrok-skip-browser-warning': 'true'
             }
         })
             .then(res => {
-
                 if (!res.ok) {
                     return res.text().then(text => {
                         throw new Error(`HTTP ${res.status}: ${res.statusText} - ${text}`);
@@ -191,7 +302,6 @@
                         throw new Error("API路徑錯誤：回應是HTML而非JSON");
                     }
 
-
                     try {
                         // 嘗試解析 JSON
                         const data = JSON.parse(text);
@@ -204,9 +314,14 @@
                     }
                 });
             })
-            .then(data => {
-
-                localStorage.setItem("nldData", JSON.stringify(data));
+            .then(async (data) => {
+                // 使用新的存儲系統
+                const saveSuccess = await storage.saveData(data);
+                if (saveSuccess) {
+                    console.log("數據儲存成功");
+                } else {
+                    console.warn("數據儲存失敗，但繼續跳轉");
+                }
 
                 // 建構跳轉 URL
                 const baseUrl = `${protocol}//${host}`;
@@ -233,6 +348,10 @@
                 window.location.href = redirectUrl;
             })
             .catch(err => {
+                console.log("API錯誤詳情\n" +
+                    "錯誤訊息: " + err.message + "\n" +
+                    "API URL: " + apiUrl + "\n" +
+                    "請截圖此訊息給開發人員")
                 alert("API錯誤詳情\n" +
                     "錯誤訊息: " + err.message + "\n" +
                     "API URL: " + apiUrl + "\n" +

@@ -1,3 +1,121 @@
+// ===== 在 AdminScript.js 開頭添加存儲類 =====
+// 在所有現有代碼之前添加
+
+class NLDStorage {
+    constructor() {
+        this.dbName = 'NLDDatabase';
+        this.version = 1;
+        this.db = null;
+        this.isReady = false;
+    }
+
+    async init() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(this.dbName, this.version);
+
+            request.onerror = () => {
+                console.error('IndexedDB 初始化失敗，回退到 localStorage');
+                this.isReady = false;
+                resolve(false);
+            };
+
+            request.onsuccess = () => {
+                this.db = request.result;
+                this.isReady = true;
+                console.log('IndexedDB 初始化成功');
+                resolve(true);
+            };
+
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains('nldData')) {
+                    db.createObjectStore('nldData', { keyPath: 'id' });
+                }
+            };
+        });
+    }
+
+    async getData() {
+        if (!this.isReady) {
+            return this.getFromLocalStorage();
+        }
+
+        try {
+            return new Promise((resolve, reject) => {
+                const transaction = this.db.transaction(['nldData'], 'readonly');
+                const store = transaction.objectStore('nldData');
+                const request = store.get('workOrders');
+
+                request.onsuccess = () => {
+                    if (request.result && request.result.data) {
+                        console.log('從 IndexedDB 獲取數據成功');
+                        resolve(request.result.data);
+                    } else {
+                        resolve(this.getFromLocalStorage());
+                    }
+                };
+
+                request.onerror = () => {
+                    console.error('IndexedDB 讀取失敗，回退到 localStorage');
+                    resolve(this.getFromLocalStorage());
+                };
+            });
+        } catch (error) {
+            console.error('IndexedDB 讀取失敗，回退到 localStorage:', error);
+            return this.getFromLocalStorage();
+        }
+    }
+
+    async clearData() {
+        if (this.isReady && this.db) {
+            try {
+                return new Promise((resolve) => {
+                    const transaction = this.db.transaction(['nldData'], 'readwrite');
+                    const store = transaction.objectStore('nldData');
+                    const request = store.clear();
+
+                    request.onsuccess = () => {
+                        console.log('IndexedDB 數據已清理');
+                        resolve();
+                    };
+
+                    request.onerror = () => {
+                        console.error('IndexedDB 清理失敗');
+                        resolve();
+                    };
+                });
+            } catch (error) {
+                console.error('IndexedDB 清理錯誤:', error);
+            }
+        }
+
+        try {
+            localStorage.removeItem("nldData");
+            console.log('localStorage 數據已清理');
+        } catch (error) {
+            console.error('localStorage 清理失敗:', error);
+        }
+    }
+
+    getFromLocalStorage() {
+        try {
+            const raw = localStorage.getItem("nldData");
+            if (raw) {
+                console.log('從 localStorage 獲取數據');
+                return JSON.parse(raw);
+            }
+            return null;
+        } catch (error) {
+            console.error('localStorage 讀取失敗:', error);
+            return null;
+        }
+    }
+}
+
+// 創建全局存儲實例
+const nldStorage = new NLDStorage();
+
+
 function base64UrlDecode(str) {
     // base64url 轉 base64
     str = str.replace(/-/g, '+').replace(/_/g, '/');
@@ -44,11 +162,14 @@ function base64UrlDecode(str) {
     }
 })();
 
-// 新增：當使用者嘗試離開頁面或訪問其他網址時的檢查
-function checkTokenBeforeNavigation() {
+// ===== 修改 checkTokenBeforeNavigation 函數 =====
+// 找到現有的 checkTokenBeforeNavigation 函數，完全替換為：
+
+async function checkTokenBeforeNavigation() {
     const token = localStorage.getItem("jwtToken");
 
     if (!token || token.split('.').length !== 3) {
+        await nldStorage.clearData(); // 清理數據
         localStorage.removeItem("jwtToken");
         window.location.href = "/index.html";
         return false;
@@ -62,19 +183,21 @@ function checkTokenBeforeNavigation() {
         const now = Math.floor(Date.now() / 1000);
         if (payload.exp && payload.exp < now) {
             alert("登入已過期，請重新登入。");
+            await nldStorage.clearData(); // 清理數據
             localStorage.removeItem("jwtToken");
-            localStorage.removeItem("nldData");
             window.location.href = "/index.html";
             return false;
         }
         return true;
     } catch (e) {
         console.error("無法解析 JWT:", e);
+        await nldStorage.clearData(); // 清理數據
         localStorage.removeItem("jwtToken");
         window.location.href = "/index.html";
         return false;
     }
 }
+
 
 // 監聽頁面離開事件（可選）
 window.addEventListener('beforeunload', function(e) {
@@ -363,39 +486,97 @@ function resetFilters() {
     renderTable(filteredData); // 重新顯示表格
 }
 
-// 初始化頁面資料
-function initializeData() {
-    const raw = localStorage.getItem("nldData"); // 從 localStorage 取得資料
-    if (!raw) {
-        document.getElementById("dataBody").innerHTML =
-            `<tr><td colspan="17" style="text-align:center; color: red;">找不到資料，請重新登入</td></tr>`;
+// ===== 修改 initializeData 函數 =====
+// 找到現有的 initializeData 函數，完全替換為：
+
+async function initializeData() {
+    const tbody = document.getElementById("dataBody");
+    if (!tbody) {
+        console.error("找不到 dataBody 元素");
         return;
     }
 
+    // 顯示載入中
+    tbody.innerHTML = `<tr><td colspan="17" style="text-align:center;">資料載入中...</td></tr>`;
+
     try {
-        const data = JSON.parse(raw); // 解析 JSON
-        originalData = Array.isArray(data) ? data : []; // 確保為陣列格式
-        filteredData = [...originalData];
-        renderTable(filteredData); // 顯示初始資料
-    } catch (e) {
-        console.error("資料格式錯誤:", e);
-        document.getElementById("dataBody").innerHTML =
-            `<tr><td colspan="17" style="text-align:center; color: red;">資料格式錯誤，請重新登入</td></tr>`;
+        // 初始化存儲系統
+        const storageReady = await nldStorage.init();
+        console.log('存儲系統狀態:', storageReady ? 'IndexedDB' : 'localStorage備用');
+
+        // 從存儲中獲取數據
+        const data = await nldStorage.getData();
+
+        if (data) {
+            console.log("成功從存儲獲取資料，筆數:", Array.isArray(data) ? data.length : "非陣列格式");
+
+            originalData = Array.isArray(data) ? data : [];
+            filteredData = [...originalData];
+
+            if (originalData.length > 0) {
+                console.log("第一筆資料樣本:", originalData[0]);
+            }
+
+            renderTable(filteredData);
+            console.log("資料載入完成！");
+        } else {
+            console.log("存儲中沒有資料");
+            tbody.innerHTML = `<tr><td colspan="17" style="text-align:center; color: orange;">找不到資料，請重新登入或聯繫管理員</td></tr>`;
+        }
+    } catch (error) {
+        console.error("初始化過程中發生錯誤:", error);
+        tbody.innerHTML = `<tr><td colspan="17" style="text-align:center; color: red;">資料載入失敗，請重新整理頁面</td></tr>`;
     }
 }
 
-// 頁面載入時初始化
-window.addEventListener("DOMContentLoaded", () => {
-    initializeData(); // 載入資料
 
-    document.getElementById('filterBtn').addEventListener('click', filterData); // 查詢按鈕
-    document.getElementById('resetBtn').addEventListener('click', resetFilters); // 重設按鈕
+// ===== 修改 DOMContentLoaded 事件監聽器 =====
+// 找到現有的 window.addEventListener("DOMContentLoaded", ...)
+// 完全替換為以下版本：
 
+window.addEventListener("DOMContentLoaded", async () => {
+    console.log("DOM載入完成，開始初始化...");
+
+    // 初始化資料（這會自動初始化存儲系統）
+    await initializeData();
+
+    // 綁定事件監聽器
+    const filterBtn = document.getElementById('filterBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    if (filterBtn) {
+        filterBtn.addEventListener('click', filterData);
+    }
+
+    if (resetBtn) {
+        resetBtn.addEventListener('click', resetFilters);
+    }
+
+    // 為所有輸入框添加 Enter 鍵觸發查詢功能
     document.querySelectorAll('.sidebar input').forEach(input => {
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                filterData(); // Enter 鍵觸發查詢
+                filterData();
             }
         });
     });
+
+    console.log("所有事件監聽器綁定完成");
 });
+
+// ===== 添加緊急清理功能 =====
+async function emergencyCleanup() {
+    try {
+        await nldStorage.clearData();
+        localStorage.clear();
+        console.log("緊急清理完成");
+        alert("已清理所有儲存數據，請重新載入頁面");
+        window.location.reload();
+    } catch (error) {
+        console.error("緊急清理失敗:", error);
+        alert("清理失敗，請手動清除瀏覽器數據");
+    }
+}
+
+// 暴露緊急清理功能到全局
+window.emergencyCleanup = emergencyCleanup;
