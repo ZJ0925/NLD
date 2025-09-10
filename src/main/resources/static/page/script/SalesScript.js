@@ -634,14 +634,53 @@ function renderListItem(item) {
     `;
 }
 
-// 渲染列表視圖
+// 分頁設定
+const ITEMS_PER_PAGE = 30; // 每次顯示30筆
+let currentDisplayCount = ITEMS_PER_PAGE;
+
+// 修改現有的 renderListView 函數
 function renderListView(dataList) {
     const listView = document.getElementById('listView');
+
     if (!dataList || dataList.length === 0) {
         listView.innerHTML = '<div class="loading">查無資料</div>';
-    } else {
-        listView.innerHTML = dataList.map(renderListItem).join('');
+        return;
     }
+
+    // 只顯示前 currentDisplayCount 筆資料
+    const itemsToShow = dataList.slice(0, currentDisplayCount);
+    const itemsHtml = itemsToShow.map(renderListItem).join('');
+
+    listView.innerHTML = itemsHtml;
+
+    // 如果還有更多資料，顯示載入更多按鈕
+    if (dataList.length > currentDisplayCount) {
+        const loadMoreBtn = document.createElement('div');
+        loadMoreBtn.className = 'load-more-container';
+        loadMoreBtn.innerHTML = `
+            <button class="load-more-btn" onclick="loadMoreItems()">
+                載入更多 (還有 ${dataList.length - currentDisplayCount} 筆)
+            </button>
+        `;
+        listView.appendChild(loadMoreBtn);
+    }
+
+    console.log(`顯示 ${itemsToShow.length}/${dataList.length} 筆資料`);
+}
+
+// 新增載入更多項目的函數
+function loadMoreItems() {
+    currentDisplayCount += ITEMS_PER_PAGE;
+    renderListView(filteredData);
+
+    // 滾動到新載入的項目位置
+    setTimeout(() => {
+        const newItemIndex = Math.max(0, currentDisplayCount - ITEMS_PER_PAGE);
+        const workItems = document.querySelectorAll('.work-item');
+        if (workItems[newItemIndex]) {
+            workItems[newItemIndex].scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }, 100);
 }
 
 // 找到該筆工單最早的有效日期
@@ -988,9 +1027,12 @@ function jumpToDateMonth(dateInput) {
     }
 }
 
-// 搜尋功能
+// 修改現有的 filterData 函數
 function filterData() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+    // 重置顯示數量
+    currentDisplayCount = ITEMS_PER_PAGE;
 
     if (!searchTerm) {
         filteredData = [...originalData];
@@ -1009,11 +1051,12 @@ function filterData() {
     renderListView(filteredData);
 }
 
-// ===== 第3部分：替換現有的 initializeData 函數 =====
-// 找到你現有的 initializeData 函數，完全替換為以下版本
-
+// 在 initializeData 函數開始時重置顯示數量
 async function initializeData() {
     console.log("開始初始化資料...");
+
+    // 重置顯示數量
+    currentDisplayCount = ITEMS_PER_PAGE;
 
     const listViewElement = document.getElementById("listView");
     if (!listViewElement) {
@@ -1021,15 +1064,13 @@ async function initializeData() {
         return;
     }
 
-    // 先顯示載入中
+    // 其餘代碼保持不變...
     listViewElement.innerHTML = '<div class="loading">資料載入中...</div>';
 
     try {
-        // 初始化存儲系統
         const storageReady = await nldStorage.init();
         console.log('存儲系統狀態:', storageReady ? 'IndexedDB' : 'localStorage備用');
 
-        // 從存儲中獲取數據
         const data = await nldStorage.getData();
 
         if (data) {
@@ -1170,3 +1211,5 @@ window.addEventListener("DOMContentLoaded", () => {
 // 將 showDetail 和 jumpToDateMonth 函數設為全域函數，讓 HTML 中的 onclick 能夠呼叫
 window.showDetail = showDetail;
 window.jumpToDateMonth = jumpToDateMonth;
+// 在文件末尾添加，讓 HTML 中的 onclick 能呼叫
+window.loadMoreItems = loadMoreItems;

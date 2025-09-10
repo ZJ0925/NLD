@@ -123,8 +123,8 @@ public class RoleServiceImpl implements RoleService {
 
                 if (userGroupRole != null) {
                     userGroupRole.setRoleID(dto.getRoleID());
-                    userGroupRole.setGroupName(dto.getGroupName());
-                    userGroupRole.setUserName(dto.getUserName());
+                    userGroupRole.setGroupName(dto.getGroupName().trim());
+                    userGroupRole.setUserName(dto.getUserName().trim());
                     userGroupRoleRepository.save(userGroupRole);
 
                     updatedRoles.add(userGroupRole); // 更新成功才加到結果
