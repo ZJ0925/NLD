@@ -737,7 +737,7 @@ function findEarliestDate(item) {
     return earliest.date;
 }
 
-// 顯示詳細資料
+// 修改後的 showDetail 函數 - 修復滾動位置問題
 function showDetail(workOrderNum) {
     const item = filteredData.find(d => d.workOrderNum === workOrderNum);
     if (!item) return;
@@ -775,6 +775,13 @@ function showDetail(workOrderNum) {
     // 切換視圖
     document.getElementById('listView').style.display = 'none';
     document.getElementById('detailView').style.display = 'block';
+
+    // 關鍵修復：滾動到頁面頂部
+    window.scrollTo(0, 0);
+
+    // 如果是在移動設備上，也可以嘗試滾動 body
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
 }
 
 // 返回列表視圖

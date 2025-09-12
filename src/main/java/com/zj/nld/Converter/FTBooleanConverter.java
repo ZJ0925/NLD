@@ -18,10 +18,9 @@ public class FTBooleanConverter implements AttributeConverter<Boolean, String> {
         return attribute ? "N" : "F";         // true 存 "T"，false 存 "F"
     }
 
-    // 把 DB 的 String 轉回 Java 的 Boolean
     @Override
     public Boolean convertToEntityAttribute(String dbData) {
-        if (dbData == null) return null;           // 如果是 null，就回傳 null
-        return "N".equalsIgnoreCase(dbData);       // 只要字串等於 "T" (忽略大小寫) 就回傳 true，否則回傳 false
+        if (dbData == null) return null;                 // 如果是 null，就回傳 null
+        return "T".equalsIgnoreCase(dbData);             // 只有字串等於 "T" → true，其他 ("F" 或 "N") → false
     }
 }
