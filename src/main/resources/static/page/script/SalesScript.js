@@ -737,7 +737,7 @@ function findEarliestDate(item) {
     return earliest.date;
 }
 
-// 修改後的 showDetail 函數 - 修復滾動位置問題
+// ===== 修改1：替換現有的 showDetail 函數 =====
 function showDetail(workOrderNum) {
     const item = filteredData.find(d => d.workOrderNum === workOrderNum);
     if (!item) return;
@@ -763,6 +763,11 @@ function showDetail(workOrderNum) {
     document.getElementById('detailExpectedTryDate').textContent = formatDate(item.estTryInDate);
     document.getElementById('detailStatus').textContent = safeValue(item.workOrderStatus);
 
+// 隱藏搜尋區塊
+    const searchHeader = document.querySelector('.search-header');
+    if (searchHeader) {
+        searchHeader.classList.add('hidden');
+    }
     const statusTags = [
         item.isRemake && '重製',
         item.isNoCharge && '不計價',
@@ -784,8 +789,14 @@ function showDetail(workOrderNum) {
     document.documentElement.scrollTop = 0;
 }
 
-// 返回列表視圖
+// ===== 新增：需要在現有代碼中找到 showList 函數並替換 =====
 function showList() {
+    // 顯示搜尋區塊
+    const searchHeader = document.querySelector('.search-header');
+    if (searchHeader) {
+        searchHeader.classList.remove('hidden');
+    }
+
     document.getElementById('listView').style.display = 'block';
     document.getElementById('detailView').style.display = 'none';
     document.getElementById('calendarView').style.display = 'none';
@@ -1119,6 +1130,281 @@ window.addEventListener("DOMContentLoaded", () => {
 
     // 初始化資料
     initializeData();
+
+    // 綁定事件監聽器
+    if (searchInput) {
+        searchInput.addEventListener('input', filterData);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                filterData();
+            }
+        });
+    }
+
+    if (backBtn) {
+        backBtn.addEventListener('click', showList);
+    }
+
+    // 日曆按鈕 - 防止雙擊縮放
+    const calendarBtn = document.getElementById('calendarBtn');
+    if (calendarBtn) {
+        let touchHandled = false;
+
+        calendarBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchHandled = true;
+            showCalendar();
+        });
+
+        calendarBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!touchHandled) {
+                showCalendar();
+            }
+            touchHandled = false;
+        });
+    }
+
+    // 日曆關閉按鈕 - 防止雙擊縮放
+    const calendarClose = document.getElementById('calendarClose');
+    if (calendarClose) {
+        let touchHandled = false;
+
+        calendarClose.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchHandled = true;
+            document.getElementById('calendarView').style.display = 'none';
+        });
+
+        calendarClose.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!touchHandled) {
+                document.getElementById('calendarView').style.display = 'none';
+            }
+            touchHandled = false;
+        });
+    }
+
+    // 使用 touchstart 和 click 事件，並防止預設行為
+    function addNavigationListener(element, direction) {
+        if (!element) return;
+
+        let touchHandled = false;
+
+        element.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // 防止雙擊縮放
+            touchHandled = true;
+            navigateCalendar(direction);
+        });
+
+        element.addEventListener('click', (e) => {
+            e.preventDefault(); // 防止雙擊縮放
+            if (!touchHandled) {
+                navigateCalendar(direction);
+            }
+            touchHandled = false;
+        });
+    }
+
+    // 綁定日曆導航按鈕 - 防止雙擊縮放
+    const prevYear = document.getElementById('prevYear');
+    const nextYear = document.getElementById('nextYear');
+    const prevMonth = document.getElementById('prevMonth');
+    const nextMonth = document.getElementById('nextMonth');
+
+    addNavigationListener(prevYear, 'prevYear');
+    addNavigationListener(nextYear, 'nextYear');
+    addNavigationListener(prevMonth, 'prevMonth');
+    addNavigationListener(nextMonth, 'nextMonth');
+
+    // 添加重新整理功能（可選）
+    window.refreshData = function() {
+        console.log("手動重新整理資料");
+        initializeData();
+    };
+
+    console.log("所有事件監聽器綁定完成");
+});
+
+
+// 格式化今天的日期為 YYYY-MM-DD 格式
+function formatTodayForInput() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// 初始化日期篩選功能
+function initializeDateFilter() {
+    const endDateInput = document.getElementById('endDate');
+    if (endDateInput) {
+        // 預設結束日期為今天
+        endDateInput.value = formatTodayForInput();
+    }
+
+    // 綁定事件監聽器
+    const dateTypeSelect = document.getElementById('dateTypeSelect');
+    const startDateInput = document.getElementById('startDate');
+    const clearFilterBtn = document.getElementById('clearFilterBtn');
+
+    if (dateTypeSelect) {
+        dateTypeSelect.addEventListener('change', applyDateFilter);
+    }
+
+    if (startDateInput) {
+        startDateInput.addEventListener('change', applyDateFilter);
+    }
+
+    if (endDateInput) {
+        endDateInput.addEventListener('change', applyDateFilter);
+    }
+
+    if (clearFilterBtn) {
+        clearFilterBtn.addEventListener('click', clearDateFilter);
+    }
+
+    console.log('日期篩選功能已初始化');
+}
+
+// 應用日期篩選
+function applyDateFilter() {
+    console.log('應用日期篩選');
+
+    // 重置顯示數量
+    currentDisplayCount = ITEMS_PER_PAGE;
+
+    // 執行綜合篩選
+    performComprehensiveFilter();
+}
+
+// 清除日期篩選
+function clearDateFilter() {
+    console.log('清除日期篩選');
+
+    const dateTypeSelect = document.getElementById('dateTypeSelect');
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+
+    // 重置所有篩選條件
+    if (dateTypeSelect) {
+        dateTypeSelect.value = ''; // 設為"請選擇"
+    }
+
+    if (startDateInput) {
+        startDateInput.value = '';
+    }
+
+    if (endDateInput) {
+        endDateInput.value = formatTodayForInput(); // 重新設定為今天
+    }
+
+    // 重新應用篩選
+    applyDateFilter();
+}
+
+// 執行綜合篩選（結合文字搜尋和日期篩選）
+function performComprehensiveFilter() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const dateType = document.getElementById('dateTypeSelect').value;
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+
+    console.log('執行綜合篩選:', { searchTerm, dateType, startDate, endDate });
+
+    // 重置顯示數量
+    currentDisplayCount = ITEMS_PER_PAGE;
+
+    // 檢查是否有任何篩選條件
+    const hasSearchTerm = searchTerm.length > 0;
+    const hasDateFilter = dateType && (startDate || endDate); // 必須選擇日期類型且有日期範圍
+
+    if (!hasSearchTerm && !hasDateFilter) {
+        // 沒有任何篩選條件，顯示全部資料
+        filteredData = [...originalData];
+    } else {
+        filteredData = originalData.filter(item => {
+            // 文字搜尋篩選
+            let textMatch = true;
+            if (hasSearchTerm) {
+                textMatch = (
+                    (item.workOrderNum && item.workOrderNum.toLowerCase().includes(searchTerm)) ||
+                    (item.clinicName && item.clinicName.toLowerCase().includes(searchTerm)) ||
+                    (item.patientName && item.patientName.toLowerCase().includes(searchTerm)) ||
+                    (item.docName && item.docName.toLowerCase().includes(searchTerm)) ||
+                    (item.toothPosition && item.toothPosition.toString().toLowerCase().includes(searchTerm))
+                );
+            }
+
+            // 日期範圍篩選
+            let dateMatch = true;
+            if (hasDateFilter) {
+                const targetDate = item[dateType];
+                dateMatch = isDateInRange(targetDate, startDate, endDate);
+            }
+
+            return textMatch && dateMatch;
+        });
+    }
+
+    console.log(`篩選結果: ${filteredData.length}/${originalData.length} 筆資料`);
+    renderListView(filteredData);
+}
+
+// ===== 修改3：替換現有的 filterData 函數 =====
+function filterData() {
+    performComprehensiveFilter();
+}
+
+// ===== 修改4：替換現有的 isDateInRange 函數 =====
+function isDateInRange(dateInput, startDate, endDate) {
+    if (!dateInput) return !startDate && !endDate; // 若資料為空且沒篩選條件則通過
+    if (!startDate && !endDate) return true; // 沒有限制則通過
+
+    let date;
+    if (typeof dateInput === 'string') {
+        date = new Date(dateInput);
+    } else if (typeof dateInput === 'number') {
+        date = new Date(dateInput);
+    } else if (dateInput instanceof Date) {
+        date = dateInput;
+    } else {
+        return false;
+    }
+
+    // 檢查日期是否有效
+    if (isNaN(date.getTime())) return false;
+
+    // 將日期轉換為 YYYY-MM-DD 格式進行比較
+    const dateStr = formatDateForCalendar(date);
+    if (!dateStr) return false;
+
+    if (startDate && dateStr < startDate) return false; // 早於開始日期則不通過
+    if (endDate && dateStr > endDate) return false; // 晚於結束日期則不通過
+    return true; // 通過
+}
+
+// ===== 修改5：替換現有的 DOMContentLoaded 事件監聽器 =====
+window.addEventListener("DOMContentLoaded", async () => {
+    console.log("DOM載入完成，開始初始化...");
+
+    // 檢查關鍵元素是否存在
+    const listView = document.getElementById('listView');
+    const searchInput = document.getElementById('searchInput');
+    const backBtn = document.getElementById('backBtn');
+
+    console.log("關鍵元素檢查:", {
+        listView: !!listView,
+        searchInput: !!searchInput,
+        backBtn: !!backBtn
+    });
+
+    // 初始化資料（這會自動初始化存儲系統）
+    await initializeData();
+
+    // 初始化日期篩選功能
+    initializeDateFilter();
 
     // 綁定事件監聽器
     if (searchInput) {
