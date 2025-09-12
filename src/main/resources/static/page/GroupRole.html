@@ -394,7 +394,7 @@
         }
 
 
-        /* 使用者下拉選單 - 提高 z-index 並確保不被遮蓋 */
+        /* 使用者下拉選單 - 提高 z-index 並確保不被遮蔽 */
         .user-options {
             position: fixed !important; /* 改為 fixed 定位，確保不受父元素影響 */
             background: white;
@@ -651,7 +651,7 @@
             padding: 0 0 10px 0;
         }
 
-        /* 響應式設計 */
+        /* 響應式設計 - 修正版本 */
         @media (max-width: 1024px) {
             .sidebar {
                 width: 250px;
@@ -662,37 +662,159 @@
             }
         }
 
+        /* 手機版響應式設計 - 重點修正區域 */
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
+                height: auto; /* 改為自動高度 */
+                min-height: 100vh; /* 確保最小高度 */
             }
 
+            /* 側邊欄在手機版的調整 */
             .sidebar {
                 width: 100%;
                 height: auto;
-                max-height: 300px;
+                max-height: none; /* 移除最大高度限制 */
+                border-right: none;
+                border-bottom: 3px solid #008390; /* 改為底部邊框 */
+                position: relative; /* 確保定位正確 */
+                z-index: 1; /* 確保在標題之下但在內容之上 */
+                order: 1; /* 設置排列順序 */
             }
 
+            /* 主內容區在手機版的調整 */
+            .main-content {
+                order: 2; /* 設置排列順序，確保在側邊欄之後 */
+                height: auto;
+                flex: none;
+            }
+
+            /* 標題區域調整 */
+            .header {
+                position: relative;
+                z-index: 10; /* 提高z-index，但不要太高 */
+            }
+
+            /* 篩選按鈕的特殊調整 */
+            .button-groupSearch {
+                margin-top: 20px;
+                margin-bottom: 10px; /* 增加底部間距 */
+                position: relative;
+                z-index: 5; /* 確保按鈕在適當的層級 */
+            }
+
+            /* 確保篩選條件區域有足夠的間距 */
+            .sidebar h2 {
+                position: relative;
+                z-index: 5;
+            }
+
+            .filter-group {
+                position: relative;
+                z-index: 5;
+            }
+
+            /* 控制項區域調整 */
             .controls {
                 flex-direction: column;
                 align-items: stretch;
+                order: 3; /* 確保在正確位置 */
             }
 
-            .pagination {
+            /* 麵包屑導航調整 */
+            .breadcrumb {
+                order: 4;
                 flex-wrap: wrap;
             }
 
+            /* 群組容器調整 */
+            .groups-container {
+                order: 5;
+                padding: 10px; /* 減少內邊距 */
+            }
+
+            /* 分頁區域調整 */
+            .pagination {
+                flex-wrap: wrap;
+                order: 6;
+            }
+
+            /* 按鈕群組調整 */
             .button-group {
                 flex-direction: column;
                 align-items: center;
+                order: 7;
             }
 
             .button-group button {
                 width: 200px;
             }
 
+            /* 群組列表調整 */
             .group-list {
                 grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            /* 群組卡片調整 */
+            .group-card {
+                padding: 15px;
+            }
+
+            /* 使用者表格在手機版的調整 */
+            .users-table {
+                font-size: 14px;
+            }
+
+            .users-table th,
+            .users-table td {
+                padding: 8px;
+            }
+
+            /* 確保下拉選單在手機版正常顯示 */
+            .clinic-options,
+            .user-options {
+                position: fixed !important;
+                z-index: 15000 !important; /* 進一步提高z-index */
+            }
+
+            /* 頁面信息調整 */
+            .page-info {
+                order: 8;
+                padding: 10px;
+            }
+        }
+
+        /* 更小螢幕的額外調整 */
+        @media (max-width: 480px) {
+            .sidebar {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .group-detail-title {
+                font-size: 20px;
+            }
+
+            .btn {
+                padding: 10px;
+                font-size: 13px;
+            }
+
+            .button-groupSearch {
+                gap: 8px;
+            }
+
+            .users-table {
+                font-size: 12px;
+            }
+
+            .users-table th,
+            .users-table td {
+                padding: 6px;
             }
         }
     </style>
