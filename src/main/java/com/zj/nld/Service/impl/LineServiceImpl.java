@@ -28,6 +28,7 @@ public class LineServiceImpl implements LineService {
     // 使用者權限服務
     private final UserGroupRoleService userGroupRoleService;
 
+
     public LineServiceImpl(JwtService jwtService, UserGroupRoleService userGroupRoleService) {
         this.jwtService = jwtService;
         this.userGroupRoleService = userGroupRoleService;
@@ -117,6 +118,8 @@ public class LineServiceImpl implements LineService {
                             // 取得 members 陣列
                             JSONArray joinMembers = joined.getJSONArray("members");
 
+                            JSONObject groupInfo =  LineUtil.getGroupSummary(joinGroupId);
+
                             // 查找同一群組的既有成員
                             List<UserGroupRole> existingRoles = userGroupRoleService.findByGroupID(joinGroupId);
 
@@ -130,9 +133,10 @@ public class LineServiceImpl implements LineService {
                                     .map(UserGroupRole::getGroupNameID)
                                     .orElse(UUID.randomUUID().toString());
 
+                            assert groupInfo != null;
                             String referenceGroupName = referenceRole
                                     .map(UserGroupRole::getGroupName)
-                                    .orElse("DefaultGroupName");
+                                    .orElse(groupInfo.getString("groupName"));
 
                             // 處理每一個新加入成員
                             for (int j = 0; j < joinMembers.size(); j++) {
