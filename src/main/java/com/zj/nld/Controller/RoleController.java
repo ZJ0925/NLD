@@ -4,8 +4,9 @@ import com.zj.nld.Model.DTO.GroupDTO;
 import com.zj.nld.Model.DTO.UserGroupRoleDTO;
 import com.zj.nld.Model.Entity.UserGroupRole;
 import com.zj.nld.Service.RoleService;
-import com.zj.nld.Service.UserGroupRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,13 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+
 @RestController
 @RequestMapping("/Role")
 public class RoleController {
@@ -21,11 +29,14 @@ public class RoleController {
     @Autowired
     private RoleService roleService;
 
-    @Autowired
-    private UserGroupRoleService userGroupRoleService;
+    private static final Logger log = LoggerFactory.getLogger(RoleController.class);
+
+
+
 
     @GetMapping("/Admin")
     public ResponseEntity<List<GroupDTO>> getAllGroups(){
+
         List<GroupDTO>  groups = roleService.getUserGroup();
 
         if(!groups.isEmpty()){
