@@ -124,6 +124,7 @@ public class RoleServiceImpl implements RoleService {
                 if (userGroupRole != null) {
                     userGroupRole.setRoleID(dto.getRoleID());
                     userGroupRole.setGroupName(dto.getGroupName().trim());
+                    userGroupRole.setUserNameID(dto.getUserNameID().trim());
                     userGroupRole.setUserName(dto.getUserName().trim());
                     userGroupRoleRepository.save(userGroupRole);
 

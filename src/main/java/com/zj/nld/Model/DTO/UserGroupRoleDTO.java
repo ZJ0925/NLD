@@ -11,16 +11,35 @@ public class UserGroupRoleDTO {
 
     private String lineID; // LINE ID
 
-    private String userName; // 使用者名稱
-
     private String groupID;
 
+    private String userName; // 使用者名稱
+
+    private String userNameID; // 使用者名稱
+
     private String groupName;
+
+    private String groupNameID;
 
     private int roleID;
 
     private List<UserGroupRoleDTO> groupList;
 
+    public String getUserNameID() {
+        return userNameID;
+    }
+
+    public void setUserNameID(String userNameID) {
+        this.userNameID = userNameID;
+    }
+
+    public String getGroupNameID() {
+        return groupNameID;
+    }
+
+    public void setGroupNameID(String groupNameID) {
+        this.groupNameID = groupNameID;
+    }
 
     public UUID getExternalID() {
         return externalID;
@@ -81,9 +100,11 @@ public class UserGroupRoleDTO {
     public UserGroupRoleDTO(UserGroupRole userGroupRole) {
         this.externalID = userGroupRole.getExternalID();
         this.lineID = userGroupRole.getLineID();
-        this.userName = userGroupRole.getUserName();
         this.groupID = userGroupRole.getGroupID();
+        this.userName = userGroupRole.getUserName();
+        this.userNameID = userGroupRole.getUserNameID();
         this.groupName = userGroupRole.getGroupName();
+        this.groupNameID = userGroupRole.getGroupNameID();
         this.roleID = userGroupRole.getRoleID();
     }
 

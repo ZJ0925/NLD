@@ -45,10 +45,12 @@ public class NLDServiceImpl implements NLDService {
     public List<NldClientDTO> getNLDByClient(String client) {
         return nldRepository.ClientSearch(client);
     }
+
+
     //業務可取得的資料
     @Override
-    public List<NldSalesDTO> getNLDBySales() {
-        return nldRepository.SalesSearch();
+    public List<NldSalesDTO> getNLDBySales(String userNameID) {
+        return nldRepository.SalesSearch(userNameID);
     }
 
     //生產單位可取得的資料
@@ -85,7 +87,7 @@ public class NLDServiceImpl implements NLDService {
                     yield nldRepository.ClientForDocSearch(clinic.getClinicAbbr(), userGroupRole.getUserName());
                 }
                 // 業務
-                case 3 -> nldRepository.SalesSearch();
+                case 3 -> nldRepository.SalesSearch(userGroupRole.getUserNameID());
                 // 生產單位
                 case 4 -> nldRepository.ProdUnitSearch();
                 // 牙助單位

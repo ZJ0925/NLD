@@ -23,6 +23,7 @@ public class HVED {
     @Column(name = "CUN_DH")
     private String cundh;
 
+
     @Id
     @Column(name = "NO1_DH")
     private String workOrderNum; // 1.技工單號
@@ -97,6 +98,8 @@ public class HVED {
     public void setCompdh(String compdh) {
         this.compdh = compdh;
     }
+
+
 
 
     public String getWorkOrderNum() {

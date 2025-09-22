@@ -736,7 +736,7 @@ function bindUserNameDropdownEvents(user) {
     optionsList.addEventListener('click', function(e) {
         e.stopPropagation();
         if (e.target.classList.contains('user-option')) {
-            const personId = e.target.dataset.personId;
+            const personId = e.target.dataset.personId;      // 這就是 userNameID
             const personName = e.target.dataset.personName;
 
             // 更新顯示文字
@@ -745,8 +745,8 @@ function bindUserNameDropdownEvents(user) {
             // 隱藏下拉選單
             optionsContainer.style.display = 'none';
 
-            // 處理使用者名稱變更
-            handleUserNameChange(user.groupID, user.externalID, personName);
+            // 處理使用者名稱變更 - 傳遞 personId 作為 userNameID
+            handleUserNameChange(user.groupID, user.externalID, personName, personId);
         }
     });
 
@@ -760,8 +760,8 @@ function bindUserNameDropdownEvents(user) {
     document.addEventListener('click', closeDropdown);
 }
 
-// 處理使用者名稱變更 - 簡化版本
-function handleUserNameChange(groupId, externalId, newUserName) {
+// 修正版本的 handleUserNameChange 函數 - 處理 userNameID
+function handleUserNameChange(groupId, externalId, newUserName, newUserNameID) {
     const originalUser = originalUserData.find(user =>
         user.groupID === groupId && user.externalID === externalId
     );
@@ -778,7 +778,13 @@ function handleUserNameChange(groupId, externalId, newUserName) {
     }
 
     const originalUserName = originalUser.userName;
+    const originalUserNameID = originalUser.userNameID; // 原始的 userNameID
+
+    // 檢查使用者名稱和 userNameID 是否有變更
     const isUserNameChanged = originalUserName !== newUserName;
+    const isUserNameIDChanged = originalUserNameID !== newUserNameID;
+    const isUserChanged = isUserNameChanged || isUserNameIDChanged;
+
     const changeKey = `${groupId}-${externalId}`;
 
     // 檢查權限是否也有變更
@@ -786,19 +792,33 @@ function handleUserNameChange(groupId, externalId, newUserName) {
     const currentRoleId = roleSelect ? parseInt(roleSelect.value) : originalUser.roleID;
     const isRoleChanged = parseInt(originalUser.roleID) !== currentRoleId;
 
+    console.log('變更檢查:', {
+        originalUserName,
+        newUserName,
+        originalUserNameID,
+        newUserNameID,
+        isUserNameChanged,
+        isUserNameIDChanged,
+        isUserChanged
+    });
+
     // 更新變更記錄
-    if (isUserNameChanged || isRoleChanged) {
+    if (isUserChanged || isRoleChanged) {
         if (!currentChanges.has(changeKey)) {
             currentChanges.set(changeKey, {
                 externalID: externalId,
                 lineID: originalUser.lineID,
                 userName: newUserName,
+                userNameID: newUserNameID,     // 加上這個欄位
                 groupID: groupId,
                 groupName: originalUser.groupName,
                 roleID: currentRoleId
             });
         } else {
-            currentChanges.get(changeKey).userName = newUserName;
+            // 更新現有的變更記錄
+            const existingChange = currentChanges.get(changeKey);
+            existingChange.userName = newUserName;
+            existingChange.userNameID = newUserNameID;  // 也要更新這個
         }
         changedRows.add(changeKey);
     } else {

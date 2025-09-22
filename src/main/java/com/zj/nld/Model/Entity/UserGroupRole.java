@@ -18,11 +18,14 @@ public class UserGroupRole {
     @Column(name = "LineID")
     private String lineID; // LINE ID
 
+    @Column(name = "GroupID")
+    private String groupID;
+
     @Column(name = "UserName")
     private String userName; // 使用者名稱
 
-    @Column(name = "GroupID")
-    private String groupID;
+    @Column(name = "UserNameID")
+    private String userNameID; // 使用者名稱
 
     @Column(name = "GroupName")
     private String groupName;
@@ -32,6 +35,14 @@ public class UserGroupRole {
 
     @Column(name = "RoleID")
     private int roleID;
+
+    public String getUserNameID() {
+        return userNameID;
+    }
+
+    public void setUserNameID(String userNameID) {
+        this.userNameID = userNameID;
+    }
 
     public UUID getExternalID() {
         return externalID;

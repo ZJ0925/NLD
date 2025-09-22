@@ -45,10 +45,10 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     FROM HVED h
     JOIN VED v ON
         h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
-    WHERE h.compdh = '001' AND h.cundh LIKE 'K%'
-    ORDER BY h.deliveryDate DESC
+    WHERE h.compdh = '001' AND h.cundh LIKE 'K%' AND h.salesIdNum = :userNameID
+    ORDER BY CAST(h.workOrderNum AS INTEGER) DESC
     """)
-    List<NldSalesDTO> SalesSearch();
+    List<NldSalesDTO> SalesSearch(String userNameID);
 
 
     //回傳客戶可查看的資料(診所)
@@ -73,7 +73,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     JOIN VED v ON
         h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%' AND h.clinicName = :clientName
-    ORDER BY h.deliveryDate DESC
+    ORDER BY CAST(h.workOrderNum AS INTEGER) DESC
 """)
     List<NldClientDTO> ClientSearch(String clientName);
 
@@ -102,7 +102,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     JOIN VED v ON
         h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%' AND h.clinicName = :clientName And h.docName = :docName
-    ORDER BY h.deliveryDate DESC
+    ORDER BY CAST(h.workOrderNum AS INTEGER) DESC
 """)
     List<NldClientDTO> ClientForDocSearch(String clientName, String docName);
 
@@ -135,7 +135,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     JOIN VED v ON h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     JOIN Sales s ON h.salesIdNum = s.id
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%'
-    ORDER BY h.deliveryDate DESC
+    ORDER BY CAST(h.workOrderNum AS INTEGER) DESC
 """)
     List<NLDProdUnitDTO> ProdUnitSearch();
 
@@ -169,7 +169,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     JOIN VED v ON h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     JOIN Sales s ON h.salesIdNum = s.id
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%'
-    ORDER BY h.deliveryDate DESC
+    ORDER BY CAST(h.workOrderNum AS INTEGER) DESC
 """)
     List<NldDTO> AdminSearch();
 

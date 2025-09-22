@@ -16,7 +16,7 @@ public interface NLDService {
     List<NldClientDTO> getNLDByClient(String client);
 
     //取得業務NLD
-    List<NldSalesDTO> getNLDBySales();
+    List<NldSalesDTO> getNLDBySales(String userNameID);
 
      //取得生產單位NLD
     List<NLDProdUnitDTO> getNLDByProdUnit();

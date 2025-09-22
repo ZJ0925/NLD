@@ -168,7 +168,6 @@ public class LineServiceImpl implements LineService {
                         //機器人加入群組(先不實作)
                         case "join" :
                             List<String> userIdList =  LineUtil.getGroupUserID(groupId);
-                            System.out.println("1111111:  " + userIdList);
                             JSONObject groupProfile = LineUtil.getGroupSummary(groupId);
                             for (int j = 0; j < userIdList.size(); j++) {
                                 // 空物件
