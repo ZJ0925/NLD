@@ -15,7 +15,7 @@
     <description>NLD</description>
 
 
-
+    <!-- *******************************佈署要改成17************************** -->
     <properties>
         <java.version>21</java.version>
     </properties>
@@ -42,15 +42,13 @@
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.microsoft.sqlserver/mssql-jdbc -->
+        <!-- 佈署時註解-->
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
             <version>12.10.0.jre11</version>
             <scope>compile</scope>
         </dependency>
-
-        <!-- 部署時註解-->
-
 
         <!-- 開發時註解-->
 <!--        <dependency>-->

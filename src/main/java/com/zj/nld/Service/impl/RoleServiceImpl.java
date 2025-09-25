@@ -91,16 +91,19 @@ public class RoleServiceImpl implements RoleService {
 
     @Transactional
     public void updateGroupName(List<String> groupIDs, List<String> newGroupNames) {
-        System.out.println("updateGroupName 被呼叫"); // 確認方法進來
+
         if (groupIDs.size() != newGroupNames.size()) {
             throw new IllegalArgumentException("groupIDs 和 newGroupNames 數量不一致");
         }
         for (int i = 0; i < groupIDs.size(); i++) {
             String groupID = groupIDs.get(i);
+
+            // 根據群組ID找到最多群組名稱的
+            String oGroupName = userGroupRoleRepository.findTopGroupNameByGroupID(groupID);
             String newGroupName = newGroupNames.get(i);
             String[] parts = newGroupName.split("-", 2);
             String groupNameID = parts[0].trim();
-            String groupName = (parts.length > 1 ? parts[1].trim() : "");
+            String groupName = (parts.length > 1 ? parts[1].trim() : "") + "-" + oGroupName;
             System.out.println("更新 groupID=" + groupID + ", groupNameID=" + groupNameID + ", groupName=" + groupName);
             userGroupRoleRepository.updateGroupNameAndIDByGroupIDNative(groupID, groupName, groupNameID);
         }

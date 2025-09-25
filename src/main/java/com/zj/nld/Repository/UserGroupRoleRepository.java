@@ -37,6 +37,16 @@ public interface UserGroupRoleRepository extends JpaRepository<UserGroupRole, UU
     // 找出某個 groupID 的所有 UserGroupRole
     List<UserGroupRole> findByGroupID(String groupID);
 
+
+    @Query("""
+        SELECT ugr.groupName
+        FROM UserGroupRole ugr
+        WHERE ugr.groupID = :groupID
+        GROUP BY ugr.groupName
+        ORDER BY COUNT(ugr.groupName) DESC
+    """)
+    String findTopGroupNameByGroupID(@Param("groupID") String groupID);
+
     // 直接用 JPA 更新 groupName
     @Modifying
     @Query(value = "UPDATE UserGroupRole SET groupName = :groupName, groupNameID = :groupNameID WHERE groupID = :groupID", nativeQuery = true)
