@@ -103,7 +103,13 @@ public class RoleServiceImpl implements RoleService {
             String newGroupName = newGroupNames.get(i);
             String[] parts = newGroupName.split("-", 2);
             String groupNameID = parts[0].trim();
-            String groupName = (parts.length > 1 ? parts[1].trim() : "") + "-" + oGroupName;
+            String groupName = "";
+            if (parts[1].trim().equals("業務")) {
+                 groupName = (parts.length > 1 ? parts[1].trim() : "") + "-" + oGroupName;
+            }else{
+                groupName = (parts.length > 1 ? parts[1].trim() : "");
+            }
+
             System.out.println("更新 groupID=" + groupID + ", groupNameID=" + groupNameID + ", groupName=" + groupName);
             userGroupRoleRepository.updateGroupNameAndIDByGroupIDNative(groupID, groupName, groupNameID);
         }
@@ -126,9 +132,13 @@ public class RoleServiceImpl implements RoleService {
 
                 if (userGroupRole != null) {
                     userGroupRole.setRoleID(dto.getRoleID());
-                    userGroupRole.setGroupName(dto.getGroupName().trim());
-                    userGroupRole.setUserNameID(dto.getUserNameID().trim());
-                    userGroupRole.setUserName(dto.getUserName().trim());
+                    // 安全的 trim 處理
+                    userGroupRole.setGroupName(dto.getGroupName() != null ?
+                            dto.getGroupName().trim() : null);
+                    userGroupRole.setUserNameID(dto.getUserNameID() != null ?
+                            dto.getUserNameID().trim() : null);
+                    userGroupRole.setUserName(dto.getUserName() != null ?
+                            dto.getUserName().trim() : null);
                     userGroupRoleRepository.save(userGroupRole);
 
                     updatedRoles.add(userGroupRole); // 更新成功才加到結果

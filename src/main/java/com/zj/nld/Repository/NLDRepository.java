@@ -101,10 +101,10 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     FROM HVED h
     JOIN VED v ON
         h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
-    WHERE h.compdh = '001' AND h.cundh LIKE 'K%' AND h.clinicName = :clientName And h.docName = :docName
+    WHERE h.compdh = '001' AND h.cundh LIKE 'K%' AND h.cundh = :clientID And h.docID = :docID
     ORDER BY CAST(h.workOrderNum AS INTEGER) DESC
 """)
-    List<NldClientDTO> ClientForDocSearch(String clientName, String docName);
+    List<NldClientDTO> ClientForDocSearch(String clientID, String docID);
 
 
 

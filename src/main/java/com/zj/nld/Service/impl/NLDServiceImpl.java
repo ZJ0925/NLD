@@ -83,8 +83,7 @@ public class NLDServiceImpl implements NLDService {
                 case 1 -> nldRepository.AdminSearch();
                 // 客戶(需做診所篩選)
                 case 2 -> {
-                    Clinic clinic = clinicService.findByClinicName(userGroupRole.getGroupName());
-                    yield nldRepository.ClientForDocSearch(clinic.getClinicAbbr(), userGroupRole.getUserName());
+                    yield nldRepository.ClientForDocSearch(userGroupRole.getGroupNameID(), userGroupRole.getUserNameID());
                 }
                 // 業務
                 case 3 -> nldRepository.SalesSearch(userGroupRole.getUserNameID());

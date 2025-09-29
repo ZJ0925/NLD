@@ -31,6 +31,9 @@ public class HVED {
     @Column(name = "CUN1_DH")
     private String clinicName; // 2.診所名稱
 
+    @Column(name = "DOC_DH")
+    private String docID; // 3.醫師名稱
+
     @Column(name = "DOC1_DH")
     private String docName; // 3.醫師名稱
 
@@ -99,8 +102,13 @@ public class HVED {
         this.compdh = compdh;
     }
 
+    public String getDocID() {
+        return docID;
+    }
 
-
+    public void setDocID(String docID) {
+        this.docID = docID;
+    }
 
     public String getWorkOrderNum() {
         return workOrderNum;
