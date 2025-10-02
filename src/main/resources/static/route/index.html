@@ -280,6 +280,7 @@
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
                 // 加入 ngrok 需要的 header
                 'ngrok-skip-browser-warning': 'true'
             }
