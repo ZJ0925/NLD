@@ -22,15 +22,12 @@ public class LineServiceImpl implements LineService {
     }
 
 
-    // JWT服務
-    private final JwtService jwtService;
 
     // 使用者權限服務
     private final UserGroupRoleService userGroupRoleService;
 
 
-    public LineServiceImpl(JwtService jwtService, UserGroupRoleService userGroupRoleService) {
-        this.jwtService = jwtService;
+    public LineServiceImpl(UserGroupRoleService userGroupRoleService) {
         this.userGroupRoleService = userGroupRoleService;
     }
 
@@ -226,22 +223,11 @@ public class LineServiceImpl implements LineService {
             UserGroupRole fUserGroupRole = userGroupRoleService.getRoleId(userId, groupId);
 
             if (fUserGroupRole != null) {
-                // 產生 JWT token 並組成查詢網址回傳
-                String token = jwtService.generateToken(userId, groupId, fUserGroupRole.getRoleID());
-                return url + token;
+                return url + groupId;
             }
 
             // 若群組權限查不到，再透過 userId 查使用者在其他群組的權限
-            UserGroupRole oUserGroupRoleByLineId = userGroupRoleService.findByLineID(userId);
-
-            if (oUserGroupRoleByLineId != null) {
-                String token = jwtService.generateToken(
-                        userId,
-                        oUserGroupRoleByLineId.getGroupID(),
-                        oUserGroupRoleByLineId.getRoleID()
-                );
-                return url + token;
-            }
+            UserGroupRole oUserGroupRoleByLineId = userGroupRoleService.findByLineID(userId);//
 
             // 以上都查不到權限，回覆沒有權限訊息
             return "尚無權限";

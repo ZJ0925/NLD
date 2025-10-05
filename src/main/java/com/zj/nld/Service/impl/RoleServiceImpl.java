@@ -4,6 +4,7 @@ import com.zj.nld.Model.DTO.GroupDTO;
 import com.zj.nld.Model.DTO.UserGroupRoleDTO;
 import com.zj.nld.Model.Entity.UserGroupRole;
 import com.zj.nld.Repository.UserGroupRoleRepository;
+import com.zj.nld.Service.LineVerificationService;
 import com.zj.nld.Service.RoleService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,9 @@ public class RoleServiceImpl implements RoleService {
 
     @Autowired
     private UserGroupRoleRepository userGroupRoleRepository;
+
+    @Autowired
+    private LineVerificationService lineVerificationService;
 
 
     @Override
@@ -153,5 +157,51 @@ public class RoleServiceImpl implements RoleService {
         }
 
         return updatedRoles;
+    }
+
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+
+
+    /**
+     * 根據 Access Token 取得使用者角色資訊
+     */
+    @Transactional(readOnly = true)
+    public UserGroupRoleDTO getUserRoleByAccessToken(String authHeader, String groupIdFromClient) {
+
+        // 1. 驗證 Authorization Header 格式
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Invalid Authorization Header");
+        }
+
+        String accessToken = authHeader.substring(7);
+
+        // 2. 呼叫 LINE API 驗證 Access Token 並取得真實的 LINE User ID
+        String lineId = lineVerificationService.verifyAccessTokenAndGetUserId(accessToken);
+
+        if (lineId == null || lineId.trim().isEmpty()) {
+            throw new SecurityException("無效的 Access Token");
+        }
+
+        // 3. 驗證必須有 Group ID
+        if (groupIdFromClient == null || groupIdFromClient.trim().isEmpty()) {
+            throw new IllegalArgumentException("必須從群組開啟 LIFF，缺少 Group ID");
+        }
+
+        // 4. 用 LineID + GroupID 查詢使用者角色
+        UserGroupRole userGroupRole = getUserGroupRoleByLineIdAndGroupId(lineId, groupIdFromClient);
+
+        if (userGroupRole == null) {
+            throw new RuntimeException("使用者不存在或未授權此群組");
+        }
+
+        // 5. 轉換成 DTO 並回傳
+        return new UserGroupRoleDTO(userGroupRole);
+    }
+
+    /**
+     * 根據 LineID + GroupID 查詢（精確查詢）
+     */
+    public UserGroupRole getUserGroupRoleByLineIdAndGroupId(String lineId, String groupId) {
+        return userGroupRoleRepository.findByLineIDAndGroupID(lineId, groupId);
     }
 }

@@ -34,4 +34,6 @@ public interface RoleService {
     //批量更新群組名稱
     void updateGroupName(List<String> groupIDs, List<String> newGroupNames);
 
+    UserGroupRoleDTO getUserRoleByAccessToken(String authHeader, String groupIdFromClient);
+
 }

@@ -21,6 +21,7 @@ public interface NLDService {
      //取得生產單位NLD
     List<NLDProdUnitDTO> getNLDByProdUnit();
 
-    List<?> getNLDByToken(String token);
+    List<?> getNLDByUser(String groupId, String lineId);
+    List<?> getWorkOrdersByAccessToken(String authHeader, String roleType, String groupId);
 
 }

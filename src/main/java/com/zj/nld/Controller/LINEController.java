@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/line")
-public class LINE_Controller {
+public class LINEController {
     @Autowired
     private LineService lineService;
 

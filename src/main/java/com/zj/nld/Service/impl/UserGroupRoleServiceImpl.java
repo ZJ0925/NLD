@@ -3,7 +3,6 @@ package com.zj.nld.Service.impl;
 
 import com.zj.nld.Model.Entity.UserGroupRole;
 import com.zj.nld.Repository.UserGroupRoleRepository;
-import com.zj.nld.Service.JwtService;
 import com.zj.nld.Service.UserGroupRoleService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +16,6 @@ public class UserGroupRoleServiceImpl implements UserGroupRoleService {
     @Autowired
     private UserGroupRoleRepository userGroupRoleRepository;
 
-    @Autowired
-    private JwtService jwtService;
 
     @Override
     public List<UserGroupRole> findByGroupID(String groupID) {

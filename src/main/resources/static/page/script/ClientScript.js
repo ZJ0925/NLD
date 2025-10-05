@@ -115,101 +115,12 @@ class NLDStorage {
 // 創建全局存儲實例
 const nldStorage = new NLDStorage();
 
-function base64UrlDecode(str) {
-    // base64url 轉 base64
-    str = str.replace(/-/g, '+').replace(/_/g, '/');
-    // 補足尾部 '='
-    while (str.length % 4) {
-        str += '=';
-    }
-    return atob(str);
-}
-
-// 修改後的 token 檢查函數 - 只在進入頁面時檢查，不做即時倒數
-(function checkTokenOnPageLoad() {
-    const token = localStorage.getItem("jwtToken");
-
-    if (!token || token.split('.').length !== 3) {
-        alert("尚未登入或 Token 格式錯誤，請重新登入。");
-        localStorage.removeItem("jwtToken");
-        window.location.href = "/index.html";
-        return;
-    }
-
-    try {
-        const payloadBase64Url = token.split('.')[1];
-        const payloadJson = base64UrlDecode(payloadBase64Url);
-        const payload = JSON.parse(payloadJson);
-
-        const now = Math.floor(Date.now() / 1000);
-        if (payload.exp && payload.exp < now) {
-            alert("登入已過期，請重新登入。");
-            localStorage.removeItem("jwtToken");
-            window.location.href = "/index.html";
-            return;
-        }
-
-        // 移除倒數計時器相關功能
-        // 網頁內的查詢操作不受時間限制
-        console.log("Token 驗證通過，可正常使用網頁功能");
-
-    } catch (e) {
-        console.error("無法解析 JWT:", e);
-        alert("Token 格式解析失敗，請重新登入。");
-        localStorage.removeItem("jwtToken");
-        window.location.href = "/index.html";
-    }
-})();
-
-// ===== 修改 checkTokenBeforeNavigation 函數 =====
-// 找到現有的 checkTokenBeforeNavigation 函數，完全替換為：
-
-async function checkTokenBeforeNavigation() {
-    const token = localStorage.getItem("jwtToken");
-
-    if (!token || token.split('.').length !== 3) {
-        await nldStorage.clearData(); // 清理數據
-        localStorage.removeItem("jwtToken");
-        window.location.href = "/index.html";
-        return false;
-    }
-
-    try {
-        const payloadBase64Url = token.split('.')[1];
-        const payloadJson = base64UrlDecode(payloadBase64Url);
-        const payload = JSON.parse(payloadJson);
-
-        const now = Math.floor(Date.now() / 1000);
-        if (payload.exp && payload.exp < now) {
-            alert("登入已過期，請重新登入。");
-            await nldStorage.clearData(); // 清理數據
-            localStorage.removeItem("jwtToken");
-            window.location.href = "/index.html";
-            return false;
-        }
-        return true;
-    } catch (e) {
-        console.error("無法解析 JWT:", e);
-        await nldStorage.clearData(); // 清理數據
-        localStorage.removeItem("jwtToken");
-        window.location.href = "/index.html";
-        return false;
-    }
-}
 
 // 監聽頁面離開事件（可選）
 window.addEventListener('beforeunload', function(e) {
-    // 這裡可以加入額外的檢查邏輯，但通常不需要阻止使用者離開
-    // checkTokenBeforeNavigation();
+
 });
 
-// 如果有其他導航按鈕或連結，可以在點擊時調用 checkTokenBeforeNavigation()
-// 例如：
-// document.getElementById('someNavigationButton').addEventListener('click', function(e) {
-//     if (!checkTokenBeforeNavigation()) {
-//         e.preventDefault();
-//     }
-// });
 
 
 // 原始資料存儲

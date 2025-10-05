@@ -2,7 +2,8 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>跳轉中...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>載入中...</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -33,332 +34,276 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .error {
+            color: #f44336;
+            margin-top: 10px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
 <div class="loading-container">
     <div class="spinner"></div>
-    <p>資料載入中，請稍候...</p>
+    <p id="statusText">正在驗證身份...</p>
+    <p id="errorText" class="error" style="display: none;"></p>
 </div>
 
+<!-- 載入 LIFF SDK -->
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
 <script>
-    // ===== 修改 index.html 的 JavaScript 部分 =====
-    // 在 <script> 標籤內，完全替換現有的 JavaScript 代碼
+    // IndexedDB 儲存類
+    class SimpleNLDStorage {
+        constructor() {
+            this.dbName = 'NLDDatabase';
+            this.version = 1;
+            this.db = null;
+            this.isReady = false;
+        }
 
-    window.addEventListener("DOMContentLoaded", async () => {
-
-        // ===== 添加 IndexedDB 存儲類（簡化版本） =====
-        class SimpleNLDStorage {
-            constructor() {
-                this.dbName = 'NLDDatabase';
-                this.version = 1;
-                this.db = null;
-                this.isReady = false;
-            }
-
-            async init() {
-                return new Promise((resolve, reject) => {
-                    const request = indexedDB.open(this.dbName, this.version);
-
-                    request.onerror = () => {
-                        console.error('IndexedDB 初始化失敗，回退到 localStorage');
-                        this.isReady = false;
-                        resolve(false);
-                    };
-
-                    request.onsuccess = () => {
-                        this.db = request.result;
-                        this.isReady = true;
-                        console.log('IndexedDB 初始化成功');
-                        resolve(true);
-                    };
-
-                    request.onupgradeneeded = (event) => {
-                        const db = event.target.result;
-                        if (!db.objectStoreNames.contains('nldData')) {
-                            db.createObjectStore('nldData', { keyPath: 'id' });
-                        }
-                    };
-                });
-            }
-
-            async clearData() {
-                // 清理 IndexedDB
-                if (this.isReady && this.db) {
-                    try {
-                        return new Promise((resolve) => {
-                            const transaction = this.db.transaction(['nldData'], 'readwrite');
-                            const store = transaction.objectStore('nldData');
-                            const request = store.clear();
-
-                            request.onsuccess = () => {
-                                console.log('IndexedDB 數據已清理');
-                                resolve();
-                            };
-
-                            request.onerror = () => {
-                                console.error('IndexedDB 清理失敗');
-                                resolve();
-                            };
-                        });
-                    } catch (error) {
-                        console.error('IndexedDB 清理錯誤:', error);
+        async init() {
+            return new Promise((resolve) => {
+                const request = indexedDB.open(this.dbName, this.version);
+                request.onerror = () => {
+                    this.isReady = false;
+                    resolve(false);
+                };
+                request.onsuccess = () => {
+                    this.db = request.result;
+                    this.isReady = true;
+                    resolve(true);
+                };
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains('nldData')) {
+                        db.createObjectStore('nldData', { keyPath: 'id' });
                     }
-                }
+                };
+            });
+        }
 
-                // 同時清理 localStorage
+        async clearData() {
+            if (this.isReady && this.db) {
                 try {
-                    localStorage.removeItem("nldData");
-                    console.log('localStorage 數據已清理');
-                } catch (error) {
-                    console.error('localStorage 清理失敗:', error);
-                }
-            }
-
-            async saveData(data) {
-                if (!this.isReady) {
-                    return this.saveToLocalStorage(data);
-                }
-
-                try {
-                    return new Promise((resolve, reject) => {
+                    await new Promise((resolve) => {
                         const transaction = this.db.transaction(['nldData'], 'readwrite');
                         const store = transaction.objectStore('nldData');
-
-                        const clearRequest = store.clear();
-                        clearRequest.onsuccess = () => {
-                            const addRequest = store.add({ id: 'workOrders', data: data, timestamp: Date.now() });
-                            addRequest.onsuccess = () => {
-                                console.log('數據已儲存到 IndexedDB');
-                                resolve(true);
-                            };
-                            addRequest.onerror = () => reject(addRequest.error);
-                        };
-                        clearRequest.onerror = () => reject(clearRequest.error);
+                        store.clear();
+                        transaction.oncomplete = () => resolve();
                     });
                 } catch (error) {
-                    console.error('IndexedDB 儲存失敗，回退到 localStorage:', error);
-                    return this.saveToLocalStorage(data);
+                    console.error('IndexedDB 清理錯誤:', error);
                 }
             }
-
-            saveToLocalStorage(data) {
-                try {
-                    localStorage.setItem("nldData", JSON.stringify(data));
-                    console.log('數據已儲存到 localStorage');
-                    return true;
-                } catch (error) {
-                    console.error('localStorage 儲存失敗:', error);
-                    if (error.name === 'QuotaExceededError') {
-                        alert('儲存空間不足，數據量過大');
-                    }
-                    return false;
-                }
-            }
-        }
-
-        // 創建存儲實例並初始化
-        const storage = new SimpleNLDStorage();
-        await storage.init();
-
-        // 清除可能存在的舊資料
-        await storage.clearData();
-
-        function base64UrlDecode(str) {
             try {
-                // 更安全的 Base64 URL 解碼
-                str = str.replace(/-/g, '+').replace(/_/g, '/');
-                while (str.length % 4) {
-                    str += '=';
-                }
-
-                // 檢查字串是否為有效的 Base64
-                const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
-                if (!base64Regex.test(str)) {
-                    throw new Error('Invalid Base64 string');
-                }
-
-                return atob(str);
-            } catch (e) {
-                alert("除錯 - Base64 解碼失敗: " + e.message);
-                throw new Error("Token 格式錯誤");
+                localStorage.clear();
+            } catch (error) {
+                console.error('localStorage 清理失敗:', error);
             }
         }
 
-        function parseParameters() {
-            // 優先從 URL 參數解析
-            const urlParams = new URLSearchParams(window.location.search);
-            let type = urlParams.get('type');
-            let token = urlParams.get('token');
-
-            // 如果 URL 參數存在，直接使用
-            if (type && token) {
-                return { type, token };
+        async saveData(data) {
+            if (!this.isReady) {
+                return this.saveToLocalStorage(data);
             }
-
-            // 嘗試從路徑解析 (修正邏輯)
-            const pathParts = window.location.pathname.split("/").filter(part => part.length > 0);
-
-            // 尋找 route 的位置
-            const routeIndex = pathParts.indexOf('route');
-            if (routeIndex !== -1) {
-                // 期望的路徑結構可能是: /route/NLD/token/Admin/tokenValue
-                // 或其他結構，我們需要更靈活的解析
-
-                // 方法1: 假設最後兩個參數是 type 和 token
-                if (pathParts.length >= 2) {
-                    const potentialType = pathParts[pathParts.length - 2];
-                    const potentialToken = pathParts[pathParts.length - 1];
-
-                    // 驗證 type 是否為預期的角色類型
-                    const validTypes = ['Admin', 'Client', 'Sales', 'ProdUnit'];
-                    if (validTypes.includes(potentialType) && potentialToken) {
-                        return { type: potentialType, token: potentialToken };
-                    }
-                }
-
-                // 方法2: 尋找已知的角色類型
-                const validTypes = ['Admin', 'Client', 'Sales', 'ProdUnit'];
-                for (let i = 0; i < pathParts.length - 1; i++) {
-                    if (validTypes.includes(pathParts[i]) && pathParts[i + 1]) {
-                        return { type: pathParts[i], token: pathParts[i + 1] };
-                    }
-                }
-            } else {
-                alert("除錯4 - 未找到route關鍵字");
+            try {
+                return new Promise((resolve, reject) => {
+                    const transaction = this.db.transaction(['nldData'], 'readwrite');
+                    const store = transaction.objectStore('nldData');
+                    const clearRequest = store.clear();
+                    clearRequest.onsuccess = () => {
+                        const addRequest = store.add({
+                            id: 'workOrders',
+                            data: data,
+                            timestamp: Date.now()
+                        });
+                        addRequest.onsuccess = () => resolve(true);
+                        addRequest.onerror = () => reject(addRequest.error);
+                    };
+                    clearRequest.onerror = () => reject(clearRequest.error);
+                });
+            } catch (error) {
+                return this.saveToLocalStorage(data);
             }
-
-            return { type: null, token: null };
         }
 
-        // 解析參數
-        const { type, token } = parseParameters();
-
-        if (!type || !token) {
-            alert("錯誤 - 缺少必要參數\n" +
-                "當前URL: " + window.location.href + "\n" +
-                "請檢查連結格式");
-            return;
+        saveToLocalStorage(data) {
+            try {
+                localStorage.setItem("nldData", JSON.stringify(data));
+                return true;
+            } catch (error) {
+                console.error('localStorage 儲存失敗:', error);
+                return false;
+            }
         }
+    }
 
-        // 儲存 token 到 localStorage
-        localStorage.setItem("jwtToken", token);
+    function updateStatus(message) {
+        document.getElementById('statusText').textContent = message;
+    }
 
-        // 驗證 token 是否過期
+    function showError(message) {
+        document.getElementById('errorText').textContent = message;
+        document.getElementById('errorText').style.display = 'block';
+        updateStatus('發生錯誤');
+    }
+
+    // 主程式
+    (async () => {
         try {
-            // 分割 JWT token
-            const tokenParts = token.split('.');
-            if (tokenParts.length !== 3) {
-                throw new Error("JWT token 格式錯誤：應該包含3個部分，實際: " + tokenParts.length);
+            console.log('=== 1. 開始執行 ===');
+
+            const storage = new SimpleNLDStorage();
+            await storage.init();
+            console.log('=== 2. Storage 初始化完成 ===');
+
+            // 不要清除 localStorage！
+            // await storage.clearData();  // 註解掉這行
+
+            updateStatus('初始化 LIFF...');
+
+            const urlParams = new URLSearchParams(window.location.search);
+            let groupIdFromUrl = urlParams.get('g');
+            console.log('=== 3. URL 的 Group ID:', groupIdFromUrl);
+
+            // 檢查是否有暫存的 Group ID
+            const pendingGroupId = localStorage.getItem('pendingGroupId');
+            console.log('=== 4. localStorage 的 pendingGroupId:', pendingGroupId);
+
+            if (groupIdFromUrl) {
+                localStorage.setItem('pendingGroupId', groupIdFromUrl);
+            } else {
+                groupIdFromUrl = pendingGroupId;
             }
 
-            const payload = JSON.parse(base64UrlDecode(tokenParts[1]));
-            const now = Math.floor(Date.now() / 1000);
+            console.log('=== 5. 最終使用的 Group ID:', groupIdFromUrl);
 
-            if (payload.exp && payload.exp < now) {
-                alert("登入已過期，請重新登入。");
-                localStorage.removeItem("jwtToken");
-                return;
+            await liff.init({
+                liffId: '2008232728-Raq7rdq9'
+            });
+            console.log('=== 6. LIFF 初始化完成 ===');
+            console.log('=== 7. isLoggedIn:', liff.isLoggedIn());
+            console.log('=== 8. isInClient:', liff.isInClient());
+            const isInLineClient = liff.isInClient();
+
+            if (isInLineClient) {
+                if (!liff.isLoggedIn()) {
+                    // 確保 Group ID 已存到 localStorage 才跳轉
+                    if (groupIdFromUrl) {
+                        localStorage.setItem('pendingGroupId', groupIdFromUrl);
+                    }
+                    liff.login({ redirectUri: window.location.origin + window.location.pathname });
+                    return;
+                }
+
+                const accessToken = liff.getAccessToken();
+                const context = liff.getContext();
+                const groupIdFromContext = context.groupId || null;
+                const groupId = groupIdFromContext || groupIdFromUrl;
+
+                if (!groupId) {
+                    showError('無法取得 Group ID');
+                    return;
+                }
+
+                // 清除暫存的 Group ID
+                localStorage.removeItem('pendingGroupId');
+
+                await processUserAuth(storage, accessToken, groupId);
+
+            } else {
+                if (!groupIdFromUrl) {
+                    showError('請使用包含群組 ID 的完整連結');
+                    return;
+                }
+
+                if (!liff.isLoggedIn()) {
+                    localStorage.setItem('pendingGroupId', groupIdFromUrl);
+                    liff.login({ redirectUri: window.location.origin + window.location.pathname });
+                    return;
+                }
+
+                const accessToken = liff.getAccessToken();
+
+                // 清除暫存的 Group ID
+                localStorage.removeItem('pendingGroupId');
+
+                await processUserAuth(storage, accessToken, groupIdFromUrl);
             }
-        } catch (e) {
-            alert("JWT 解析錯誤: " + e.message + "\n請重新登入。");
-            localStorage.removeItem("jwtToken");
-            return;
+
+        } catch (error) {
+            console.error('錯誤:', error);
+            showError(error.message);
         }
+    })();
 
-        // 建構 API URL
+    // 共用的驗證流程
+    async function processUserAuth(storage, accessToken, groupId) {
+        updateStatus('查詢權限中...');
+
         const protocol = window.location.protocol;
         const host = window.location.host;
+        const apiUrl = `${protocol}//${host}/NLD/user/role`;
 
-        // 確保 token 正確編碼
-        const safeToken = encodeURIComponent(token);
-        const apiUrl = `${protocol}//${host}/NLD/token/${type}/${safeToken}`;
-
-        // 呼叫 API 取得資料
-        fetch(apiUrl, {
-            method: 'GET',
+        const response = await fetch(apiUrl, {
+            method: 'POST',
             headers: {
-                'Accept': 'application/json',
+                'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-                // 加入 ngrok 需要的 header
                 'ngrok-skip-browser-warning': 'true'
-            }
-        })
-            .then(res => {
-                if (!res.ok) {
-                    return res.text().then(text => {
-                        throw new Error(`HTTP ${res.status}: ${res.statusText} - ${text}`);
-                    });
-                }
+            },
+            body: JSON.stringify({ groupId: groupId })
+        });
 
-                // 先取得原始文字內容來檢查
-                return res.text().then(text => {
-                    // 檢查是否為 HTML 回應（表示 API 路徑錯誤）
-                    if (text.trim().startsWith('<!DOCTYPE html') || text.trim().startsWith('<html')) {
-                        alert("錯誤：API回應是HTML頁面，不是JSON資料\n" +
-                            "這表示API路徑可能不正確\n" +
-                            "請檢查後端路由設定\n" +
-                            "回應開始: " + text.substring(0, 200));
-                        throw new Error("API路徑錯誤：回應是HTML而非JSON");
-                    }
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `API 錯誤: ${response.status}`);
+        }
 
-                    try {
-                        // 嘗試解析 JSON
-                        const data = JSON.parse(text);
-                        return data;
-                    } catch (jsonError) {
-                        alert("除錯12.3 - JSON解析失敗\n" +
-                            "錯誤: " + jsonError.message + "\n" +
-                            "原始內容前200字: " + text.substring(0, 200));
-                        throw new Error("JSON解析失敗: " + jsonError.message);
-                    }
-                });
-            })
-            .then(async (data) => {
-                // 使用新的存儲系統
-                const saveSuccess = await storage.saveData(data);
-                if (saveSuccess) {
-                    console.log("數據儲存成功");
-                } else {
-                    console.warn("數據儲存失敗，但繼續跳轉");
-                }
+        const userData = await response.json();
 
-                // 建構跳轉 URL
-                const baseUrl = `${protocol}//${host}`;
-                let redirectUrl;
+        const roleConfig = {
+            1: { page: '/page/Admin.html', api: '/NLD/admin/workOrders', name: 'Admin' },
+            2: { page: '/page/Client.html', api: '/NLD/client/workOrders', name: 'Client' },
+            3: { page: '/page/Sales.html', api: '/NLD/sales/workOrders', name: 'Sales' },
+            4: { page: '/page/ProdUnit.html', api: '/NLD/produnit/workOrders', name: 'ProdUnit' },
+            5: { page: '/page/Assistant.html', api: '/NLD/assistant/workOrders', name: 'Assistant' }
+        };
 
-                switch (type) {
-                    case 'Admin':
-                        redirectUrl = `${baseUrl}/page/Admin.html?type=${encodeURIComponent(type)}&token=${encodeURIComponent(token)}`;
-                        break;
-                    case 'Client':
-                        redirectUrl = `${baseUrl}/page/Client.html?type=${encodeURIComponent(type)}&token=${encodeURIComponent(token)}`;
-                        break;
-                    case 'Sales':
-                        redirectUrl = `${baseUrl}/page/Sales.html?type=${encodeURIComponent(type)}&token=${encodeURIComponent(token)}`;
-                        break;
-                    case 'ProdUnit':
-                        redirectUrl = `${baseUrl}/page/ProdUnit.html?type=${encodeURIComponent(type)}&token=${encodeURIComponent(token)}`;
-                        break;
-                    default:
-                        alert("未知角色類型: " + type);
-                        return;
-                }
+        const config = roleConfig[userData.roleID];
+        if (!config) {
+            throw new Error('未知的角色類型: ' + userData.roleID);
+        }
 
-                window.location.href = redirectUrl;
-            })
-            .catch(err => {
-                console.log("API錯誤詳情\n" +
-                    "錯誤訊息: " + err.message + "\n" +
-                    "API URL: " + apiUrl + "\n" +
-                    "請截圖此訊息給開發人員")
-                alert("API錯誤詳情\n" +
-                    "錯誤訊息: " + err.message + "\n" +
-                    "API URL: " + apiUrl + "\n" +
-                    "請截圖此訊息給開發人員");
-            });
-    });
+        updateStatus('載入資料中...');
+
+        const dataUrl = `${protocol}//${host}${config.api}`;
+        const dataResponse = await fetch(dataUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify({ groupId: groupId })
+        });
+
+        if (!dataResponse.ok) {
+            throw new Error(`資料載入失敗: ${dataResponse.status}`);
+        }
+
+        const workOrders = await dataResponse.json();
+        await storage.saveData(workOrders);
+
+        localStorage.setItem('liffAccessToken', accessToken);
+        localStorage.setItem('groupId', groupId);
+        localStorage.setItem('userRole', config.name);
+
+        updateStatus('跳轉中...');
+
+        const redirectUrl = `${protocol}//${host}${config.page}`;
+        window.location.href = redirectUrl;
+    }
 </script>
 </body>
 </html>
