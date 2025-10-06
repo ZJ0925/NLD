@@ -5,6 +5,7 @@ import com.zj.nld.Model.DTO.NLDProdUnitDTO;
 import com.zj.nld.Model.DTO.NldClientDTO;
 import com.zj.nld.Model.DTO.NldSalesDTO;
 import com.zj.nld.Model.Entity.HVED;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -50,7 +51,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%' AND h.salesIdNum = :userNameID
     ORDER BY CAST(h.workOrderNum AS INTEGER) DESC
     """)
-    List<NldSalesDTO> SalesSearch(String userNameID);
+    List<NldSalesDTO> SalesSearch(String userNameID, Pageable pageable);
 
 
     @Query("""
@@ -125,7 +126,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%' AND h.clinicName = :clientName
     ORDER BY CAST(h.workOrderNum AS INTEGER) DESC
 """)
-    List<NldClientDTO> ClientSearch(String clientName);
+    List<NldClientDTO> ClientSearch(String clientName, Pageable pageable);
 
 
 
@@ -154,7 +155,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%' AND h.cundh = :clientID And h.docID = :docID
     ORDER BY CAST(h.workOrderNum AS INTEGER) DESC
 """)
-    List<NldClientDTO> ClientForDocSearch(String clientID, String docID);
+    List<NldClientDTO> ClientForDocSearch(String clientID, String docID, Pageable pageable);
 
 
 
@@ -187,7 +188,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%'
     ORDER BY CAST(h.workOrderNum AS INTEGER) DESC
 """)
-    List<NLDProdUnitDTO> ProdUnitSearch();
+    List<NLDProdUnitDTO> ProdUnitSearch(Pageable pageable);
 
 
 
@@ -221,6 +222,6 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%'
     ORDER BY CAST(h.workOrderNum AS INTEGER) DESC
 """)
-    List<NldDTO> AdminSearch();
+    List<NldDTO> AdminSearch(Pageable pageable);
 
 }

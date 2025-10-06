@@ -7,6 +7,8 @@ import com.zj.nld.Repository.NLDRepository;
 import com.zj.nld.Service.*;
 import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,30 +46,8 @@ public class NLDServiceImpl implements NLDService {
         };
     }
 
+    private Pageable top500 = PageRequest.of(0, 500);
 
-    @Override
-    public List<NldDTO> AdminSearch() {
-        return nldRepository.AdminSearch();
-    }
-
-    //客戶可取得的資料
-    @Override
-    public List<NldClientDTO> getNLDByClient(String client) {
-        return nldRepository.ClientSearch(client);
-    }
-
-
-    //業務可取得的資料
-    @Override
-    public List<NldSalesDTO> getNLDBySales(String userNameID) {
-        return nldRepository.SalesSearch(userNameID);
-    }
-
-    //生產單位可取得的資料
-    @Override
-    public List<NLDProdUnitDTO> getNLDByProdUnit() {
-        return nldRepository.ProdUnitSearch();
-    }
 
     /**
      * 根據 Access Token 取得使用者角色資訊
@@ -145,16 +125,16 @@ public class NLDServiceImpl implements NLDService {
 
         // 6. 根據角色取得工單
         return switch (userGroupRole.getRoleID()) {
-            case 1 -> nldRepository.AdminSearch();
+            case 1 -> nldRepository.AdminSearch(top500);
             case 2 -> nldRepository.ClientForDocSearch(
                     userGroupRole.getGroupNameID(),
-                    userGroupRole.getUserNameID()
+                    userGroupRole.getUserNameID(),top500
             );
-            case 3 -> nldRepository.SalesSearch(userGroupRole.getUserNameID());
-            case 4 -> nldRepository.ProdUnitSearch();
+            case 3 -> nldRepository.SalesSearch(userGroupRole.getUserNameID(), top500);
+            case 4 -> nldRepository.ProdUnitSearch(top500);
             case 5 -> {
                 Clinic clinic = clinicService.findByClinicName(userGroupRole.getGroupName());
-                yield nldRepository.ClientSearch(clinic.getClinicAbbr());
+                yield nldRepository.ClientSearch(clinic.getClinicAbbr(), top500);
             }
             default -> Collections.emptyList();  // 改這裡：回傳空 List 而非 null
         };

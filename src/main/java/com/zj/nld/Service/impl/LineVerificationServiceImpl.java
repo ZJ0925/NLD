@@ -35,8 +35,6 @@ public class LineVerificationServiceImpl implements LineVerificationService {
             if (response.getStatusCode() == HttpStatus.OK) {
                 Map<String, Object> profile = response.getBody();
                 String userId = (String) profile.get("userId");
-
-                System.out.println("Access Token 驗證成功，User ID: " + userId);
                 return userId;
             }
 

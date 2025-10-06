@@ -398,7 +398,7 @@ function renderListItem(item) {
 }
 
 // 分頁設定
-const ITEMS_PER_PAGE = 30; // 每次顯示30筆
+const ITEMS_PER_PAGE = 50; // 每次顯示50筆
 let currentDisplayCount = ITEMS_PER_PAGE;
 
 // 修改現有的 renderListView 函數
