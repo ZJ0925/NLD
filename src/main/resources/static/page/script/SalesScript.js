@@ -675,17 +675,18 @@ function generateCalendar(year, month, item) {
         const currentDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
         // 檢查是否有對應的日期事件 - 調整顏色分配
+// 檢查是否有對應的日期事件 - 調整顏色分配
         if (receivedDateStr === currentDateStr) {
-            dayElement.classList.add('receive-date'); // 黃色 - 收件日
+            dayElement.classList.add('receive-date'); // 橘色 - 收件日
             dayElement.title = '收件日';
         } else if (deliveryDateStr === currentDateStr) {
             dayElement.classList.add('delivery-date'); // 綠色 - 完成交件日
             dayElement.title = '完成交件日';
         } else if (tryInDateStr === currentDateStr) {
-            dayElement.classList.add('try-receive-date'); // 紫色 - 試戴交件日和試戴收件日同色
+            dayElement.classList.add('try-in-date'); // 藍色 - 試戴交件日
             dayElement.title = '試戴交件日';
         } else if (tryReceiveDateStr === currentDateStr) {
-            dayElement.classList.add('try-receive-date'); // 紫色 - 試戴交件日和試戴收件日同色
+            dayElement.classList.add('try-receive-date'); // 紫色 - 試戴收件日
             dayElement.title = '試戴收件日';
         }
 
@@ -706,7 +707,7 @@ function generateCalendarLegend(legendData) {
     // 收件日
     if (legendData.received) {
         legendItems.push({
-            color: '#ffeb3b',
+            color: '#ff9800',  // 橘色
             label: '收件日',
             date: legendData.received,
             rawDate: currentDetailItem.receivedDate
@@ -716,7 +717,7 @@ function generateCalendarLegend(legendData) {
     // 完成交件日
     if (legendData.delivery) {
         legendItems.push({
-            color: '#4caf50',
+            color: '#4caf50',  // 綠色
             label: '完成交件日',
             date: legendData.delivery,
             rawDate: currentDetailItem.deliveryDate
@@ -726,7 +727,7 @@ function generateCalendarLegend(legendData) {
     // 試戴交件日
     if (legendData.tryIn) {
         legendItems.push({
-            color: '#9c27b0',
+            color: '#2196f3',  // 藍色
             label: '試戴交件日',
             date: legendData.tryIn,
             rawDate: currentDetailItem.tryInDate
@@ -736,7 +737,7 @@ function generateCalendarLegend(legendData) {
     // 試戴收件日
     if (legendData.tryReceive) {
         legendItems.push({
-            color: '#9c27b0',
+            color: '#9c27b0',  // 紫色
             label: '試戴收件日',
             date: legendData.tryReceive,
             rawDate: currentDetailItem.tryInReceivedDate
@@ -1115,6 +1116,36 @@ window.addEventListener("DOMContentLoaded", async () => {
             }
             touchHandled = false;
         });
+    }
+
+    // 電腦版:點擊日曆外部區域關閉日曆
+    const calendarView = document.getElementById('calendarView');
+    if (calendarView) {
+        calendarView.addEventListener('click', function(e) {
+            // 只在電腦版執行(螢幕寬度 >= 768px)
+            if (window.innerWidth >= 768) {
+                // 如果點擊的是日曆視圖的背景(不是內容區域)
+                if (e.target === calendarView) {
+                    calendarView.style.display = 'none';
+                }
+            }
+        });
+
+        // 防止點擊日曆內容時關閉
+        const calendarHeader = document.querySelector('.calendar-header');
+        const calendarContent = document.querySelector('.calendar-content');
+
+        if (calendarHeader) {
+            calendarHeader.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+
+        if (calendarContent) {
+            calendarContent.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
     }
 
     addNavigationListener(document.getElementById('prevYear'), 'prevYear');

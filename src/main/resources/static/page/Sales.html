@@ -576,22 +576,22 @@
         }
 
         .calendar-day.receive-date {
-            background-color: #ffeb3b;
-            color: #333;
+            background-color: #ff9800;  /* 橘色 - 收件日 */
+            color: white;
         }
 
         .calendar-day.delivery-date {
-            background-color: #4caf50;
+            background-color: #4caf50;  /* 綠色 - 完成交件日 */
             color: white;
         }
 
         .calendar-day.try-in-date {
-            background-color: #ff9800;
+            background-color: #2196f3;  /* 藍色 - 試戴交件日 */
             color: white;
         }
 
         .calendar-day.try-receive-date {
-            background-color: #9c27b0;
+            background-color: #9c27b0;  /* 紫色 - 試戴收件日 */
             color: white;
         }
 
@@ -649,20 +649,92 @@
         }
 
         /* 平板和桌面優化 */
+        /* 電腦版日曆彈出視窗縮小 - 正確版本 */
         @media (min-width: 768px) {
-            .main-content {
-                margin-top: 160px;
-                max-width: 800px;
+            /* 當日曆顯示時的樣式 */
+            .calendar-view {
+                background: rgba(0, 0, 0, 0.5);
+                align-items: flex-start;
+                padding: 20px;
+                overflow-y: auto;
+            }
+
+            /* 日曆容器縮小並居中 */
+            .calendar-view .calendar-header {
+                border-radius: 16px 16px 0 0;
+            }
+
+            .calendar-view .calendar-content {
+                background: white;
+                border-radius: 0 0 16px 16px;
+            }
+
+            /* 創建一個包裝效果 */
+            .calendar-header,
+            .calendar-content {
+                max-width: 600px;
                 margin-left: auto;
                 margin-right: auto;
             }
 
-            .work-item-content {
-                grid-template-columns: 1fr 1fr 1fr 1fr;
+            /* 日曆標題區縮小 */
+            .calendar-header {
+                padding: 14px;
             }
 
-            .detail-grid {
-                grid-template-columns: 1fr 1fr;
+            .calendar-title {
+                font-size: 16px;
+                min-width: 100px;
+            }
+
+            .calendar-nav-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 15px;
+            }
+
+            .calendar-close {
+                font-size: 22px;
+                width: 36px;
+                height: 36px;
+            }
+
+            /* 日曆內容區縮小 */
+            .calendar-content {
+                padding: 16px;
+            }
+
+            .calendar-grid {
+                max-width: 480px;
+                margin: 0 auto;
+                gap: 6px;
+            }
+
+            .calendar-day-header {
+                font-size: 11px;
+                padding: 6px;
+            }
+
+            .calendar-day {
+                min-height: 40px;
+                font-size: 13px;
+            }
+
+            /* 日曆圖例縮小 */
+            .calendar-legend {
+                max-width: 480px;
+                margin: 16px auto 0;
+                gap: 6px;
+                font-size: 11px;
+            }
+
+            .legend-item {
+                padding: 6px 8px;
+            }
+
+            .legend-color {
+                width: 16px;
+                height: 16px;
             }
         }
     </style>
