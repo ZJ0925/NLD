@@ -1,6 +1,7 @@
 // ===== 第1部分：在 SalesScript.js 開頭添加這個存儲類 =====
 // 在所有現有代碼之前添加
 
+
 class NLDStorage {
     constructor() {
         this.dbName = 'NLDDatabase';
@@ -22,7 +23,6 @@ class NLDStorage {
             request.onsuccess = () => {
                 this.db = request.result;
                 this.isReady = true;
-                console.log('IndexedDB 初始化成功');
                 resolve(true);
             };
 
@@ -51,7 +51,6 @@ class NLDStorage {
                 clearRequest.onsuccess = () => {
                     const addRequest = store.add({ id: 'workOrders', data: data, timestamp: Date.now() });
                     addRequest.onsuccess = () => {
-                        console.log('數據已儲存到 IndexedDB');
                         resolve(true);
                     };
                     addRequest.onerror = () => reject(addRequest.error);
@@ -78,7 +77,6 @@ class NLDStorage {
 
                 request.onsuccess = () => {
                     if (request.result && request.result.data) {
-                        console.log('從 IndexedDB 獲取數據成功');
                         resolve(request.result.data);
                     } else {
                         // IndexedDB 中沒有數據，嘗試從 localStorage 獲取
@@ -106,7 +104,6 @@ class NLDStorage {
                     const request = store.clear();
 
                     request.onsuccess = () => {
-                        console.log('IndexedDB 數據已清理');
                         resolve();
                     };
 
@@ -123,7 +120,6 @@ class NLDStorage {
         // 同時清理 localStorage
         try {
             localStorage.removeItem("nldData");
-            console.log('localStorage 數據已清理');
         } catch (error) {
             console.error('localStorage 清理失敗:', error);
         }
@@ -134,7 +130,6 @@ class NLDStorage {
         try {
             const compressedData = this.compressData(data);
             localStorage.setItem("nldData", JSON.stringify(compressedData));
-            console.log('數據已儲存到 localStorage（壓縮後）');
             return true;
         } catch (error) {
             console.error('localStorage 儲存也失敗:', error);
@@ -149,7 +144,6 @@ class NLDStorage {
         try {
             const raw = localStorage.getItem("nldData");
             if (raw) {
-                console.log('從 localStorage 獲取數據');
                 return JSON.parse(raw);
             }
             return null;
@@ -199,7 +193,6 @@ async function emergencyCleanup() {
     try {
         await nldStorage.clearData();
         localStorage.clear();
-        console.log("緊急清理完成");
         alert("已清理所有儲存數據，請重新載入頁面");
         window.location.reload();
     } catch (error) {
@@ -215,147 +208,12 @@ window.emergencyCleanup = emergencyCleanup;
 // 找到你現有的 window.addEventListener("DOMContentLoaded", ...)
 // 完全替換為以下版本：
 
-window.addEventListener("DOMContentLoaded", async () => {
-    console.log("DOM載入完成，開始初始化...");
-
-    // 檢查關鍵元素是否存在
-    const listView = document.getElementById('listView');
-    const searchInput = document.getElementById('searchInput');
-    const backBtn = document.getElementById('backBtn');
-
-    console.log("關鍵元素檢查:", {
-        listView: !!listView,
-        searchInput: !!searchInput,
-        backBtn: !!backBtn
-    });
-
-    // 初始化資料（這會自動初始化存儲系統）
-    await initializeData();
-
-    // 綁定事件監聽器
-    if (searchInput) {
-        searchInput.addEventListener('input', filterData);
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                filterData();
-            }
-        });
-    }
-
-    if (backBtn) {
-        backBtn.addEventListener('click', showList);
-    }
-
-    // 日曆按鈕 - 防止雙擊縮放
-    const calendarBtn = document.getElementById('calendarBtn');
-    if (calendarBtn) {
-        let touchHandled = false;
-
-        calendarBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            touchHandled = true;
-            showCalendar();
-        });
-
-        calendarBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (!touchHandled) {
-                showCalendar();
-            }
-            touchHandled = false;
-        });
-    }
-
-    // 日曆關閉按鈕 - 防止雙擊縮放
-    const calendarClose = document.getElementById('calendarClose');
-    if (calendarClose) {
-        let touchHandled = false;
-
-        calendarClose.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            touchHandled = true;
-            document.getElementById('calendarView').style.display = 'none';
-        });
-
-        calendarClose.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (!touchHandled) {
-                document.getElementById('calendarView').style.display = 'none';
-            }
-            touchHandled = false;
-        });
-    }
-
-    // 使用 touchstart 和 click 事件，並防止預設行為
-    function addNavigationListener(element, direction) {
-        if (!element) return;
-
-        let touchHandled = false;
-
-        element.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // 防止雙擊縮放
-            touchHandled = true;
-            navigateCalendar(direction);
-        });
-
-        element.addEventListener('click', (e) => {
-            e.preventDefault(); // 防止雙擊縮放
-            if (!touchHandled) {
-                navigateCalendar(direction);
-            }
-            touchHandled = false;
-        });
-    }
-
-    // 綁定日曆導航按鈕 - 防止雙擊縮放
-    const prevYear = document.getElementById('prevYear');
-    const nextYear = document.getElementById('nextYear');
-    const prevMonth = document.getElementById('prevMonth');
-    const nextMonth = document.getElementById('nextMonth');
-
-    addNavigationListener(prevYear, 'prevYear');
-    addNavigationListener(nextYear, 'nextYear');
-    addNavigationListener(prevMonth, 'prevMonth');
-    addNavigationListener(nextMonth, 'nextMonth');
-
-    // 添加重新整理功能（可選）
-    window.refreshData = function() {
-        console.log("手動重新整理資料");
-        initializeData();
-    };
-
-    console.log("所有事件監聽器綁定完成");
-});
-
 
 // 監聽頁面離開事件（可選）
 window.addEventListener('beforeunload', function(e) {
     // 這裡可以加入額外的檢查邏輯，但通常不需要阻止使用者離開
 });
 
-// 日期比較函數
-function isDateInRange(dateInput, startDate, endDate) {
-    if (!dateInput) return !startDate && !endDate; // 若資料為空且沒篩選條件則通過
-    if (!startDate && !endDate) return true; // 沒有限制則通過
-
-    let date;
-    if (typeof dateInput === 'string') {
-        date = new Date(dateInput);
-    } else if (typeof dateInput === 'number') {
-        date = new Date(dateInput);
-    } else if (dateInput instanceof Date) {
-        date = dateInput;
-    } else {
-        return false;
-    }
-
-    const start = startDate ? new Date(startDate) : null;
-    const end = endDate ? new Date(endDate) : null;
-
-    if (start && date < start) return false; // 早於開始日期則不通過
-    if (end && date > end) return false; // 晚於結束日期則不通過
-    return true; // 通過
-}
 
 // 全局變數
 let originalData = [];
@@ -375,7 +233,6 @@ async function fetchDataFromAPI() {
     }
 
     try {
-        console.log("正在從API獲取資料...");
 
         const response = await fetch('/api/sales/workorders', {
             method: 'GET',
@@ -386,19 +243,11 @@ async function fetchDataFromAPI() {
             }
         });
 
-        console.log("API回應狀態:", response.status);
-
         if (response.ok) {
             const data = await response.json();
-            console.log("API回應資料筆數:", Array.isArray(data) ? data.length : "非陣列格式");
 
             // 使用新的存儲系統
             const saveSuccess = await nldStorage.saveData(data);
-            if (saveSuccess) {
-                console.log("數據儲存成功");
-            } else {
-                console.warn("數據儲存失敗，但不影響當前使用");
-            }
 
             return data;
         } else {
@@ -406,7 +255,6 @@ async function fetchDataFromAPI() {
             // API失敗時從存儲中獲取備份數據
             const backupData = await nldStorage.getData();
             if (backupData) {
-                console.log("使用備份資料");
                 return backupData;
             }
             return null;
@@ -416,7 +264,6 @@ async function fetchDataFromAPI() {
         // 網路錯誤時從存儲中獲取備份數據
         const backupData = await nldStorage.getData();
         if (backupData) {
-            console.log("網路錯誤，使用備份資料");
             return backupData;
         }
         return null;
@@ -539,7 +386,7 @@ function renderListItem(item) {
                     <div class="value">${formatDate(item.estFinishDate)}</div>
                 </div>
                 <div class="work-item-field">
-                    <div class="label">狀態</div>
+                    <div class="label">工單現況</div>
                     <div class="value">${safeValue(item.workOrderStatus)}</div>
                 </div>
             </div>
@@ -581,7 +428,6 @@ function renderListView(dataList) {
         listView.appendChild(loadMoreBtn);
     }
 
-    console.log(`顯示 ${itemsToShow.length}/${dataList.length} 筆資料`);
 }
 
 // 新增載入更多項目的函數
@@ -601,10 +447,8 @@ function loadMoreItems() {
 
 // 找到該筆工單最早的有效日期
 function findEarliestDate(item) {
-    console.log("findEarliestDate 被調用，工單:", item ? item.workOrderNum : "無工單資料");
 
     if (!item) {
-        console.log("沒有工單資料");
         return null;
     }
 
@@ -637,10 +481,8 @@ function findEarliestDate(item) {
             }
         }).filter(Boolean); // 移除無效日期
 
-    console.log("找到的有效日期:", dates.map(d => `${d.name}: ${d.date.toLocaleDateString()}`));
 
     if (dates.length === 0) {
-        console.log("該筆工單沒有找到有效日期，使用當前月份");
         return null;
     }
 
@@ -649,7 +491,6 @@ function findEarliestDate(item) {
         prev.date < current.date ? prev : current
     );
 
-    console.log(`該筆工單最早日期: ${earliest.name} - ${earliest.date.toLocaleDateString()}`);
     return earliest.date;
 }
 
@@ -721,10 +562,8 @@ function showList() {
 
 // 顯示日曆視圖
 function showCalendar() {
-    console.log("showCalendar 被調用");
 
     if (!currentDetailItem) {
-        console.log("沒有 currentDetailItem");
         alert("請先選擇一筆工單");
         return;
     }
@@ -736,13 +575,11 @@ function showCalendar() {
         if (earliestDate && earliestDate instanceof Date && !isNaN(earliestDate.getTime())) {
             currentCalendarYear = earliestDate.getFullYear();
             currentCalendarMonth = earliestDate.getMonth();
-            console.log(`自動跳轉到: ${currentCalendarYear}年${currentCalendarMonth + 1}月`);
         } else {
             // 如果沒有有效日期，使用當前日期
             const now = new Date();
             currentCalendarYear = now.getFullYear();
             currentCalendarMonth = now.getMonth();
-            console.log("使用當前日期");
         }
 
         // 更新標題和生成日曆
@@ -822,13 +659,6 @@ function generateCalendar(year, month, item) {
         tryReceive: tryReceiveDateStr ? formatFullDate(item.tryInReceivedDate) : null
     };
 
-    console.log(`生成 ${year}年${month + 1}月 日曆`);
-    console.log('該筆工單的關鍵日期:', {
-        收件日: receivedDateStr,
-        完成交件日: deliveryDateStr,
-        試戴交件日: tryInDateStr,
-        試戴收件日: tryReceiveDateStr
-    });
 
     // 生成日期格子
     for (let i = 0; i < startDate; i++) {
@@ -937,12 +767,10 @@ function jumpToDateMonth(dateInput) {
         } else if (dateInput instanceof Date) {
             targetDate = dateInput;
         } else {
-            console.log("無效的日期格式:", dateInput);
             return;
         }
 
         if (isNaN(targetDate.getTime())) {
-            console.log("日期解析失敗:", dateInput);
             return;
         }
 
@@ -950,7 +778,6 @@ function jumpToDateMonth(dateInput) {
         currentCalendarYear = targetDate.getFullYear();
         currentCalendarMonth = targetDate.getMonth();
 
-        console.log(`跳轉到: ${currentCalendarYear}年${currentCalendarMonth + 1}月`);
 
         // 更新標題和重新生成日曆
         document.getElementById('calendarTitle').textContent = `${currentCalendarYear}年${currentCalendarMonth + 1}月`;
@@ -961,88 +788,75 @@ function jumpToDateMonth(dateInput) {
     }
 }
 
-// 修改現有的 filterData 函數
-function filterData() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
 
-    // 重置顯示數量
+
+async function initializeData() {
     currentDisplayCount = ITEMS_PER_PAGE;
+    const listViewElement = document.getElementById("listView");
+    if (!listViewElement) return;
 
-    if (!searchTerm) {
-        filteredData = [...originalData];
-    } else {
-        filteredData = originalData.filter(item => {
-            return (
-                (item.workOrderNum && item.workOrderNum.toLowerCase().includes(searchTerm)) ||
-                (item.clinicName && item.clinicName.toLowerCase().includes(searchTerm)) ||
-                (item.patientName && item.patientName.toLowerCase().includes(searchTerm)) ||
-                (item.docName && item.docName.toLowerCase().includes(searchTerm)) ||
-                (item.toothPosition && item.toothPosition.toLowerCase().includes(searchTerm))
-            );
-        });
-    }
+    listViewElement.innerHTML = '<div class="loading">資料載入中...</div>';
+    await nldStorage.init();
 
-    renderListView(filteredData);
+    // 載入所有資料 (使用第一個 API)
+    await loadAllData();
 }
 
-// 在 initializeData 函數開始時重置顯示數量
-async function initializeData() {
-    console.log("開始初始化資料...");
+// 新增:載入所有資料的函數
+async function loadAllData() {
+    const accessToken = localStorage.getItem('liffAccessToken');
+    const groupId = localStorage.getItem('groupId');
 
-    // 重置顯示數量
-    currentDisplayCount = ITEMS_PER_PAGE;
-
-    const listViewElement = document.getElementById("listView");
-    if (!listViewElement) {
-        console.error("找不到 listView 元素！");
+    if (!accessToken || !groupId) {
+        alert('請重新登入');
+        window.location.href = '/route/index.html';
         return;
     }
 
-    // 其餘代碼保持不變...
-    listViewElement.innerHTML = '<div class="loading">資料載入中...</div>';
+    const listView = document.getElementById('listView');
+    listView.innerHTML = '<div class="loading">資料載入中...</div>';
 
     try {
-        const storageReady = await nldStorage.init();
-        console.log('存儲系統狀態:', storageReady ? 'IndexedDB' : 'localStorage備用');
+        const protocol = window.location.protocol;
+        const host = window.location.host;
+        const apiUrl = `${protocol}//${host}/NLD/sales/workOrders`;
 
-        const data = await nldStorage.getData();
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify({ groupId: groupId })
+        });
 
-        if (data) {
-            console.log("成功從存儲獲取資料，筆數:", Array.isArray(data) ? data.length : "非陣列格式");
-
-            originalData = Array.isArray(data) ? data : [];
-            filteredData = [...originalData];
-
-            if (originalData.length > 0) {
-                console.log("第一筆資料樣本:", originalData[0]);
-            }
-
-            renderListView(filteredData);
-            console.log("資料載入完成！");
-        } else {
-            console.log("存儲中沒有資料，顯示提示");
-            listViewElement.innerHTML = '<div class="loading" style="color: orange;">找不到資料，請重新登入或聯繫管理員</div>';
+        if (!response.ok) {
+            throw new Error(`載入失敗: ${response.status}`);
         }
+
+        const data = await response.json();
+        originalData = Array.isArray(data) ? data : [];
+        filteredData = [...originalData];
+
+        await nldStorage.saveData(data);
+        renderListView(filteredData);
+
     } catch (error) {
-        console.error("初始化過程中發生錯誤:", error);
-        listViewElement.innerHTML = '<div class="loading" style="color: red;">資料載入失敗，請重新整理頁面</div>';
+        console.error('載入資料錯誤:', error);
+        listView.innerHTML = '<div class="loading" style="color: red;">資料載入失敗</div>';
     }
 }
 
+
 // 頁面載入完成後初始化
 window.addEventListener("DOMContentLoaded", () => {
-    console.log("DOM載入完成，開始初始化...");
 
     // 檢查關鍵元素是否存在
     const listView = document.getElementById('listView');
     const searchInput = document.getElementById('searchInput');
     const backBtn = document.getElementById('backBtn');
 
-    console.log("關鍵元素檢查:", {
-        listView: !!listView,
-        searchInput: !!searchInput,
-        backBtn: !!backBtn
-    });
 
     // 初始化資料
     initializeData();
@@ -1135,11 +949,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
     // 添加重新整理功能（可選）
     window.refreshData = function() {
-        console.log("手動重新整理資料");
         initializeData();
     };
 
-    console.log("所有事件監聽器綁定完成");
 });
 
 
@@ -1152,201 +964,114 @@ function formatTodayForInput() {
     return `${year}-${month}-${day}`;
 }
 
-// 初始化日期篩選功能
-function initializeDateFilter() {
-    const endDateInput = document.getElementById('endDate');
-    if (endDateInput) {
-        // 預設結束日期為今天
-        endDateInput.value = formatTodayForInput();
-    }
 
-    // 綁定事件監聽器
-    const dateTypeSelect = document.getElementById('dateTypeSelect');
-    const startDateInput = document.getElementById('startDate');
-    const clearFilterBtn = document.getElementById('clearFilterBtn');
-
-    if (dateTypeSelect) {
-        dateTypeSelect.addEventListener('change', applyDateFilter);
-    }
-
-    if (startDateInput) {
-        startDateInput.addEventListener('change', applyDateFilter);
-    }
-
-    if (endDateInput) {
-        endDateInput.addEventListener('change', applyDateFilter);
-    }
-
-    if (clearFilterBtn) {
-        clearFilterBtn.addEventListener('click', clearDateFilter);
-    }
-
-    console.log('日期篩選功能已初始化');
-}
-
-// 應用日期篩選
-function applyDateFilter() {
-    console.log('應用日期篩選');
-
-    // 重置顯示數量
-    currentDisplayCount = ITEMS_PER_PAGE;
-
-    // 執行綜合篩選
-    performComprehensiveFilter();
-}
-
-// 清除日期篩選
-function clearDateFilter() {
-    console.log('清除日期篩選');
-
-    const dateTypeSelect = document.getElementById('dateTypeSelect');
-    const startDateInput = document.getElementById('startDate');
-    const endDateInput = document.getElementById('endDate');
-
-    // 重置所有篩選條件
-    if (dateTypeSelect) {
-        dateTypeSelect.value = ''; // 設為"請選擇"
-    }
-
-    if (startDateInput) {
-        startDateInput.value = '';
-    }
-
-    if (endDateInput) {
-        endDateInput.value = formatTodayForInput(); // 重新設定為今天
-    }
-
-    // 重新應用篩選
-    applyDateFilter();
-}
-
-// 執行綜合篩選（結合文字搜尋和日期篩選）
-function performComprehensiveFilter() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+// 搜尋按鈕點擊事件
+async function performSearch() {
+    const keyword = document.getElementById('searchInput').value.trim();
     const dateType = document.getElementById('dateTypeSelect').value;
     const startDate = document.getElementById('startDate').value;
     const endDate = document.getElementById('endDate').value;
 
-    console.log('執行綜合篩選:', { searchTerm, dateType, startDate, endDate });
+    const accessToken = localStorage.getItem('liffAccessToken');
+    const groupId = localStorage.getItem('groupId');
 
-    // 重置顯示數量
-    currentDisplayCount = ITEMS_PER_PAGE;
-
-    // 檢查是否有任何篩選條件
-    const hasSearchTerm = searchTerm.length > 0;
-    const hasDateFilter = dateType && (startDate || endDate); // 必須選擇日期類型且有日期範圍
-
-    if (!hasSearchTerm && !hasDateFilter) {
-        // 沒有任何篩選條件，顯示全部資料
-        filteredData = [...originalData];
-    } else {
-        filteredData = originalData.filter(item => {
-            // 文字搜尋篩選
-            let textMatch = true;
-            if (hasSearchTerm) {
-                textMatch = (
-                    (item.workOrderNum && item.workOrderNum.toLowerCase().includes(searchTerm)) ||
-                    (item.clinicName && item.clinicName.toLowerCase().includes(searchTerm)) ||
-                    (item.patientName && item.patientName.toLowerCase().includes(searchTerm)) ||
-                    (item.docName && item.docName.toLowerCase().includes(searchTerm)) ||
-                    (item.toothPosition && item.toothPosition.toString().toLowerCase().includes(searchTerm))
-                );
-            }
-
-            // 日期範圍篩選
-            let dateMatch = true;
-            if (hasDateFilter) {
-                const targetDate = item[dateType];
-                dateMatch = isDateInRange(targetDate, startDate, endDate);
-            }
-
-            return textMatch && dateMatch;
-        });
+    if (!accessToken || !groupId) {
+        alert('請重新登入');
+        window.location.href = '/route/index.html';
+        return;
     }
 
-    console.log(`篩選結果: ${filteredData.length}/${originalData.length} 筆資料`);
-    renderListView(filteredData);
-}
-
-// ===== 修改3：替換現有的 filterData 函數 =====
-function filterData() {
-    performComprehensiveFilter();
-}
-
-// ===== 修改4：替換現有的 isDateInRange 函數 =====
-function isDateInRange(dateInput, startDate, endDate) {
-    if (!dateInput) return !startDate && !endDate; // 若資料為空且沒篩選條件則通過
-    if (!startDate && !endDate) return true; // 沒有限制則通過
-
-    let date;
-    if (typeof dateInput === 'string') {
-        date = new Date(dateInput);
-    } else if (typeof dateInput === 'number') {
-        date = new Date(dateInput);
-    } else if (dateInput instanceof Date) {
-        date = dateInput;
-    } else {
-        return false;
-    }
-
-    // 檢查日期是否有效
-    if (isNaN(date.getTime())) return false;
-
-    // 將日期轉換為 YYYY-MM-DD 格式進行比較
-    const dateStr = formatDateForCalendar(date);
-    if (!dateStr) return false;
-
-    if (startDate && dateStr < startDate) return false; // 早於開始日期則不通過
-    if (endDate && dateStr > endDate) return false; // 晚於結束日期則不通過
-    return true; // 通過
-}
-
-// ===== 修改5：替換現有的 DOMContentLoaded 事件監聽器 =====
-window.addEventListener("DOMContentLoaded", async () => {
-    console.log("DOM載入完成，開始初始化...");
-
-    // 檢查關鍵元素是否存在
     const listView = document.getElementById('listView');
-    const searchInput = document.getElementById('searchInput');
-    const backBtn = document.getElementById('backBtn');
+    listView.innerHTML = '<div class="loading">🔍 搜尋中...</div>';
 
-    console.log("關鍵元素檢查:", {
-        listView: !!listView,
-        searchInput: !!searchInput,
-        backBtn: !!backBtn
-    });
+    try {
+        const params = new URLSearchParams();
+        params.append('groupId', groupId);
+        if (keyword) params.append('keyword', keyword);
+        if (dateType) params.append('dateType', dateType);
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
 
-    // 初始化資料（這會自動初始化存儲系統）
+        const protocol = window.location.protocol;
+        const host = window.location.host;
+        const apiUrl = `${protocol}//${host}/NLD/sales/search?${params.toString()}`;
+
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`搜尋失敗: ${response.status}`);
+        }
+
+        const data = await response.json();
+        originalData = Array.isArray(data) ? data : [];
+        filteredData = [...originalData];
+
+        await nldStorage.saveData(data);
+        renderListView(filteredData);
+
+    } catch (error) {
+        console.error('搜尋錯誤:', error);
+        listView.innerHTML = '<div class="loading" style="color: red;">搜尋失敗,請重試</div>';
+    }
+}
+
+function clearAndSearch() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('dateTypeSelect').value = '';
+    document.getElementById('startDate').value = '';
+    document.getElementById('endDate').value = formatTodayForInput();
+
+    // 清除後載入所有資料,不是搜尋
+    loadAllData();
+}
+
+// 在 DOMContentLoaded 中綁定搜尋按鈕
+window.addEventListener("DOMContentLoaded", async () => {
     await initializeData();
 
-    // 初始化日期篩選功能
-    initializeDateFilter();
+    // 搜尋按鈕
+    const searchBtn = document.getElementById('searchBtn');
+    if (searchBtn) {
+        searchBtn.addEventListener('click', performSearch);
+    }
 
-    // 綁定事件監聽器
+    // Enter 鍵搜尋
+    const searchInput = document.getElementById('searchInput');
     if (searchInput) {
-        searchInput.addEventListener('input', filterData);
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                filterData();
+                performSearch();
             }
         });
     }
 
+    // 清除按鈕
+    const clearFilterBtn = document.getElementById('clearFilterBtn');
+    if (clearFilterBtn) {
+        clearFilterBtn.addEventListener('click', clearAndSearch);
+    }
+
+    // 返回按鈕
+    const backBtn = document.getElementById('backBtn');
     if (backBtn) {
         backBtn.addEventListener('click', showList);
     }
 
-    // 日曆按鈕 - 防止雙擊縮放
+    // 日曆按鈕
     const calendarBtn = document.getElementById('calendarBtn');
     if (calendarBtn) {
         let touchHandled = false;
-
         calendarBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
             touchHandled = true;
             showCalendar();
         });
-
         calendarBtn.addEventListener('click', (e) => {
             e.preventDefault();
             if (!touchHandled) {
@@ -1356,17 +1081,15 @@ window.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // 日曆關閉按鈕 - 防止雙擊縮放
+    // 日曆關閉按鈕
     const calendarClose = document.getElementById('calendarClose');
     if (calendarClose) {
         let touchHandled = false;
-
         calendarClose.addEventListener('touchstart', (e) => {
             e.preventDefault();
             touchHandled = true;
             document.getElementById('calendarView').style.display = 'none';
         });
-
         calendarClose.addEventListener('click', (e) => {
             e.preventDefault();
             if (!touchHandled) {
@@ -1376,20 +1099,17 @@ window.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // 使用 touchstart 和 click 事件，並防止預設行為
+    // 日曆導航按鈕
     function addNavigationListener(element, direction) {
         if (!element) return;
-
         let touchHandled = false;
-
         element.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // 防止雙擊縮放
+            e.preventDefault();
             touchHandled = true;
             navigateCalendar(direction);
         });
-
         element.addEventListener('click', (e) => {
-            e.preventDefault(); // 防止雙擊縮放
+            e.preventDefault();
             if (!touchHandled) {
                 navigateCalendar(direction);
             }
@@ -1397,25 +1117,12 @@ window.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // 綁定日曆導航按鈕 - 防止雙擊縮放
-    const prevYear = document.getElementById('prevYear');
-    const nextYear = document.getElementById('nextYear');
-    const prevMonth = document.getElementById('prevMonth');
-    const nextMonth = document.getElementById('nextMonth');
-
-    addNavigationListener(prevYear, 'prevYear');
-    addNavigationListener(nextYear, 'nextYear');
-    addNavigationListener(prevMonth, 'prevMonth');
-    addNavigationListener(nextMonth, 'nextMonth');
-
-    // 添加重新整理功能（可選）
-    window.refreshData = function() {
-        console.log("手動重新整理資料");
-        initializeData();
-    };
-
-    console.log("所有事件監聽器綁定完成");
+    addNavigationListener(document.getElementById('prevYear'), 'prevYear');
+    addNavigationListener(document.getElementById('nextYear'), 'nextYear');
+    addNavigationListener(document.getElementById('prevMonth'), 'prevMonth');
+    addNavigationListener(document.getElementById('nextMonth'), 'nextMonth');
 });
+
 
 // 將 showDetail 和 jumpToDateMonth 函數設為全域函數，讓 HTML 中的 onclick 能夠呼叫
 window.showDetail = showDetail;

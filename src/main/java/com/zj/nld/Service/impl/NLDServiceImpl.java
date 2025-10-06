@@ -11,7 +11,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -30,8 +33,16 @@ public class NLDServiceImpl implements NLDService {
     @Autowired
     private LineVerificationService lineVerificationService;
 
-    @Autowired
-    private RoleService roleService;
+    private String getRoleNameById(Integer roleId) {
+        return switch (roleId) {
+            case 1 -> "Admin";
+            case 2 -> "Client";
+            case 3 -> "Sales";
+            case 4 -> "ProdUnit";
+            case 5 -> "Assistant";
+            default -> "Unknown";
+        };
+    }
 
 
     @Override
@@ -57,34 +68,6 @@ public class NLDServiceImpl implements NLDService {
     public List<NLDProdUnitDTO> getNLDByProdUnit() {
         return nldRepository.ProdUnitSearch();
     }
-
-    @Override
-    public List<?> getNLDByUser(String groupId, String lineId) {
-
-        // 找到該user所在的group可使用的權限
-        UserGroupRole userGroupRole = userGroupRoleService.getRoleId(lineId, groupId);
-
-
-            return switch (userGroupRole.getRoleID()) {
-                // 管理者
-                case 1 -> nldRepository.AdminSearch();
-                // 客戶(需做診所篩選)
-                case 2 -> {
-                    yield nldRepository.ClientForDocSearch(userGroupRole.getGroupNameID(), userGroupRole.getUserNameID());
-                }
-                // 業務
-                case 3 -> nldRepository.SalesSearch(userGroupRole.getUserNameID());
-                // 生產單位
-                case 4 -> nldRepository.ProdUnitSearch();
-                // 牙助單位
-                case 5 -> {
-                    Clinic clinic = clinicService.findByClinicName(userGroupRole.getGroupName());
-                    yield nldRepository.ClientSearch(clinic.getClinicAbbr());
-                }
-                default -> null;
-            };
-    };
-
 
     /**
      * 根據 Access Token 取得使用者角色資訊
@@ -177,14 +160,73 @@ public class NLDServiceImpl implements NLDService {
         };
     }
 
-    private String getRoleNameById(Integer roleId) {
-        return switch (roleId) {
-            case 1 -> "Admin";
-            case 2 -> "Client";
-            case 3 -> "Sales";
-            case 4 -> "ProdUnit";
-            case 5 -> "Assistant";
-            default -> "Unknown";
-        };
+    // 業務搜尋篩選
+    @Transactional(readOnly = true)
+    @Override
+    public List<NldSalesDTO> searchSalesWorkOrders(
+            String authHeader,
+            String groupId,
+            String keyword,
+            String dateType,
+            String startDate,
+            String endDate
+    ) {
+        // 1. 驗證 Token
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Invalid Authorization Header");
+        }
+
+        String accessToken = authHeader.substring(7);
+        String lineId = lineVerificationService.verifyAccessTokenAndGetUserId(accessToken);
+
+        if (lineId == null || lineId.trim().isEmpty()) {
+            throw new SecurityException("無效的 Access Token");
+        }
+
+        // 2. 驗證 Group ID
+        if (groupId == null || groupId.trim().isEmpty()) {
+            throw new IllegalArgumentException("缺少 Group ID");
+        }
+
+        // 3. 查詢使用者角色
+        UserGroupRole userGroupRole = userGroupRoleService.getRoleId(lineId, groupId);
+
+        if (userGroupRole == null) {
+            throw new RuntimeException("使用者不存在或未授權此群組");
+        }
+
+        // 4. 確認是 Sales 角色
+        if (userGroupRole.getRoleID() != 3) {
+            throw new RuntimeException("此功能僅限 Sales 角色使用");
+        }
+
+        // 5. 轉換日期格式
+        Date parsedStartDate = null;
+        Date parsedEndDate = null;
+
+        if (startDate != null && !startDate.trim().isEmpty()) {
+            try {
+                parsedStartDate = new SimpleDateFormat("yyyy-MM-dd").parse(startDate);
+            } catch (ParseException e) {
+                throw new IllegalArgumentException("起始日期格式錯誤");
+            }
+        }
+
+        if (endDate != null && !endDate.trim().isEmpty()) {
+            try {
+                parsedEndDate = new SimpleDateFormat("yyyy-MM-dd").parse(endDate);
+            } catch (ParseException e) {
+                throw new IllegalArgumentException("結束日期格式錯誤");
+            }
+        }
+
+        // 6. 呼叫 Repository 搜尋
+        return nldRepository.SalesSearchWithFilters(
+                userGroupRole.getUserNameID(),
+                keyword,
+                dateType,
+                parsedStartDate,
+                parsedEndDate
+        );
     }
 }

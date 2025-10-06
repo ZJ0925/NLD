@@ -540,6 +540,26 @@
             padding: 8px;
         }
 
+        .search-btn {
+            padding: 14px 30px;
+            background: #2563EB; /* 藍色漸層 */
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            background: linear-gradient(135deg, #2563EB, #1D4ED8); /* 深藍色漸層 */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
         .calendar-day {
             aspect-ratio: 1;
             display: flex;
@@ -650,7 +670,13 @@
 <body>
 <!-- 固定搜尋區域 -->
 <div class="search-header">
-    <input type="text" class="search-input" placeholder="🔍 搜尋技工單號、診所、患者姓名..." id="searchInput">
+    <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+        <input type="text" class="search-input"
+               placeholder="🔍 搜尋技工單號、診所、患者姓名..."
+               id="searchInput"
+               style="margin-bottom: 0;">
+        <button class="search-btn" id="searchBtn">搜尋</button>
+    </div>
 
     <!-- 日期篩選區域 -->
     <div class="date-filter-section">
@@ -804,6 +830,6 @@
 </div>
 
 <!-- 引入 JS 檔案 -->
-<script src="/page/script/SalesScript.js?v=67453153"></script>
+<script src="/page/script/SalesScript.js?v=99999"></script>
 </body>
 </html>

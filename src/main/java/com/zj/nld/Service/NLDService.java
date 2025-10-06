@@ -21,7 +21,17 @@ public interface NLDService {
      //取得生產單位NLD
     List<NLDProdUnitDTO> getNLDByProdUnit();
 
-    List<?> getNLDByUser(String groupId, String lineId);
     List<?> getWorkOrdersByAccessToken(String authHeader, String roleType, String groupId);
+
+
+    // 業務搜尋篩選
+    List<NldSalesDTO> searchSalesWorkOrders(
+            String authHeader,
+            String groupId,
+            String keyword,
+            String dateType,
+            String startDate,
+            String endDate
+    );
 
 }

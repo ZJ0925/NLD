@@ -1,5 +1,6 @@
 package com.zj.nld.Controller;
 
+import com.zj.nld.Model.DTO.NldSalesDTO;
 import com.zj.nld.Model.DTO.UserGroupRoleDTO;
 import com.zj.nld.Service.NLDService;
 import com.zj.nld.Service.RoleService;
@@ -60,6 +61,48 @@ public class NLDController {
             String groupId = (requestBody != null) ? requestBody.get("groupId") : null;
             List<?> workOrders = nldService.getWorkOrdersByAccessToken(authHeader, roleType, groupId);
             return ResponseEntity.ok(workOrders);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "系統錯誤"));
+        }
+    }
+
+
+    // 業務搜尋篩選
+    @GetMapping("/sales/search")
+    public ResponseEntity<?> searchSalesWorkOrders(
+            @RequestHeader(value = "Authorization", required = true) String authHeader,
+            @RequestParam(required = false) String groupId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String dateType,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate
+    ) {
+        try {
+            List<NldSalesDTO> results = nldService.searchSalesWorkOrders(
+                    authHeader,
+                    groupId,
+                    keyword,
+                    dateType,
+                    startDate,
+                    endDate
+            );
+
+            return ResponseEntity.ok(results);
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
