@@ -737,6 +737,16 @@
                 height: 16px;
             }
         }
+        .search-input::placeholder {
+            font-size: 14px;
+        }
+
+        /* 手機版讓 placeholder 更小 */
+        @media (max-width: 480px) {
+            .search-input::placeholder {
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -744,7 +754,7 @@
 <div class="search-header">
     <div style="display: flex; gap: 10px; margin-bottom: 12px;">
         <input type="text" class="search-input"
-               placeholder="🔍 搜尋技工單號、診所、患者姓名..."
+               placeholder="🔍 搜尋技工單號、診所、醫名、患者..."
                id="searchInput"
                style="margin-bottom: 0;">
         <button class="search-btn" id="searchBtn">搜尋</button>
@@ -758,7 +768,9 @@
                 <option value="deliveryDate">✅ 完成交件日</option>
                 <option value="tryInDate">🔄 試戴交件日</option>
                 <option value="estFinishDate">⏰ 預計完成日</option>
-                <option value="receivedDate">📥 收件日</option>
+                <option value="receivedDate">📥 收模日</option>
+                <option value="tryInReceivedDate">📤 試戴收件日</option>
+                <option value="estTryInDate">🕐 預計試戴日</option>
             </select>
             <button class="clear-filter-btn" id="clearFilterBtn">清除</button>
         </div>
@@ -822,7 +834,7 @@
                 <div class="section-title">📅 日期資訊</div>
                 <div class="detail-grid">
                     <div class="detail-field">
-                        <div class="field-label">📥 收件日</div>
+                        <div class="field-label">📥 收模日</div>
                         <div class="field-value" id="detailReceiveDate">5/2</div>
                     </div>
                     <div class="detail-field">

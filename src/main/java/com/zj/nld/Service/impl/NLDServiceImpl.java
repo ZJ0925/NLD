@@ -143,7 +143,7 @@ public class NLDServiceImpl implements NLDService {
     // 業務搜尋篩選
     @Transactional(readOnly = true)
     @Override
-    public List<NldSalesDTO> searchSalesWorkOrders(
+    public List<?> searchTypeWorkOrders(
             String authHeader,
             String groupId,
             String keyword,
@@ -175,11 +175,6 @@ public class NLDServiceImpl implements NLDService {
             throw new RuntimeException("使用者不存在或未授權此群組");
         }
 
-        // 4. 確認是 Sales 角色
-        if (userGroupRole.getRoleID() != 3) {
-            throw new RuntimeException("此功能僅限 Sales 角色使用");
-        }
-
         // 5. 轉換日期格式
         Date parsedStartDate = null;
         Date parsedEndDate = null;
@@ -200,13 +195,138 @@ public class NLDServiceImpl implements NLDService {
             }
         }
 
-        // 6. 呼叫 Repository 搜尋
-        return nldRepository.SalesSearchWithFilters(
-                userGroupRole.getUserNameID(),
-                keyword,
-                dateType,
-                parsedStartDate,
-                parsedEndDate
-        );
+
+        // 6. 根據角色取得工單
+        return switch (userGroupRole.getRoleID()) {
+            case 1 -> nldRepository.AdminSearchWithFilters(keyword, dateType, parsedStartDate, parsedEndDate);
+            case 2 -> nldRepository.ClientForDocWithFilters(
+                    userGroupRole.getGroupNameID(),
+                    userGroupRole.getUserNameID(),
+                    keyword,
+                    dateType,
+                    parsedStartDate,
+                    parsedEndDate
+            );
+            case 3 -> nldRepository.SalesSearchWithFilters(
+                    userGroupRole.getUserNameID(),
+                    keyword,
+                    dateType,
+                    parsedStartDate,
+                    parsedEndDate
+             );
+            case 4 -> nldRepository.ProdUnitSearchWithFilters(
+                    keyword,
+                    dateType,
+                    parsedStartDate,
+                    parsedEndDate
+            );
+            case 5 -> nldRepository.ClientSearchWithFilters(
+                    userGroupRole.getGroupNameID(),
+                    keyword,
+                    dateType,
+                    parsedStartDate,
+                    parsedEndDate
+            );
+
+            default -> Collections.emptyList();  // 改這裡：回傳空 List 而非 null
+        };
     }
+
+    // 業務搜尋篩選
+//    @Transactional(readOnly = true)
+//    @Override
+//    public List<NldSalesDTO> searchSalesWorkOrders(
+//            String authHeader,
+//            String groupId,
+//            String keyword,
+//            String dateType,
+//            String startDate,
+//            String endDate
+//    ) {
+//        // 1. 驗證 Token
+//        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+//            throw new IllegalArgumentException("Invalid Authorization Header");
+//        }
+//
+//        String accessToken = authHeader.substring(7);
+//        String lineId = lineVerificationService.verifyAccessTokenAndGetUserId(accessToken);
+//
+//        if (lineId == null || lineId.trim().isEmpty()) {
+//            throw new SecurityException("無效的 Access Token");
+//        }
+//
+//        // 2. 驗證 Group ID
+//        if (groupId == null || groupId.trim().isEmpty()) {
+//            throw new IllegalArgumentException("缺少 Group ID");
+//        }
+//
+//        // 3. 查詢使用者角色
+//        UserGroupRole userGroupRole = userGroupRoleService.getRoleId(lineId, groupId);
+//
+//        if (userGroupRole == null) {
+//            throw new RuntimeException("使用者不存在或未授權此群組");
+//        }
+//
+//        // 4. 確認是 Sales 角色
+//        if (userGroupRole.getRoleID() != 3) {
+//            throw new RuntimeException("此功能僅限 Sales 角色使用");
+//        }
+//
+//        // 5. 轉換日期格式
+//        Date parsedStartDate = null;
+//        Date parsedEndDate = null;
+//
+//        if (startDate != null && !startDate.trim().isEmpty()) {
+//            try {
+//                parsedStartDate = new SimpleDateFormat("yyyy-MM-dd").parse(startDate);
+//            } catch (ParseException e) {
+//                throw new IllegalArgumentException("起始日期格式錯誤");
+//            }
+//        }
+//
+//        if (endDate != null && !endDate.trim().isEmpty()) {
+//            try {
+//                parsedEndDate = new SimpleDateFormat("yyyy-MM-dd").parse(endDate);
+//            } catch (ParseException e) {
+//                throw new IllegalArgumentException("結束日期格式錯誤");
+//            }
+//        }
+//
+//        // 6. 呼叫 Repository 搜尋
+//        return nldRepository.SalesSearchWithFilters(
+//                userGroupRole.getUserNameID(),
+//                keyword,
+//                dateType,
+//                parsedStartDate,
+//                parsedEndDate
+//        );
+//    }
+
+//    // 牙助搜尋篩選
+//    @Transactional(readOnly = true)
+//    @Override
+//    public List<NldClientDTO> searchClientWorkOrders(String authHeader, String groupId, String keyword, String dateType, String startDate, String endDate) {
+//        return List.of();
+//    }
+//
+//    // 醫生搜尋篩選
+//    @Transactional(readOnly = true)
+//    @Override
+//    public List<NldClientDTO> searchClientForDocWorkOrders(String authHeader, String groupId, String keyword, String dateType, String startDate, String endDate) {
+//        return List.of();
+//    }
+//
+//    // 生產單位搜尋篩選
+//    @Transactional(readOnly = true)
+//    @Override
+//    public List<NLDProdUnitDTO> searchProdUnitWorkOrders(String authHeader, String groupId, String keyword, String dateType, String startDate, String endDate) {
+//        return List.of();
+//    }
+//
+//    // 管理員搜尋篩選
+//    @Transactional(readOnly = true)
+//    @Override
+//    public List<NldDTO> searchAdminWorkOrders(String authHeader, String groupId, String keyword, String dateType, String startDate, String endDate) {
+//        return List.of();
+//    }
 }

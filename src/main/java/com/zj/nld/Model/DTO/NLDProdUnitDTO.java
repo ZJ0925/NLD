@@ -56,6 +56,10 @@ public class NLDProdUnitDTO {
 
     //目前無12派工別--------------------------------------------------------------------------------
 
+    // 空的建構子
+    public NLDProdUnitDTO() {
+    }
+
 
     public NLDProdUnitDTO(
             String workOrderNum,

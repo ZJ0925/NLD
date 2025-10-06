@@ -56,6 +56,11 @@ public class NldDTO {
     private String salesName;  // 用來接收 Sales.Name
 
 
+    // 空的建構子
+    public NldDTO() {
+    }
+
+
     // 构造方法，参数顺序和查询返回的顺序一致
     public NldDTO(String workOrderNum, String clinicName, String docName, String patientName,
                   Date receivedDate, Date deliveryDate, String toothPosition, String prodItem,

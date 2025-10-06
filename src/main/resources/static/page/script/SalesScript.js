@@ -1,6 +1,7 @@
 // ===== 第1部分：在 SalesScript.js 開頭添加這個存儲類 =====
 // 在所有現有代碼之前添加
-
+// 在全局變數區域加入(檔案開頭附近,與其他全局變數放在一起)
+let scrollPosition = 0;
 
 class NLDStorage {
     constructor() {
@@ -453,7 +454,7 @@ function findEarliestDate(item) {
     }
 
     const dates = [
-        { date: item.receivedDate, name: '收件日' },
+        { date: item.receivedDate, name: '收模日' },
         { date: item.deliveryDate, name: '完成交件日' },
         { date: item.tryInDate, name: '試戴交件日' },
         { date: item.tryInReceivedDate, name: '試戴收件日' }
@@ -494,12 +495,15 @@ function findEarliestDate(item) {
     return earliest.date;
 }
 
-// ===== 修改1：替換現有的 showDetail 函數 =====
+// 修改 showDetail 函數
 function showDetail(workOrderNum) {
     const item = filteredData.find(d => d.workOrderNum === workOrderNum);
     if (!item) return;
 
     currentDetailItem = item;
+
+    // 儲存當前捲動位置
+    scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
 
     // 填入資料
     document.getElementById('detailWorkNum').textContent = safeValue(item.workOrderNum);
@@ -520,11 +524,12 @@ function showDetail(workOrderNum) {
     document.getElementById('detailExpectedTryDate').textContent = formatDate(item.estTryInDate);
     document.getElementById('detailStatus').textContent = safeValue(item.workOrderStatus);
 
-// 隱藏搜尋區塊
+    // 隱藏搜尋區塊
     const searchHeader = document.querySelector('.search-header');
     if (searchHeader) {
         searchHeader.classList.add('hidden');
     }
+
     const statusTags = [
         item.isRemake && '重製',
         item.isNoCharge && '不計價',
@@ -538,15 +543,13 @@ function showDetail(workOrderNum) {
     document.getElementById('listView').style.display = 'none';
     document.getElementById('detailView').style.display = 'block';
 
-    // 關鍵修復：滾動到頁面頂部
+    // 詳細頁面滾動到頂部
     window.scrollTo(0, 0);
-
-    // 如果是在移動設備上，也可以嘗試滾動 body
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
 }
 
-// ===== 新增：需要在現有代碼中找到 showList 函數並替換 =====
+// 修改 showList 函數
 function showList() {
     // 顯示搜尋區塊
     const searchHeader = document.querySelector('.search-header');
@@ -558,6 +561,13 @@ function showList() {
     document.getElementById('detailView').style.display = 'none';
     document.getElementById('calendarView').style.display = 'none';
     currentDetailItem = null;
+
+    // 恢復到之前的捲動位置
+    setTimeout(() => {
+        window.scrollTo(0, scrollPosition);
+        document.documentElement.scrollTop = scrollPosition;
+        document.body.scrollTop = scrollPosition;
+    }, 0);
 }
 
 // 顯示日曆視圖

@@ -53,6 +53,11 @@ public class NldSalesDTO {
     private String remarks; // 21.備註
 
 
+    // 空的建構子
+    public NldSalesDTO() {
+    }
+
+
     //建立constructor讓JPA函式可以讀取
     public NldSalesDTO(
             String workOrderNum,

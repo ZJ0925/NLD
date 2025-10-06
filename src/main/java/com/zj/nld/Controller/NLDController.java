@@ -1,7 +1,6 @@
 package com.zj.nld.Controller;
 
-import com.zj.nld.Model.DTO.NldSalesDTO;
-import com.zj.nld.Model.DTO.UserGroupRoleDTO;
+import com.zj.nld.Model.DTO.*;
 import com.zj.nld.Service.NLDService;
 import com.zj.nld.Service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,7 +92,7 @@ public class NLDController {
             @RequestParam(required = false) String endDate
     ) {
         try {
-            List<NldSalesDTO> results = nldService.searchSalesWorkOrders(
+            List<?> results = nldService.searchTypeWorkOrders(
                     authHeader,
                     groupId,
                     keyword,
@@ -102,6 +101,169 @@ public class NLDController {
                     endDate
             );
 
+            return ResponseEntity.ok(results);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "系統錯誤"));
+        }
+    }
+
+    // 牙助搜尋篩選
+    @GetMapping("/Client/search")
+    public ResponseEntity<?> searchClientWorkOrders(
+            @RequestHeader(value = "Authorization", required = true) String authHeader,
+            @RequestParam(required = false) String groupId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String dateType,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate
+    ) {
+        try {
+            List<?> results = nldService.searchTypeWorkOrders(
+                    authHeader,
+                    groupId,
+                    keyword,
+                    dateType,
+                    startDate,
+                    endDate
+            );
+
+            return ResponseEntity.ok(results);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "系統錯誤"));
+        }
+    }
+
+    // 醫生搜尋篩選
+    @GetMapping("/ClientForDoc/search")
+    public ResponseEntity<?> searchClientForDocWorkOrders(
+            @RequestHeader(value = "Authorization", required = true) String authHeader,
+            @RequestParam(required = false) String groupId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String dateType,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate
+    ) {
+        try {
+            List<?> results = nldService.searchTypeWorkOrders(
+                    authHeader,
+                    groupId,
+                    keyword,
+                    dateType,
+                    startDate,
+                    endDate
+            );
+
+            return ResponseEntity.ok(results);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "系統錯誤"));
+        }
+    }
+
+    // 生產單位搜尋篩選
+    @GetMapping("/ProdUnit/search")
+    public ResponseEntity<?> searchProdUnitWorkOrders(
+            @RequestHeader(value = "Authorization", required = true) String authHeader,
+            @RequestParam(required = false) String groupId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String dateType,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate
+    ) {
+        try {
+            List<?> results = nldService.searchTypeWorkOrders(
+                    authHeader,
+                    groupId,
+                    keyword,
+                    dateType,
+                    startDate,
+                    endDate
+            );
+
+            return ResponseEntity.ok(results);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "系統錯誤"));
+        }
+    }
+
+    // 管理者搜尋篩選
+    @GetMapping("/Admin/search")
+    public ResponseEntity<?> searchAdminWorkOrders(
+            @RequestHeader(value = "Authorization", required = true) String authHeader,
+            @RequestParam(required = false) String groupId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String dateType,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate
+    ) {
+        try {
+            List<?> results = nldService.searchTypeWorkOrders(
+                    authHeader,
+                    groupId,
+                    keyword,
+                    dateType,
+                    startDate,
+                    endDate
+            );
             return ResponseEntity.ok(results);
 
         } catch (IllegalArgumentException e) {

@@ -36,6 +36,10 @@ public class NldClientDTO {
 
     private String remarks; // 21.備註
 
+    // 空的建構子
+    public NldClientDTO() {
+    }
+
     public NldClientDTO(String workOrderNum, String clinicName, String docName, String patientName, Date deliveryDate, String toothPosition, String prodName, Date tryInDate, String workOrderStatus, boolean isRemake, boolean isNoCharge, boolean isPaused, boolean isVoided, String remarks) {
         this.workOrderNum = workOrderNum;
         this.clinicName = clinicName;
@@ -52,6 +56,8 @@ public class NldClientDTO {
         this.isVoided = isVoided;
         this.remarks = remarks;
     }
+
+
 
     public String getWorkOrderNum() {
         return workOrderNum;
