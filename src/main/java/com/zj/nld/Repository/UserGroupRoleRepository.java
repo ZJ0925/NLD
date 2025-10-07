@@ -47,7 +47,7 @@ public interface UserGroupRoleRepository extends JpaRepository<UserGroupRole, UU
     """)
     String findTopGroupNameByGroupID(@Param("groupID") String groupID);
 
-    // 直接用 JPA 更新 groupName
+    // 直接用 JPA 更新 groupName---------------(紫色的GroupName、GroupNameID、GroupID要大寫)
     @Modifying
     @Query(value = "UPDATE UserGroupRole SET groupName = :groupName, groupNameID = :groupNameID WHERE groupID = :groupID", nativeQuery = true)
     void updateGroupNameAndIDByGroupIDNative(@Param("groupID") String groupID,

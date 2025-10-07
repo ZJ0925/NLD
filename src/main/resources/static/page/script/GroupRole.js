@@ -1,26 +1,25 @@
-// GroupRole.js - 群組管理系統（重構版）
-// 全域變數 - 替換原有的變數宣告部分
-let allSalesPersons = []; // 儲存所有業務人員資料
-let allDoctors = []; // 儲存所有醫生資料
-let originalGroupData = []; // 儲存群組列表的原始資料
-let filteredGroupData = []; // 儲存篩選後的群組列表
-let originalUserData = []; // 儲存選中群組的使用者原始資料
-let filteredUserData = []; // 儲存篩選後的使用者資料
+// GroupRole.js - 群組管理系統(重構版)
+// 全域變數
+let allSalesPersons = [];
+let allDoctors = [];
+let originalGroupData = [];
+let filteredGroupData = [];
+let originalUserData = [];
+let filteredUserData = [];
 let currentPage = 1;
-let itemsPerPage = 10;
-let currentView = 'groupList'; // 'groupList' 或 'groupDetail'
+let itemsPerPage = 20; // 預設值,會動態計算
+let currentView = 'groupList';
 let currentGroupId = null;
 let changedRows = new Set();
-let currentChanges = new Map(); // 儲存當前的變更數據
-let currentSort = 'none'; // 'none', 'asc', 'desc'
-let allClinics = []; // 儲存所有診所資料
-let groupNameChanges = new Map(); // 儲存群組名稱的變更
+let currentChanges = new Map();
+let currentSort = 'none';
+let allClinics = [];
+let groupNameChanges = new Map();
 
 // DOM 元素
 const searchGroupName = document.getElementById('searchGroupName');
 const searchUserName = document.getElementById('searchUserName');
 const searchRole = document.getElementById('searchRole');
-const itemsPerPageSelect = document.getElementById('itemsPerPage');
 const prevPageBtn = document.getElementById('prevPage');
 const nextPageBtn = document.getElementById('nextPage');
 const pageNumbers = document.getElementById('pageNumbers');
@@ -28,7 +27,7 @@ const pageInfo = document.getElementById('pageInfo');
 const filterBtn = document.getElementById('filterBtn');
 const resetBtn = document.getElementById('resetBtn');
 
-// 權限對應表 - 移除無權限選項
+// 權限對應表
 const roleMap = {
     1: "管理員",
     2: "醫師",
@@ -37,9 +36,46 @@ const roleMap = {
     5: "牙助"
 };
 
-// 1. 頁面載入初始化
+// 計算每頁可以顯示的卡片數量
+function calculateItemsPerPage() {
+    if (currentView === 'groupList') {
+        const container = document.getElementById('groupsContainer');
+        if (!container) return 20;
+
+        const containerWidth = container.offsetWidth - 40;
+        const cardMinWidth = 180;
+        const gap = 15;
+
+        const cardsPerRow = Math.floor((containerWidth + gap) / (cardMinWidth + gap));
+        const containerHeight = container.offsetHeight;
+        const cardHeight = 100;
+        const rowsPerPage = Math.floor((containerHeight - 40) / (cardHeight + gap));
+
+        const calculatedItems = cardsPerRow * Math.max(rowsPerPage, 2);
+
+        return Math.max(calculatedItems, 10);
+    } else {
+        return 20;
+    }
+}
+
+// 排序切換函數
+function toggleSort() {
+    if (currentSort === 'none') {
+        currentSort = 'asc';
+    } else if (currentSort === 'asc') {
+        currentSort = 'desc';
+    } else {
+        currentSort = 'none';
+    }
+
+    rebuildFilteredUserData();
+    renderGroupDetail();
+    updatePagination();
+}
+
+// 頁面載入初始化
 window.addEventListener('DOMContentLoaded', () => {
-    // 綁定事件
     filterBtn.addEventListener('click', applyFilters);
     resetBtn.addEventListener('click', resetFilters);
 
@@ -59,13 +95,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
     searchRole.addEventListener('change', applyFilters);
 
-    itemsPerPageSelect.addEventListener('change', function() {
-        itemsPerPage = parseInt(this.value);
-        currentPage = 1;
-        renderCurrentView();
-        updatePagination();
-    });
-
     prevPageBtn.addEventListener('click', () => {
         if (currentPage > 1) {
             currentPage--;
@@ -83,7 +112,6 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 綁定儲存和取消按鈕事件
     const saveChangesBtn = document.getElementById('saveChangesBtn');
     const cancelChangesBtn = document.getElementById('cancelChangesBtn');
 
@@ -95,7 +123,6 @@ window.addEventListener('DOMContentLoaded', () => {
         cancelChangesBtn.addEventListener('click', cancelChanges);
     }
 
-    // 綁定麵包屑導航
     const breadcrumbHome = document.getElementById('breadcrumbHome');
     if (breadcrumbHome) {
         breadcrumbHome.addEventListener('click', () => {
@@ -103,8 +130,21 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 初始化頁面
     initializePage();
+});
+
+// 視窗大小改變時重新計算
+window.addEventListener('resize', () => {
+    if (currentView === 'groupList') {
+        const oldItemsPerPage = itemsPerPage;
+        itemsPerPage = calculateItemsPerPage();
+
+        if (oldItemsPerPage !== itemsPerPage) {
+            currentPage = 1;
+            renderGroupList();
+            updatePagination();
+        }
+    }
 });
 
 // 載入業務人員資料
@@ -374,48 +414,38 @@ function resetFilters() {
     updatePagination();
 }
 
-// 8. 切換到群組列表視圖
 function switchToGroupListView() {
     currentView = 'groupList';
     currentGroupId = null;
-    currentSort = 'none'; // 重置排序
+    currentSort = 'none';
 
-    // 清除所有變更
     changedRows.clear();
     currentChanges.clear();
     updateSaveButtonVisibility();
 
-    // 更新 UI
     document.getElementById('groupListView').style.display = 'block';
     document.getElementById('groupDetailView').style.display = 'none';
     document.getElementById('groupFilters').style.display = 'block';
     document.getElementById('userFilters').style.display = 'none';
 
-    // 更新麵包屑
     document.getElementById('breadcrumbHome').classList.add('active');
     document.getElementById('breadcrumbSeparator').style.display = 'none';
     document.getElementById('breadcrumbGroup').style.display = 'none';
 
-    // 更新頁面控制項標籤
-    document.getElementById('itemsLabel').textContent = '每頁顯示：';
-    document.getElementById('itemsPerPage').innerHTML = `
-        <option value="5">5個群組</option>
-        <option value="10" selected>10個群組</option>
-        <option value="20">20個群組</option>
-        <option value="50">50個群組</option>
-    `;
-
     currentPage = 1;
-    renderGroupList();
-    updatePagination();
+
+    // 計算每頁應該顯示的項目數
+    setTimeout(() => {
+        itemsPerPage = calculateItemsPerPage();
+        renderGroupList();
+        updatePagination();
+    }, 100);
 }
 
-// 切換到群組詳情視圖
 async function switchToGroupDetailView(groupId, groupName) {
     currentView = 'groupDetail';
     currentGroupId = groupId;
 
-    // 判斷是否為業務群組並載入對應的人員資料
     const isBusinessGroup = groupName.includes('業務');
 
     if (isBusinessGroup && allSalesPersons.length === 0) {
@@ -424,31 +454,18 @@ async function switchToGroupDetailView(groupId, groupName) {
         await loadAllDoctors();
     }
 
-    // 更新 UI
     document.getElementById('groupListView').style.display = 'none';
     document.getElementById('groupDetailView').style.display = 'block';
     document.getElementById('groupFilters').style.display = 'none';
     document.getElementById('userFilters').style.display = 'block';
 
-    // 更新麵包屑
     document.getElementById('breadcrumbHome').classList.remove('active');
     document.getElementById('breadcrumbSeparator').style.display = 'inline';
     document.getElementById('breadcrumbGroup').style.display = 'inline';
     document.getElementById('breadcrumbGroup').textContent = groupName;
 
-    // 更新群組名稱顯示
     document.getElementById('currentGroupName').textContent = groupName;
 
-    // 更新頁面控制項標籤
-    document.getElementById('itemsLabel').textContent = '每頁顯示：';
-    document.getElementById('itemsPerPage').innerHTML = `
-        <option value="5">5個使用者</option>
-        <option value="10" selected>10個使用者</option>
-        <option value="20">20個使用者</option>
-        <option value="50">50個使用者</option>
-    `;
-
-    // 顯示載入中
     document.getElementById('groupDetailContent').innerHTML = `
         <div class="loading-container">
             <div class="spinner"></div>
@@ -457,6 +474,7 @@ async function switchToGroupDetailView(groupId, groupName) {
     `;
 
     currentPage = 1;
+    itemsPerPage = 20; // 使用者列表固定每頁20筆
     await loadGroupUsersFromAPI(groupId);
 }
 
@@ -509,11 +527,15 @@ function renderGroupList() {
 
 // 12. 創建群組卡片HTML
 function createGroupCard(group) {
+    const groupName = safeValue(group.groupName);
     return `
         <div class="group-card" data-group-id="${group.groupID}">
             <div class="group-name-dropdown-container">
-                <button type="button" class="group-name-display" data-group-id="${group.groupID}">
-                    ${safeValue(group.groupName)}
+                <button type="button" 
+                        class="group-name-display" 
+                        data-group-id="${group.groupID}"
+                        title="${groupName}">
+                    ${groupName}
                 </button>
                 <div class="clinic-options">
                     <input type="text" class="clinic-search" placeholder="搜尋診所...">
@@ -921,7 +943,6 @@ function handleRoleChange(element, groupId, externalId, newRoleId) {
 }
 
 
-// 然後是 updatePagination 函數
 function updatePagination() {
     const totalItems = getCurrentTotalItems();
     const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -962,7 +983,9 @@ function updatePagination() {
     const startItem = (currentPage - 1) * itemsPerPage + 1;
     const endItem = Math.min(currentPage * itemsPerPage, totalItems);
     const itemType = currentView === 'groupList' ? '群組' : '使用者';
-    pageInfo.textContent = `顯示 ${startItem}-${endItem} 項，共 ${totalItems} 個${itemType}`;
+
+    // 只顯示頁數資訊，不顯示每頁數量
+    pageInfo.textContent = `第 ${currentPage} 頁，共 ${totalPages} 頁 (共 ${totalItems} 個${itemType})`;
 }
 
 // 24. 創建頁碼按鈕

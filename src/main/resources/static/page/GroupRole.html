@@ -222,6 +222,12 @@
             width: 100%;
             text-align: left;
             position: relative;
+
+            /* 文字省略設定 */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: block;
         }
 
         .group-name-display:after {
@@ -289,17 +295,47 @@
             border-bottom: none;
         }
 
-        /* 群組卡片樣式 - 修正版本 */
+        /* 固定卡片高度 */
         .group-card {
             background-color: white;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
-            padding: 20px;
+            padding: 15px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
             cursor: pointer;
             position: relative;
             z-index: 1;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Tooltip 樣式 */
+        .group-name-display[title]:hover::before {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            white-space: normal;
+            max-width: 300px;
+            word-wrap: break-word;
+            z-index: 10001;
+            font-size: 14px;
+            font-weight: normal;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.2s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .group-card.dropdown-active {
@@ -898,18 +934,6 @@
             <span class="breadcrumb-item active" id="breadcrumbHome">群組列表</span>
             <span class="breadcrumb-separator" id="breadcrumbSeparator" style="display: none;">></span>
             <span class="breadcrumb-item" id="breadcrumbGroup" style="display: none;"></span>
-        </div>
-
-        <div class="controls">
-            <div class="items-per-page">
-                <label id="itemsLabel">每頁顯示：</label>
-                <select id="itemsPerPage">
-                    <option value="5">5個項目</option>
-                    <option value="10" selected>10個項目</option>
-                    <option value="20">20個項目</option>
-                    <option value="50">50個項目</option>
-                </select>
-            </div>
         </div>
 
         <div class="groups-container" id="groupsContainer">

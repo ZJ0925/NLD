@@ -151,11 +151,9 @@
     // 主程式
     (async () => {
         try {
-            console.log('=== 1. 開始執行 ===');
 
             const storage = new SimpleNLDStorage();
             await storage.init();
-            console.log('=== 2. Storage 初始化完成 ===');
 
             // 不要清除 localStorage！
             // await storage.clearData();  // 註解掉這行
@@ -164,11 +162,9 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             let groupIdFromUrl = urlParams.get('g');
-            console.log('=== 3. URL 的 Group ID:', groupIdFromUrl);
 
             // 檢查是否有暫存的 Group ID
             const pendingGroupId = localStorage.getItem('pendingGroupId');
-            console.log('=== 4. localStorage 的 pendingGroupId:', pendingGroupId);
 
             if (groupIdFromUrl) {
                 localStorage.setItem('pendingGroupId', groupIdFromUrl);
@@ -176,14 +172,14 @@
                 groupIdFromUrl = pendingGroupId;
             }
 
-            console.log('=== 5. 最終使用的 Group ID:', groupIdFromUrl);
+
 
             await liff.init({
-                liffId: '2008232728-Raq7rdq9'
+                liffId: '2008232728-Raq7rdq9'// 佈署時註解
+                // liffId: '2008239415-2lBZ9KeE' //開發時註解
+
             });
-            console.log('=== 6. LIFF 初始化完成 ===');
-            console.log('=== 7. isLoggedIn:', liff.isLoggedIn());
-            console.log('=== 8. isInClient:', liff.isInClient());
+
             const isInLineClient = liff.isInClient();
 
             if (isInLineClient) {
