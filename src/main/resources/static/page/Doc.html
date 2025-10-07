@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ProdUnit技工單查詢</title>
+    <title>Client技工單查詢</title>
     <style>
         * {
             margin: 0;
@@ -629,6 +629,11 @@
                 padding: 10px;
             }
 
+            .work-item-content {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
             .detail-grid {
                 grid-template-columns: 1fr;
             }
@@ -767,10 +772,6 @@
                 <option value="">📅 請選擇日期類型</option>
                 <option value="deliveryDate">✅ 完成交件日</option>
                 <option value="tryInDate">🔄 試戴交件日</option>
-                <option value="estFinishDate">⏰ 預計完成日</option>
-                <option value="receivedDate">📥 收模日</option>
-                <option value="tryInReceivedDate">📤 試戴收件日</option>
-                <option value="estTryInDate">🕐 預計試戴日</option>
             </select>
             <button class="clear-filter-btn" id="clearFilterBtn">清除</button>
         </div>
@@ -820,12 +821,8 @@
                         <div class="field-value" id="detailToothPosition">11, 21</div>
                     </div>
                     <div class="detail-field">
-                        <div class="field-label">👤 業務</div>
-                        <div class="field-value" id="detailSales">王小明</div>
-                    </div>
-                    <div class="detail-field">
                         <div class="field-label">🛠️ 產品名稱</div>
-                        <div class="field-value" id="detailProductName">彩瓷冠 - 臨時牙</div>
+                        <div class="field-value" id="detailProductName">彩瓷冠</div>
                     </div>
                 </div>
             </div>
@@ -834,28 +831,12 @@
                 <div class="section-title">📅 日期資訊</div>
                 <div class="detail-grid">
                     <div class="detail-field">
-                        <div class="field-label">📥 收模日</div>
-                        <div class="field-value" id="detailReceiveDate">5/2</div>
-                    </div>
-                    <div class="detail-field">
-                        <div class="field-label">⏰ 預計完成日</div>
-                        <div class="field-value" id="detailExpectedDate">5/5</div>
-                    </div>
-                    <div class="detail-field">
                         <div class="field-label">🔄 試戴交件日</div>
                         <div class="field-value" id="detailTryInDate">-</div>
                     </div>
                     <div class="detail-field">
                         <div class="field-label">✅ 完成交件日</div>
                         <div class="field-value" id="detailDeliveryDate">-</div>
-                    </div>
-                    <div class="detail-field">
-                        <div class="field-label">📤 試戴收件日</div>
-                        <div class="field-value" id="detailTryReceiveDate">-</div>
-                    </div>
-                    <div class="detail-field">
-                        <div class="field-label">🕐 預計試戴日</div>
-                        <div class="field-value" id="detailExpectedTryDate">-</div>
                     </div>
                 </div>
             </div>
@@ -879,6 +860,7 @@
             </div>
         </div>
 
+        <!-- ✅ 日曆按鈕在 detail-view 結束之前 -->
         <button class="calendar-btn" id="calendarBtn">📅</button>
     </div>
 
@@ -914,6 +896,6 @@
 </div>
 
 <!-- 引入 JS 檔案 -->
-<script src="/page/script/ProdUnitScript.js?v=99999"></script>
+<script src="/page/script/DocScript.js?v=99999"></script>
 </body>
 </html>

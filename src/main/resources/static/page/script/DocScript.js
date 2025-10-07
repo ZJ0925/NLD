@@ -365,7 +365,7 @@ function generateStatusTags(item) {
     return tags.join('');
 }
 
-// 渲染列表項目 - 管理者版本顯示更多資訊
+// 渲染列表項目 - 客戶版本（醫生）顯示精簡資訊
 function renderListItem(item) {
     return `
         <div class="work-item" onclick="showDetail('${item.workOrderNum}')">
@@ -379,24 +379,16 @@ function renderListItem(item) {
                     <div class="value">${safeValue(item.patientName)}</div>
                 </div>
                 <div class="work-item-field">
-                    <div class="label">業務</div>
-                    <div class="value">${safeValue(item.salesName)}</div>
+                    <div class="label">醫師</div>
+                    <div class="value">${safeValue(item.docName)}</div>
                 </div>
                 <div class="work-item-field">
-                    <div class="label">單價</div>
-                    <div class="value">${item.price ? `$${item.price.toLocaleString()}` : '-'}</div>
-                </div>
-                <div class="work-item-field">
-                    <div class="label">預計完成</div>
-                    <div class="value">${formatDate(item.estFinishDate)}</div>
+                    <div class="label">齒位</div>
+                    <div class="value">${formatToothPosition(item.toothPosition)}</div>
                 </div>
                 <div class="work-item-field">
                     <div class="label">工單現況</div>
                     <div class="value">${safeValue(item.workOrderStatus)}</div>
-                </div>
-                <div class="work-item-field">
-                    <div class="label">醫師</div>
-                    <div class="value">${safeValue(item.docName)}</div>
                 </div>
             </div>
             <div class="status-tags">
@@ -454,19 +446,16 @@ function loadMoreItems() {
     }, 100);
 }
 
-// 找到該筆工單最早的有效日期
+// 找到該筆工單最早的有效日期 - 客戶版本只有兩個日期
 function findEarliestDate(item) {
-
     if (!item) {
         return null;
     }
 
     const dates = [
-        { date: item.receivedDate, name: '收模日' },
         { date: item.deliveryDate, name: '完成交件日' },
-        { date: item.tryInDate, name: '試戴交件日' },
-        { date: item.tryInReceivedDate, name: '試戴收件日' }
-    ].filter(d => d.date) // 過濾掉空值
+        { date: item.tryInDate, name: '試戴交件日' }
+    ].filter(d => d.date)
         .map(d => {
             let parsedDate;
             try {
@@ -488,14 +477,12 @@ function findEarliestDate(item) {
                 console.error("日期解析錯誤:", d, e);
                 return null;
             }
-        }).filter(Boolean); // 移除無效日期
-
+        }).filter(Boolean);
 
     if (dates.length === 0) {
         return null;
     }
 
-    // 找到最早的日期
     const earliest = dates.reduce((prev, current) =>
         prev.date < current.date ? prev : current
     );
@@ -518,20 +505,13 @@ function showDetail(workOrderNum) {
     document.getElementById('detailDoctor').textContent = safeValue(item.docName);
     document.getElementById('detailPatient').textContent = safeValue(item.patientName);
     document.getElementById('detailToothPosition').textContent = safeValue(item.toothPosition);
-    document.getElementById('detailPrice').textContent = item.price ? `$${item.price.toLocaleString()}` : '-';
 
-    // 管理者版本：顯示業務名稱
-    document.getElementById('detailSales').textContent = safeValue(item.salesName);
+    // 客戶版本：只顯示產品名稱，不顯示價格和業務
+    document.getElementById('detailProductName').textContent = safeValue(item.prodName);
 
-    const productText = item.prodItem ? `${item.prodItem} - ${safeValue(item.prodName)}` : safeValue(item.prodName);
-    document.getElementById('detailProductName').textContent = productText;
-
-    document.getElementById('detailReceiveDate').textContent = formatDate(item.receivedDate);
-    document.getElementById('detailExpectedDate').textContent = formatDate(item.estFinishDate);
+    // 客戶版本：只有兩個日期
     document.getElementById('detailTryInDate').textContent = formatDate(item.tryInDate);
     document.getElementById('detailDeliveryDate').textContent = formatDate(item.deliveryDate);
-    document.getElementById('detailTryReceiveDate').textContent = formatDate(item.tryInReceivedDate);
-    document.getElementById('detailExpectedTryDate').textContent = formatDate(item.estTryInDate);
     document.getElementById('detailStatus').textContent = safeValue(item.workOrderStatus);
 
     // 隱藏搜尋區塊
@@ -653,32 +633,25 @@ function navigateCalendar(direction) {
     generateCalendar(currentCalendarYear, currentCalendarMonth, currentDetailItem);
 }
 
-// 生成日曆
+// 生成日曆 - 客戶版本只顯示兩個日期
 function generateCalendar(year, month, item) {
     const grid = document.getElementById('calendarGrid');
-    // 清除現有日期格子，保留星期標題
     const dayHeaders = grid.querySelectorAll('.calendar-day-header');
     grid.innerHTML = '';
     dayHeaders.forEach(header => grid.appendChild(header));
 
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
-    const startDate = firstDay.getDay(); // 第一天是星期幾
+    const startDate = firstDay.getDay();
 
-    // 將各個日期轉換為比對用的格式和完整日期顯示
-    const receivedDateStr = formatDateForCalendar(item.receivedDate);
+    // 客戶版本只有兩個日期
     const deliveryDateStr = formatDateForCalendar(item.deliveryDate);
     const tryInDateStr = formatDateForCalendar(item.tryInDate);
-    const tryReceiveDateStr = formatDateForCalendar(item.tryInReceivedDate);
 
-    // 準備圖例用的完整日期
     const legendData = {
-        received: receivedDateStr ? formatFullDate(item.receivedDate) : null,
         delivery: deliveryDateStr ? formatFullDate(item.deliveryDate) : null,
-        tryIn: tryInDateStr ? formatFullDate(item.tryInDate) : null,
-        tryReceive: tryReceiveDateStr ? formatFullDate(item.tryInReceivedDate) : null
+        tryIn: tryInDateStr ? formatFullDate(item.tryInDate) : null
     };
-
 
     // 生成日期格子
     for (let i = 0; i < startDate; i++) {
@@ -694,45 +667,26 @@ function generateCalendar(year, month, item) {
 
         const currentDateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
-        // 檢查是否有對應的日期事件 - 調整顏色分配
-// 檢查是否有對應的日期事件 - 調整顏色分配
-        if (receivedDateStr === currentDateStr) {
-            dayElement.classList.add('receive-date'); // 橘色 - 收件日
-            dayElement.title = '收件日';
-        } else if (deliveryDateStr === currentDateStr) {
+        if (deliveryDateStr === currentDateStr) {
             dayElement.classList.add('delivery-date'); // 綠色 - 完成交件日
             dayElement.title = '完成交件日';
         } else if (tryInDateStr === currentDateStr) {
             dayElement.classList.add('try-in-date'); // 藍色 - 試戴交件日
             dayElement.title = '試戴交件日';
-        } else if (tryReceiveDateStr === currentDateStr) {
-            dayElement.classList.add('try-receive-date'); // 紫色 - 試戴收件日
-            dayElement.title = '試戴收件日';
         }
 
         grid.appendChild(dayElement);
     }
 
-    // 生成圖例
     generateCalendarLegend(legendData);
 }
 
-// 生成帶日期的圖例
+// 生成帶日期的圖例 - 客戶版本
 function generateCalendarLegend(legendData) {
     const legendContainer = document.querySelector('.calendar-legend');
     if (!legendContainer) return;
 
     const legendItems = [];
-
-    // 收件日
-    if (legendData.received) {
-        legendItems.push({
-            color: '#ff9800',  // 橘色
-            label: '收件日',
-            date: legendData.received,
-            rawDate: currentDetailItem.receivedDate
-        });
-    }
 
     // 完成交件日
     if (legendData.delivery) {
@@ -751,16 +705,6 @@ function generateCalendarLegend(legendData) {
             label: '試戴交件日',
             date: legendData.tryIn,
             rawDate: currentDetailItem.tryInDate
-        });
-    }
-
-    // 試戴收件日
-    if (legendData.tryReceive) {
-        legendItems.push({
-            color: '#9c27b0',  // 紫色
-            label: '試戴收件日',
-            date: legendData.tryReceive,
-            rawDate: currentDetailItem.tryInReceivedDate
         });
     }
 
@@ -840,7 +784,7 @@ async function loadAllData() {
     try {
         const protocol = window.location.protocol;
         const host = window.location.host;
-        const apiUrl = `${protocol}//${host}/NLD/Admin/workOrders`;
+        const apiUrl = `${protocol}//${host}/NLD/Doc/workOrders`;
 
         const response = await fetch(apiUrl, {
             method: 'POST',
@@ -1015,7 +959,7 @@ async function performSearch() {
 
         const protocol = window.location.protocol;
         const host = window.location.host;
-        const apiUrl = `${protocol}//${host}/NLD/Admin/search?${params.toString()}`;
+        const apiUrl = `${protocol}//${host}/NLD/Doc/search?${params.toString()}`;
 
         const response = await fetch(apiUrl, {
             method: 'GET',
@@ -1040,16 +984,6 @@ async function performSearch() {
         console.error('搜尋錯誤:', error);
         listView.innerHTML = '<div class="loading" style="color: red;">搜尋失敗,請重試</div>';
     }
-}
-
-function clearAndSearch() {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('dateTypeSelect').value = '';
-    document.getElementById('startDate').value = '';
-    document.getElementById('endDate').value = formatTodayForInput();
-
-    // 清除後載入所有資料,不是搜尋
-    loadAllData();
 }
 
 // 在 DOMContentLoaded 中綁定搜尋按鈕
