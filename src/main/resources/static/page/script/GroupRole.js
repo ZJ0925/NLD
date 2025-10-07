@@ -1410,6 +1410,8 @@ function bindGroupNameDropdownEvents(groupId) {
     const optionsContainer = document.querySelector(`[data-group-id="${groupId}"] .clinic-options`);
     const searchInput = document.querySelector(`[data-group-id="${groupId}"] .clinic-search`);
     const optionsList = document.querySelector(`[data-group-id="${groupId}"] .clinic-options-list`);
+    const dropdownContainer = document.querySelector(`[data-group-id="${groupId}"] .group-name-dropdown-container`);
+    const groupCard = document.querySelector(`[data-group-id="${groupId}"]`);
 
 
     if (!groupNameBtn || !optionsContainer || !searchInput || !optionsList) {
@@ -1421,10 +1423,22 @@ function bindGroupNameDropdownEvents(groupId) {
     groupNameBtn.addEventListener('click', function(e) {
         e.stopPropagation();
 
-        // 關閉其他已開啟的下拉選單
+        // 關閉其他已開啟的下拉選單，並移除它們的 active class
         document.querySelectorAll('.clinic-options').forEach(el => {
             if (el !== optionsContainer) {
                 el.style.display = 'none';
+            }
+        });
+
+        document.querySelectorAll('.group-name-dropdown-container').forEach(el => {
+            if (el !== dropdownContainer) {
+                el.classList.remove('active');
+            }
+        });
+
+        document.querySelectorAll('.group-card').forEach(el => {
+            if (el !== groupCard) {
+                el.classList.remove('dropdown-active');
             }
         });
 
@@ -1433,9 +1447,16 @@ function bindGroupNameDropdownEvents(groupId) {
         optionsContainer.style.display = isVisible ? 'none' : 'block';
 
         if (!isVisible) {
+            // 打開下拉選單時，添加 active class 提高 z-index
+            dropdownContainer.classList.add('active');
+            groupCard.classList.add('dropdown-active');
             searchInput.focus();
             searchInput.value = '';
             filterClinicOptions(groupId, '');
+        } else {
+            // 關閉下拉選單時，移除 active class
+            dropdownContainer.classList.remove('active');
+            groupCard.classList.remove('dropdown-active');
         }
     });
 
@@ -1453,8 +1474,10 @@ function bindGroupNameDropdownEvents(groupId) {
             const oldText = groupNameBtn.textContent;
             groupNameBtn.textContent = newGroupName;
 
-            // 隱藏下拉選單
+            // 隱藏下拉選單並移除 active class
             optionsContainer.style.display = 'none';
+            dropdownContainer.classList.remove('active');
+            groupCard.classList.remove('dropdown-active');
 
             // 處理變更 - 這是關鍵步驟
             handleGroupNameChange(groupId, newGroupName);
@@ -1475,12 +1498,13 @@ function bindGroupNameDropdownEvents(groupId) {
     const closeDropdown = function(e) {
         if (!groupNameBtn.contains(e.target) && !optionsContainer.contains(e.target)) {
             optionsContainer.style.display = 'none';
+            dropdownContainer.classList.remove('active');
+            groupCard.classList.remove('dropdown-active');
         }
     };
 
     document.addEventListener('click', closeDropdown);
 }
-
 
 // 過濾診所選項 - 確認這個函數是否存在
 function filterClinicOptions(groupId, searchTerm) {
