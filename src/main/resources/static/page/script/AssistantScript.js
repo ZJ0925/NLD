@@ -770,7 +770,7 @@ async function loadAllData() {
         const protocol = window.location.protocol;
         const host = window.location.host;
         // ✅ 改成 Assistant
-        const apiUrl = `${protocol}//${host}/NLD/Doc/workOrders`;
+        const apiUrl = `${protocol}//${host}/NLD/Assistant/workOrders`;
 
         const response = await fetch(apiUrl, {
             method: 'POST',
@@ -945,7 +945,7 @@ async function performSearch() {
 
         const protocol = window.location.protocol;
         const host = window.location.host;
-        const apiUrl = `${protocol}//${host}/NLD/Doc/search?${params.toString()}`;
+        const apiUrl = `${protocol}//${host}/NLD/Assistant/search?${params.toString()}`;
 
         const response = await fetch(apiUrl, {
             method: 'GET',

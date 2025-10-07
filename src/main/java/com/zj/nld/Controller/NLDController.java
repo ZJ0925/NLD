@@ -82,7 +82,7 @@ public class NLDController {
 
 
     // 業務搜尋篩選
-    @GetMapping("/sales/search")
+    @GetMapping("/Sales/search")
     public ResponseEntity<?> searchSalesWorkOrders(
             @RequestHeader(value = "Authorization", required = true) String authHeader,
             @RequestParam(required = false) String groupId,
@@ -123,8 +123,8 @@ public class NLDController {
     }
 
     // 牙助搜尋篩選
-    @GetMapping("/Client/search")
-    public ResponseEntity<?> searchClientWorkOrders(
+    @GetMapping("/Assistant/search")
+    public ResponseEntity<?> searchAssistantWorkOrders(
             @RequestHeader(value = "Authorization", required = true) String authHeader,
             @RequestParam(required = false) String groupId,
             @RequestParam(required = false) String keyword,
@@ -164,8 +164,8 @@ public class NLDController {
     }
 
     // 醫生搜尋篩選
-    @GetMapping("/ClientForDoc/search")
-    public ResponseEntity<?> searchClientForDocWorkOrders(
+    @GetMapping("/Doc/search")
+    public ResponseEntity<?> searchDocWorkOrders(
             @RequestHeader(value = "Authorization", required = true) String authHeader,
             @RequestParam(required = false) String groupId,
             @RequestParam(required = false) String keyword,

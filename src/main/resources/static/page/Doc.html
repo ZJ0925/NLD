@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Client技工單查詢</title>
+    <title>Doctor技工單查詢</title>
     <style>
         * {
             margin: 0;
@@ -759,7 +759,7 @@
 <div class="search-header">
     <div style="display: flex; gap: 10px; margin-bottom: 12px;">
         <input type="text" class="search-input"
-               placeholder="🔍 搜尋技工單號、診所、醫名、患者..."
+               placeholder="🔍 搜尋技工單號、患者..."
                id="searchInput"
                style="margin-bottom: 0;">
         <button class="search-btn" id="searchBtn">搜尋</button>
@@ -813,6 +813,7 @@
         </div>
 
         <div class="detail-content">
+            <!-- ✅ 基本資訊：只有齒位和產品名稱 -->
             <div class="detail-section">
                 <div class="section-title">📋 基本資訊</div>
                 <div class="detail-grid">
@@ -827,6 +828,7 @@
                 </div>
             </div>
 
+            <!-- ✅ 日期資訊：只有 2 個日期 -->
             <div class="detail-section">
                 <div class="section-title">📅 日期資訊</div>
                 <div class="detail-grid">
@@ -841,6 +843,7 @@
                 </div>
             </div>
 
+            <!-- ✅ 狀態資訊：保持不變 -->
             <div class="detail-section">
                 <div class="section-title">📊 狀態資訊</div>
                 <div class="detail-grid">

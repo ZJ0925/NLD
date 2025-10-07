@@ -1005,7 +1005,7 @@ async function performSearch() {
 
         const protocol = window.location.protocol;
         const host = window.location.host;
-        const apiUrl = `${protocol}//${host}/NLD/sales/search?${params.toString()}`;
+        const apiUrl = `${protocol}//${host}/NLD/Sales/search?${params.toString()}`;
 
         const response = await fetch(apiUrl, {
             method: 'GET',

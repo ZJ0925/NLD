@@ -31,7 +31,7 @@ const resetBtn = document.getElementById('resetBtn');
 // 權限對應表 - 移除無權限選項
 const roleMap = {
     1: "管理員",
-    2: "客戶",
+    2: "醫師",
     3: "業務",
     4: "生產單位",
     5: "牙助"

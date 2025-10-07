@@ -38,7 +38,7 @@ public class NLDServiceImpl implements NLDService {
     private String getRoleNameById(Integer roleId) {
         return switch (roleId) {
             case 1 -> "Admin";
-            case 2 -> "Client";
+            case 2 -> "Doc";
             case 3 -> "Sales";
             case 4 -> "ProdUnit";
             case 5 -> "Assistant";
@@ -126,16 +126,13 @@ public class NLDServiceImpl implements NLDService {
         // 6. 根據角色取得工單
         return switch (userGroupRole.getRoleID()) {
             case 1 -> nldRepository.AdminSearch(top500);
-            case 2 -> nldRepository.ClientForDocSearch(
+            case 2 -> nldRepository.DocSearch(
                     userGroupRole.getGroupNameID(),
                     userGroupRole.getUserNameID(),top500
             );
             case 3 -> nldRepository.SalesSearch(userGroupRole.getUserNameID(), top500);
             case 4 -> nldRepository.ProdUnitSearch(top500);
-            case 5 -> {
-                Clinic clinic = clinicService.findByClinicName(userGroupRole.getGroupName());
-                yield nldRepository.ClientSearch(clinic.getClinicAbbr(), top500);
-            }
+            case 5 -> nldRepository.AssistantSearch(userGroupRole.getGroupNameID(), top500);
             default -> Collections.emptyList();  // 改這裡：回傳空 List 而非 null
         };
     }
@@ -199,7 +196,7 @@ public class NLDServiceImpl implements NLDService {
         // 6. 根據角色取得工單
         return switch (userGroupRole.getRoleID()) {
             case 1 -> nldRepository.AdminSearchWithFilters(keyword, dateType, parsedStartDate, parsedEndDate);
-            case 2 -> nldRepository.ClientForDocWithFilters(
+            case 2 -> nldRepository.DocWithFilters(
                     userGroupRole.getGroupNameID(),
                     userGroupRole.getUserNameID(),
                     keyword,
@@ -220,7 +217,7 @@ public class NLDServiceImpl implements NLDService {
                     parsedStartDate,
                     parsedEndDate
             );
-            case 5 -> nldRepository.ClientSearchWithFilters(
+            case 5 -> nldRepository.AssistantSearchWithFilters(
                     userGroupRole.getGroupNameID(),
                     keyword,
                     dateType,
@@ -305,14 +302,14 @@ public class NLDServiceImpl implements NLDService {
 //    // 牙助搜尋篩選
 //    @Transactional(readOnly = true)
 //    @Override
-//    public List<NldClientDTO> searchClientWorkOrders(String authHeader, String groupId, String keyword, String dateType, String startDate, String endDate) {
+//    public List<NldClientDTO> searchAssistantWorkOrders(String authHeader, String groupId, String keyword, String dateType, String startDate, String endDate) {
 //        return List.of();
 //    }
 //
 //    // 醫生搜尋篩選
 //    @Transactional(readOnly = true)
 //    @Override
-//    public List<NldClientDTO> searchClientForDocWorkOrders(String authHeader, String groupId, String keyword, String dateType, String startDate, String endDate) {
+//    public List<NldClientDTO> searchDocWorkOrders(String authHeader, String groupId, String keyword, String dateType, String startDate, String endDate) {
 //        return List.of();
 //    }
 //

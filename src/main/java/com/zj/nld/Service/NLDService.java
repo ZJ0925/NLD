@@ -24,7 +24,7 @@ public interface NLDService {
 
 //
 //    // 牙助搜尋篩選
-//    List<?> searchClientWorkOrders(
+//    List<?> searchAssistantWorkOrders(
 //            String authHeader,
 //            String groupId,
 //            String keyword,
@@ -35,7 +35,7 @@ public interface NLDService {
 //
 //
 //    // 醫生搜尋篩選
-//    List<NldClientDTO> searchClientForDocWorkOrders(
+//    List<NldClientDTO> searchDocWorkOrders(
 //            String authHeader,
 //            String groupId,
 //            String keyword,

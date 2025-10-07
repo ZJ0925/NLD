@@ -129,7 +129,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
      WHERE h.compdh = '001' AND h.cundh LIKE 'K%' AND h.cundh = :clientID
     ORDER BY CAST(h.workOrderNum AS INTEGER) DESC
 """)
-    List<NldClientDTO> ClientSearch(String clientNameID, Pageable pageable);
+    List<NldClientDTO> AssistantSearch(String clientID, Pageable pageable);
 
 
     //回傳牙助搜尋後可查看的資料
@@ -163,7 +163,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
          (:dateType = 'tryInDate' AND h.tryInDate BETWEEN :startDate AND :endDate))
     ORDER BY CAST(h.workOrderNum AS INTEGER) DESC
     """)
-    List<NldClientDTO> ClientSearchWithFilters(
+    List<NldClientDTO> AssistantSearchWithFilters(
             String clientID,
             @Param("keyword") String keyword,
             @Param("dateType") String dateType,
@@ -198,7 +198,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%' AND h.cundh = :clientID And h.docID = :docID
     ORDER BY CAST(h.workOrderNum AS INTEGER) DESC
 """)
-    List<NldClientDTO> ClientForDocSearch(String clientID, String docID, Pageable pageable);
+    List<NldClientDTO> DocSearch(String clientID, String docID, Pageable pageable);
 
     //回傳醫生搜尋後可查看的資料
     @Query("""
@@ -222,7 +222,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     JOIN VED v ON
         h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     WHERE h.compdh = '001'
-    AND h.cundh LIKE 'K%' and h.cundh = :clientID And h.docID = :userNameID
+    AND h.cundh LIKE 'K%' and h.cundh = :clientID And h.docID = :docID
     AND (:keyword IS NULL OR
          h.workOrderNum LIKE %:keyword% OR
          h.patientName LIKE %:keyword%)
@@ -233,9 +233,9 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
          (:dateType = 'receivedDate' AND h.receivedDate BETWEEN :startDate AND :endDate))
     ORDER BY CAST(h.workOrderNum AS INTEGER) DESC
     """)
-    List<NldClientDTO> ClientForDocWithFilters(
+    List<NldClientDTO> DocWithFilters(
             String clientID,
-            @Param("userNameID") String userNameID,
+            String docID,
             @Param("keyword") String keyword,
             @Param("dateType") String dateType,
             @Param("startDate") Date startDate,
