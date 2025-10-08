@@ -49,7 +49,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     JOIN VED v ON
         h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%' AND h.salesIdNum = :userNameID
-    ORDER BY h.tryInDate DESC
+    ORDER BY h.receivedDate DESC
     """)
     List<NldSalesDTO> SalesSearch(String userNameID, Pageable pageable);
 
@@ -94,7 +94,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
           (:dateType = 'receivedDate' AND h.receivedDate BETWEEN :startDate AND :endDate) OR
           (:dateType = 'tryInReceivedDate' AND h.tryInReceivedDate BETWEEN :startDate AND :endDate) OR
           (:dateType = 'estTryInDate' AND h.estTryInDate BETWEEN :startDate AND :endDate))
-    ORDER BY h.tryInDate DESC
+    ORDER BY h.receivedDate DESC
     """)
     List<NldSalesDTO> SalesSearchWithFilters(
             @Param("userNameID") String userNameID,
@@ -127,7 +127,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     JOIN VED v ON
         h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
      WHERE h.compdh = '001' AND h.cundh LIKE 'K%' AND h.cundh = :clientID
-    ORDER BY h.tryInDate DESC
+    ORDER BY h.receivedDate DESC
 """)
     List<NldClientDTO> AssistantSearch(String clientID, Pageable pageable);
 
@@ -161,7 +161,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     AND (:dateType IS NULL OR
          (:dateType = 'deliveryDate' AND h.deliveryDate BETWEEN :startDate AND :endDate) OR
          (:dateType = 'tryInDate' AND h.tryInDate BETWEEN :startDate AND :endDate))
-    ORDER BY h.tryInDate DESC
+    ORDER BY h.receivedDate DESC
     """)
     List<NldClientDTO> AssistantSearchWithFilters(
             String clientID,
@@ -196,7 +196,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     JOIN VED v ON
         h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%' AND h.cundh = :clientID And h.docID = :docID
-    ORDER BY h.tryInDate DESC
+    ORDER BY h.receivedDate DESC
 """)
     List<NldClientDTO> DocSearch(String clientID, String docID, Pageable pageable);
 
@@ -231,7 +231,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
          (:dateType = 'tryInDate' AND h.tryInDate BETWEEN :startDate AND :endDate) OR
          (:dateType = 'estFinishDate' AND h.estFinishDate BETWEEN :startDate AND :endDate) OR
          (:dateType = 'receivedDate' AND h.receivedDate BETWEEN :startDate AND :endDate))
-    ORDER BY h.tryInDate DESC
+    ORDER BY h.receivedDate DESC
     """)
     List<NldClientDTO> DocWithFilters(
             String clientID,
@@ -271,7 +271,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     JOIN VED v ON h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     JOIN Sales s ON h.salesIdNum = s.id
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%'
-    ORDER BY h.tryInDate DESC
+    ORDER BY h.receivedDate DESC
 """)
     List<NLDProdUnitDTO> ProdUnitSearch(Pageable pageable);
 
@@ -300,25 +300,28 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
         s.name as salesName
     )
     FROM HVED h
-    JOIN VED v ON
-        h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
+    JOIN VED v ON h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     JOIN Sales s ON h.salesIdNum = s.id
     WHERE h.compdh = '001'
-    AND h.cundh LIKE 'K%'
-    AND (:keyword IS NULL OR
-         h.workOrderNum LIKE %:keyword% OR
-         h.docName LIKE %:keyword% OR
-         h.clinicName LIKE %:keyword% OR
-         h.patientName LIKE %:keyword%)OR
-         s.name LIKE %:keyword%
-    AND (:dateType IS NULL OR
-          (:dateType = 'deliveryDate' AND h.deliveryDate BETWEEN :startDate AND :endDate) OR
-          (:dateType = 'tryInDate' AND h.tryInDate BETWEEN :startDate AND :endDate) OR
-          (:dateType = 'estFinishDate' AND h.estFinishDate BETWEEN :startDate AND :endDate) OR
-          (:dateType = 'receivedDate' AND h.receivedDate BETWEEN :startDate AND :endDate) OR
-          (:dateType = 'tryInReceivedDate' AND h.tryInReceivedDate BETWEEN :startDate AND :endDate) OR
-          (:dateType = 'estTryInDate' AND h.estTryInDate BETWEEN :startDate AND :endDate))
-    ORDER BY h.tryInDate DESC
+      AND h.cundh LIKE 'K%'
+      AND (
+            :keyword IS NULL OR
+            h.workOrderNum LIKE %:keyword% OR
+            h.docName LIKE %:keyword% OR
+            h.clinicName LIKE %:keyword% OR
+            h.patientName LIKE %:keyword% OR
+            s.name LIKE %:keyword%
+          )
+      AND (
+            :dateType IS NULL OR
+            (:dateType = 'deliveryDate' AND h.deliveryDate BETWEEN :startDate AND :endDate) OR
+            (:dateType = 'tryInDate' AND h.tryInDate BETWEEN :startDate AND :endDate) OR
+            (:dateType = 'estFinishDate' AND h.estFinishDate BETWEEN :startDate AND :endDate) OR
+            (:dateType = 'receivedDate' AND h.receivedDate BETWEEN :startDate AND :endDate) OR
+            (:dateType = 'tryInReceivedDate' AND h.tryInReceivedDate BETWEEN :startDate AND :endDate) OR
+            (:dateType = 'estTryInDate' AND h.estTryInDate BETWEEN :startDate AND :endDate)
+          )
+    ORDER BY h.receivedDate DESC
     """)
     List<NLDProdUnitDTO> ProdUnitSearchWithFilters(
             @Param("keyword") String keyword,
@@ -358,7 +361,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
     JOIN VED v ON h.compdh = v.comph AND h.nodh = v.nod AND h.rem2dh = v.rem2d
     JOIN Sales s ON h.salesIdNum = s.id
     WHERE h.compdh = '001' AND h.cundh LIKE 'K%'
-    ORDER BY h.tryInDate DESC
+    ORDER BY h.receivedDate DESC
 """)
     List<NldDTO> AdminSearch(Pageable pageable);
 
@@ -405,7 +408,7 @@ public interface NLDRepository extends JpaRepository<HVED, UUID> {
           (:dateType = 'receivedDate' AND h.receivedDate BETWEEN :startDate AND :endDate) OR
           (:dateType = 'tryInReceivedDate' AND h.tryInReceivedDate BETWEEN :startDate AND :endDate) OR
           (:dateType = 'estTryInDate' AND h.estTryInDate BETWEEN :startDate AND :endDate))
-    ORDER BY h.tryInDate DESC
+    ORDER BY h.receivedDate DESC
     """)
     List<NldDTO> AdminSearchWithFilters(
             @Param("keyword") String keyword,
