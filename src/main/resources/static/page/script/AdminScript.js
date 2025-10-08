@@ -289,6 +289,7 @@ function formatDate(dateInput) {
 
     if (isNaN(date.getTime())) return '-';
     return date.toLocaleDateString('zh-TW', {
+        year: 'numeric',
         month: 'numeric',
         day: 'numeric'
     });
@@ -993,6 +994,34 @@ async function performSearch() {
     const startDate = document.getElementById('startDate').value;
     const endDate = document.getElementById('endDate').value;
 
+    // === 防呆驗證 ===
+    // 檢查是否有任何日期相關的輸入
+    const hasDateInput = dateType || startDate || endDate;
+
+    if (hasDateInput) {
+        // 如果有任何日期相關輸入，就需要完整的日期資訊
+        if (!dateType) {
+            alert('請選擇日期類型');
+            return;
+        }
+        if (!startDate || !endDate) {
+            alert('請選擇完整的日期區間（開始日期和結束日期）');
+            return;
+        }
+
+        // 驗證日期區間是否合理
+        if (new Date(startDate) > new Date(endDate)) {
+            alert('開始日期不能晚於結束日期');
+            return;
+        }
+    }
+
+    // 檢查是否至少有一個搜尋條件
+    if (!keyword && !hasDateInput) {
+        alert('請至少輸入一個搜尋條件（關鍵字或日期篩選）');
+        return;
+    }
+
     const accessToken = localStorage.getItem('liffAccessToken');
     const groupId = localStorage.getItem('groupId');
 
@@ -1008,6 +1037,8 @@ async function performSearch() {
     try {
         const params = new URLSearchParams();
         params.append('groupId', groupId);
+
+        // 只在有值時才加入參數
         if (keyword) params.append('keyword', keyword);
         if (dateType) params.append('dateType', dateType);
         if (startDate) params.append('startDate', startDate);
@@ -1043,12 +1074,13 @@ async function performSearch() {
 }
 
 function clearAndSearch() {
+    // 清除所有搜尋條件
     document.getElementById('searchInput').value = '';
     document.getElementById('dateTypeSelect').value = '';
     document.getElementById('startDate').value = '';
-    document.getElementById('endDate').value = formatTodayForInput();
+    document.getElementById('endDate').value = '';  // 改為完全清空，不設定今天日期
 
-    // 清除後載入所有資料,不是搜尋
+    // 清除後載入所有資料
     loadAllData();
 }
 

@@ -984,9 +984,36 @@ async function performSearch() {
     const dateType = document.getElementById('dateTypeSelect').value;
     const startDate = document.getElementById('startDate').value;
     const endDate = document.getElementById('endDate').value;
-
     const accessToken = localStorage.getItem('liffAccessToken');
     const groupId = localStorage.getItem('groupId');
+
+    // === 防呆驗證 ===
+    // 檢查是否有任何日期相關的輸入
+    const hasDateInput = dateType || startDate || endDate;
+
+    if (hasDateInput) {
+        // 如果有任何日期相關輸入，就需要完整的日期資訊
+        if (!dateType) {
+            alert('請選擇日期類型');
+            return;
+        }
+        if (!startDate || !endDate) {
+            alert('請選擇完整的日期區間（開始日期和結束日期）');
+            return;
+        }
+
+        // 驗證日期區間是否合理
+        if (new Date(startDate) > new Date(endDate)) {
+            alert('開始日期不能晚於結束日期');
+            return;
+        }
+    }
+
+    // 檢查是否至少有一個搜尋條件
+    if (!keyword && !hasDateInput) {
+        alert('請至少輸入一個搜尋條件（關鍵字或日期篩選）');
+        return;
+    }
 
     if (!accessToken || !groupId) {
         alert('請重新登入');

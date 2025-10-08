@@ -48,7 +48,7 @@ public class LineServiceImpl implements LineService {
 
                     // 取得事件類型，例如 "message"
                     String eventType = event.getString("type");
-                    System.out.println("動作類型: " + eventType);
+//                    System.out.println("動作類型: " + eventType);
 
                     String groupId = event.getJSONObject("source").getString("groupId");
 
@@ -79,17 +79,17 @@ public class LineServiceImpl implements LineService {
 
                             } else if ("text".equals(msgOrPic)) {
                                 String messageText = event.getJSONObject("message").getString("text");
-                                System.out.println("發出訊息: " + messageText);
+//                                System.out.println("發出訊息: " + messageText);
                                 String response = handleUserInput(userId, groupId, messageText);
                                 LineUtil.sendReply(replyToken, response);
                             } else {
-                                System.out.println("不合法傳入, 請傳 image 及 text");
+//                                System.out.println("不合法傳入, 請傳 image 及 text");
                             }
                             break;
 
                         case "memberLeft" :
                             String leftGroupId = event.getJSONObject("source").getString("groupId");
-                            System.out.println("離開群組ID: " + leftGroupId);
+//                            System.out.println("離開群組ID: " + leftGroupId);
 
                             // 取得 left 區塊
                             JSONObject left = event.getJSONObject("left");
@@ -100,7 +100,7 @@ public class LineServiceImpl implements LineService {
                             for (int j = 0; j < members.size(); j++) {
                                 JSONObject leftMember = members.getJSONObject(j);
                                 String leftUserId = leftMember.getString("userId");
-                                System.out.println("離開的使用者 ID: " + leftUserId);
+//                                System.out.println("離開的使用者 ID: " + leftUserId);
                                 deleteRole(leftUserId, leftGroupId);
                             }
                             break;
@@ -108,7 +108,7 @@ public class LineServiceImpl implements LineService {
                         case "memberJoined":
                             // 取得加入事件的群組 ID
                             String joinGroupId = event.getJSONObject("source").getString("groupId");
-                            System.out.println("加入群組ID: " + joinGroupId);
+//                            System.out.println("加入群組ID: " + joinGroupId);
 
                             // 取得 joined 區塊
                             JSONObject joined = event.getJSONObject("joined");
@@ -155,9 +155,9 @@ public class LineServiceImpl implements LineService {
 
                                 try {
                                     userGroupRoleService.ceateUserGroupRole(mjUserGroupRole); // 儲存到資料庫
-                                    System.out.println("成功為使用者 " + joinUserId + " 建立權限");
+//                                    System.out.println("成功為使用者 " + joinUserId + " 建立權限");
                                 } catch (Exception e) {
-                                    System.err.println("為使用者 " + joinUserId + " 建立權限失敗: " + e.getMessage());
+//                                    System.err.println("為使用者 " + joinUserId + " 建立權限失敗: " + e.getMessage());
                                 }
                             }
                             break;
@@ -182,21 +182,21 @@ public class LineServiceImpl implements LineService {
 
                                 try {
                                     userGroupRoleService.ceateUserGroupRole(joinUserGroupRole);
-                                    System.out.println("成功為使用者 " + userIdList.get(j) + " 建立權限");
+//                                    System.out.println("成功為使用者 " + userIdList.get(j) + " 建立權限");
                                 } catch (Exception e) {
-                                    System.err.println("為使用者 " + userIdList.get(j) + " 建立權限失敗: " + e.getMessage());
+//                                    System.err.println("為使用者 " + userIdList.get(j) + " 建立權限失敗: " + e.getMessage());
                                 }
 
 
                             }
 
 
-                            System.out.println("加入到新的群組");
+//                            System.out.println("加入到新的群組");
                             break;
 
                         case "leave" :
                             String leaveGroupId = event.getJSONObject("source").getString("groupId");
-                            System.out.println("groupId: " + leaveGroupId);
+//                            System.out.println("groupId: " + leaveGroupId);
                             userGroupRoleService.deleteGroupRoleByGroupID(leaveGroupId);
                             break;
 
@@ -205,7 +205,7 @@ public class LineServiceImpl implements LineService {
                     }
                 }
             } else {
-                System.out.println("event null......不合法的傳入");
+//                System.out.println("event null......不合法的傳入");
             }
 
         } catch (Exception e) {
