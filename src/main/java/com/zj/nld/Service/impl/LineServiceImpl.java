@@ -217,25 +217,27 @@ public class LineServiceImpl implements LineService {
 
     private String handleUserInput(String userId, String groupId, String text) {
 
+        switch (text){
+            case"表單查詢":
+                // 先透過 userId 和 groupId 查詢該使用者在該群組的權限
+                UserGroupRole fUserGroupRole = userGroupRoleService.getRoleId(userId, groupId);
 
-        if ("表單查詢".equals(text)) {
-            // 先透過 userId 和 groupId 查詢該使用者在該群組的權限
-            UserGroupRole fUserGroupRole = userGroupRoleService.getRoleId(userId, groupId);
+                if (fUserGroupRole != null) {
+                    return url + groupId;
+                }
 
-            if (fUserGroupRole != null) {
-                return url + groupId;
-            }
+                // 若群組權限查不到，再透過 userId 查使用者在其他群組的權限
+                UserGroupRole oUserGroupRoleByLineId = userGroupRoleService.findByLineID(userId);//
 
-            // 若群組權限查不到，再透過 userId 查使用者在其他群組的權限
-            UserGroupRole oUserGroupRoleByLineId = userGroupRoleService.findByLineID(userId);//
+                // 以上都查不到權限，回覆沒有權限訊息
+                return "尚無權限";
 
-            // 以上都查不到權限，回覆沒有權限訊息
-            return "尚無權限";
+            case "我的資訊":
+                return "LineID為" + userId;
 
+            default :
+                return null;
         }
-
-        // 沒有符合的指令
-        return null;
     }
 
 
