@@ -7,7 +7,8 @@ async function initLIFFAuth() {
     try {
 
         await liff.init({
-            liffId: '2008232728-npRj74R0'
+            liffId: '2008232728-npRj74R0' //部署時註解
+            // liffId: '2008239415-pKx0DNmY' //開發時註解
         });
 
 

@@ -105,7 +105,6 @@ public class UserGroupRoleServiceImpl implements UserGroupRoleService {
         // 2. 透過 LINE API 驗證 Token 並取得真實的 User ID
         String lineID = lineVerificationService.verifyAccessTokenAndGetUserId(accessToken);
 
-        System.out.println("這裡是:" + lineID);
 
 
 
