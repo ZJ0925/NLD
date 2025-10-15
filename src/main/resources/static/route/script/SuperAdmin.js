@@ -8,16 +8,12 @@ const API_BASE_URL = `${window.location.protocol}//${window.location.host}`;
 // ==================== LINE LIFF 驗證 ====================
 async function initLIFFAuth() {
     try {
-        console.log('🔵 開始初始化 LIFF...');
 
         await liff.init({
             liffId: '2008232728-Raq7rdq9' // 佈署時註解
             // liffId: '2008239415-2lBZ9KeE' // 開發時註解
         });
 
-        console.log('🔵 LIFF 初始化完成');
-        console.log('🔵 登入狀態:', liff.isLoggedIn());
-        console.log('🔵 當前 URL:', window.location.href);
 
         if (!liff.isLoggedIn()) {
             console.log('⚠️ 未登入，準備跳轉到 LINE 登入頁面...');
@@ -28,12 +24,9 @@ async function initLIFFAuth() {
             return null;
         }
 
-        console.log('✅ 已登入，開始取得資料...');
         accessToken = liff.getAccessToken();
-        console.log('✅ Access Token (前20字):', accessToken ? accessToken.substring(0, 20) + '...' : 'null');
 
         const profile = await liff.getProfile();
-        console.log('✅ User Profile:', profile);
 
         userInfo = {
             accessToken: accessToken,
@@ -42,7 +35,6 @@ async function initLIFFAuth() {
             pictureUrl: profile.pictureUrl
         };
 
-        console.log('✅ 登入成功!', userInfo);
         return userInfo;
 
     } catch (error) {
@@ -55,9 +47,6 @@ async function initLIFFAuth() {
 // ==================== 驗證超級管理員權限 ====================
 async function verifyAdminPermission() {
     try {
-        console.log('🟡 開始驗證超級管理員權限...');
-        console.log('🟡 Access Token:', accessToken ? '存在' : '不存在');
-        console.log('🟡 API URL:', `${API_BASE_URL}/RoleManager/admin`);
 
         const response = await fetch(`${API_BASE_URL}/RoleManager/admin`, {
             method: 'POST',
@@ -68,23 +57,16 @@ async function verifyAdminPermission() {
             }
         });
 
-        console.log('🟡 驗證 API 回應:');
-        console.log('  - Status:', response.status);
-        console.log('  - Status Text:', response.statusText);
-        console.log('  - OK:', response.ok);
-
         // 嘗試讀取回應內容
         let responseData;
         try {
             responseData = await response.json();
-            console.log('  - Response Body:', responseData);
         } catch (e) {
             const textData = await response.text();
             console.log('  - Response Text:', textData);
         }
 
         if (response.ok) {
-            console.log('✅ 驗證成功，權限通過!');
             return true;
         } else {
             console.log('❌ 驗證失敗 - Status:', response.status);
@@ -179,10 +161,6 @@ async function loadAllAdmins() {
 
         const admins = await response.json();
 
-        console.log('API 回傳的管理員資料:', admins);
-        if (admins.length > 0) {
-            console.log('第一筆資料的欄位:', Object.keys(admins[0]));
-        }
 
         displayAdmins(admins);
 
@@ -311,28 +289,18 @@ async function deleteAdmin(lineID) {
 // 初始化 - 三步驟驗證流程
 (async () => {
     try {
-        console.log('========== 開始初始化 ==========');
 
         // 第一步：LIFF 登入驗證
-        console.log('步驟 1: LIFF 登入驗證...');
         const auth = await initLIFFAuth();
 
         if (auth) {
-            console.log('步驟 1: ✅ LIFF 登入成功');
 
             // 第二步：驗證超級管理員權限
-            console.log('步驟 2: 驗證超級管理員權限...');
             const hasPermission = await verifyAdminPermission();
 
             if (hasPermission) {
-                console.log('步驟 2: ✅ 權限驗證通過');
-
-                // 第三步：載入管理員列表
-                console.log('步驟 3: 載入管理員列表...');
                 await loadAllAdmins();
-                console.log('步驟 3: ✅ 列表載入完成');
 
-                console.log('========== 初始化完成 ==========');
             } else {
                 console.log('步驟 2: ❌ 權限驗證失敗');
             }

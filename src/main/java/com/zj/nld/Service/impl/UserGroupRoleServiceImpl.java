@@ -3,10 +3,14 @@ package com.zj.nld.Service.impl;
 
 import com.zj.nld.Model.Entity.UserGroupRole;
 import com.zj.nld.Repository.UserGroupRoleRepository;
+import com.zj.nld.Service.LineVerificationService;
+import com.zj.nld.Service.RoleManagerService;
 import com.zj.nld.Service.UserGroupRoleService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -15,6 +19,12 @@ public class UserGroupRoleServiceImpl implements UserGroupRoleService {
 
     @Autowired
     private UserGroupRoleRepository userGroupRoleRepository;
+
+    @Autowired
+    private LineVerificationService lineVerificationService;
+
+    @Autowired
+    private RoleManagerService roleManagerService;
 
 
     @Override
@@ -76,6 +86,34 @@ public class UserGroupRoleServiceImpl implements UserGroupRoleService {
     @Override
     public List<UserGroupRole> getAllRole() {
         return userGroupRoleRepository.findAll();
+    }
+
+
+    /**
+     * 驗證使用者是否為超級管理員
+     * 透過 Authorization Header 中的 Access Token 驗證
+     */
+    @Override
+    public boolean findRoleManagerByauthHeader(String authHeader) {
+        // 1. 從 Header 提取 Access Token
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return false;
+        }
+
+        String accessToken = authHeader.substring(7);
+
+        // 2. 透過 LINE API 驗證 Token 並取得真實的 User ID
+        String lineID = lineVerificationService.verifyAccessTokenAndGetUserId(accessToken);
+
+        System.out.println("這裡是:" + lineID);
+
+
+
+        if (roleManagerService.isRoleManagerByLineID(lineID)) {
+            return true;
+        }else{
+            return false;
+        }
     }
 
 }

@@ -4,6 +4,7 @@ import com.zj.nld.Model.DTO.GroupDTO;
 import com.zj.nld.Model.DTO.UserGroupRoleDTO;
 import com.zj.nld.Model.Entity.UserGroupRole;
 import com.zj.nld.Service.RoleService;
+import com.zj.nld.Service.UserGroupRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
@@ -30,8 +31,8 @@ public class RoleController {
     private RoleService roleService;
 
     private static final Logger log = LoggerFactory.getLogger(RoleController.class);
-
-
+    @Autowired
+    private UserGroupRoleService userGroupRoleService;
 
 
     @GetMapping("/Admin")
@@ -102,6 +103,29 @@ public class RoleController {
             @RequestParam List<String> newGroupNames) {
        roleService.updateGroupName(groupIDs, newGroupNames);
         return ResponseEntity.ok().build();
+    }
+
+
+
+    /**
+     * 驗證使用者是否為超級管理員
+     * 前端透過此 API 驗證權限
+     */
+    @PostMapping("/userLogin")
+    public ResponseEntity<Boolean> getUser(
+            @RequestHeader(value = "Authorization", required = true) String authHeader) {
+        try {
+            boolean response = userGroupRoleService.findRoleManagerByauthHeader(authHeader);
+
+            if (response) {
+                // 驗證通過，返回管理員資訊
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
 

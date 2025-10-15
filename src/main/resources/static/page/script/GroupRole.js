@@ -1,4 +1,119 @@
-// GroupRole.js - 群組管理系統(重構版)
+// ==================== LIFF 驗證相關 ====================
+let accessToken = null;
+let userInfo = null;
+
+// LIFF 初始化函數 - 超簡化測試版
+async function initLIFFAuth() {
+    try {
+
+        await liff.init({
+            liffId: '2008232728-npRj74R0'
+        });
+
+
+        if (!liff.isLoggedIn()) {
+            console.log('未登入，跳轉登入');
+            liff.login({ redirectUri: window.location.href });
+            return null;
+        }
+
+
+        accessToken = liff.getAccessToken();
+
+        // 🔥 關鍵：完全不讀取 profile
+        userInfo = {
+            accessToken: accessToken,
+            userId: 'test-user',
+            displayName: '測試用戶',
+            pictureUrl: null
+        };
+
+        return userInfo;
+
+    } catch (error) {
+        console.error('❌ 錯誤發生在:', error);
+        return null; // 不要 throw，改成 return null
+    }
+}
+
+// 驗證管理員權限
+async function verifyAdminPermission() {
+    try {
+        // 修改這裡：改用你的路由
+        const response = await fetch(`${window.location.protocol}//${window.location.host}/Role/userLogin`, {
+            method: 'POST',  // 你的 API 是 POST
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+
+        if (response.ok) {
+            // 額外讀取回應內容來確認
+            const isAdmin = await response.json();
+            return true;
+        } else {
+            console.log('❌ 驗證失敗 - Status:', response.status);
+            showUnauthorizedPage();
+            return false;
+        }
+
+    } catch (error) {
+        console.error('❌ 權限驗證發生錯誤:', error);
+        showUnauthorizedPage();
+        return false;
+    }
+}
+
+function showUnauthorizedPage() {
+    document.body.innerHTML = `
+        <div style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #00a19c 0%, #008b87 100%);
+            padding: 20px;
+        ">
+            <div style="
+                background: white;
+                padding: 60px 40px;
+                border-radius: 20px;
+                text-align: center;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+                max-width: 500px;
+            ">
+                <svg width="100" height="100" viewBox="0 0 24 24" fill="#ff4d4f" style="margin-bottom: 30px;">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                </svg>
+                <h1 style="color: #ff4d4f; font-size: 28px; margin-bottom: 16px;">無權限訪問</h1>
+                <p style="color: #666; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+                    抱歉，您不是管理員，無法訪問此頁面。<br>
+                    請聯繫系統管理員取得權限。
+                </p>
+                <button 
+                    onclick="liff.logout(); window.location.reload()" 
+                    onmouseover="this.style.background='#007a85'; this.style.transform='translateY(-2px)'"
+                    onmouseout="this.style.background='#00a19c'; this.style.transform='translateY(0)'"
+                    style="
+                        background: #00a19c;
+                        color: white;
+                        border: none;
+                        padding: 14px 32px;
+                        border-radius: 8px;
+                        font-size: 16px;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                    ">
+                    重新登入
+                </button>
+            </div>
+        </div>
+    `;
+}
+
 // 全域變數
 let allSalesPersons = [];
 let allDoctors = [];
@@ -1350,11 +1465,33 @@ function showError(message) {
     }
 }
 
-// 初始化頁面
+// 初始化頁面 - 測試版
 async function initializePage() {
-    await loadAllClinics();
-    // 不需要在這裡預先載入所有人員資料，因為會在需要時才載入
-    loadGroupsFromAPI();
+    try {
+
+        // 第一步：LIFF 登入驗證
+        const auth = await initLIFFAuth();
+
+        if (!auth) {
+            console.log('跳轉登入中...');
+            return; // 直接返回，不繼續執行
+        }
+
+        // 第二步：驗證管理員權限
+        const hasPermission = await verifyAdminPermission();
+
+        if (!hasPermission) {
+            console.log('>>> 步驟 2: ❌ 無權限');
+            return;
+        }
+
+        await loadAllClinics();
+        await loadGroupsFromAPI();
+
+    } catch (error) {
+        console.error('❌ 錯誤:', error);
+        console.error('❌ 錯誤堆疊:', error.stack);
+    }
 }
 
 // 28. 安全處理null值

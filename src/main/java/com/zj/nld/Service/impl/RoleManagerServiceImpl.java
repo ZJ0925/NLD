@@ -46,6 +46,16 @@ public class RoleManagerServiceImpl implements RoleManagerService {
         }
     }
 
+    public boolean isRoleManagerByLineID(String lineID) {
+        System.out.println("------------------:" + lineID);
+        RoleManager roleManager = roleManagerRepository.findRoleManagerByLineID(lineID);
+        if(roleManager != null){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
     // 新增一筆RoleManager
     @Override
     @Transactional

@@ -28,4 +28,11 @@ public interface UserGroupRoleService {
     // 根據Token取得管理員權限資料
     List<UserGroupRole> getAllRole();
 
+
+    /**
+     * 驗證使用者是否為群組權限管理者
+     * 透過 Authorization Header 中的 Access Token 驗證
+     */
+    boolean findRoleManagerByauthHeader(String authHeader);
+
 }

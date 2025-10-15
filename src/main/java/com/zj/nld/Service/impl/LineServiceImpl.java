@@ -13,15 +13,31 @@ import java.util.*;
 
 @Service
 public class LineServiceImpl implements LineService {
-    // ngrok開啟網址：ngrok http --domain=bengal-charming-hyena.ngrok-free.app 8080
-    private String url;
 
-    @Value("${URL}")
-    public void setUrl(String url) {
-        this.url = url;
+    // NLD跳轉網址
+    private String indexURL;
+
+    //超級管理員網址
+    private String adminURL;
+
+    // 群組權限網址
+    private String groupRoleURL;
+
+
+    @Value("${IndexURL}")
+    public void setIndexURL(String indexURL) {
+        this.indexURL = indexURL;
     }
 
+    @Value("${AdminURL}")
+    public void setAdminURL(String adminURL) {
+        this.adminURL = adminURL;
+    }
 
+    @Value("${GroupRoleURL}")
+    public void setGroupRoleURL(String groupRoleURL) {
+        this.groupRoleURL = groupRoleURL;
+    }
 
     // 使用者權限服務
     private final UserGroupRoleService userGroupRoleService;
@@ -223,7 +239,7 @@ public class LineServiceImpl implements LineService {
                 UserGroupRole fUserGroupRole = userGroupRoleService.getRoleId(userId, groupId);
 
                 if (fUserGroupRole != null) {
-                    return url + groupId;
+                    return indexURL + groupId;
                 }
 
                 // 若群組權限查不到，再透過 userId 查使用者在其他群組的權限
@@ -234,6 +250,12 @@ public class LineServiceImpl implements LineService {
 
             case "我的資訊":
                 return "LineID為" + userId;
+
+            case "超級管理員":
+                return adminURL;
+
+            case "權限管理":
+                return groupRoleURL;
 
             default :
                 return null;
