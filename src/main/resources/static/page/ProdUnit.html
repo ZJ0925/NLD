@@ -426,28 +426,146 @@
             color: #333;
         }
 
-        .calendar-btn {
+        /* ===== 浮動按鈕群組 ===== */
+        .floating-buttons {
             position: fixed;
             bottom: 25px;
             right: 25px;
-            background: linear-gradient(135deg, #009688, #00796b);
-            color: white;
-            border: none;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        /* 通用浮動按鈕樣式 */
+        .float-btn {
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            font-size: 20px;
+            border: none;
+            font-size: 24px;
             cursor: pointer;
-            box-shadow: 0 6px 20px rgba(0, 150, 136, 0.4);
-            z-index: 100;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
             touch-action: manipulation;
             user-select: none;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .calendar-btn:hover {
+        .float-btn:hover {
             transform: scale(1.1);
-            box-shadow: 0 8px 25px rgba(0, 150, 136, 0.5);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .float-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 拍照按鈕 - 綠色漸層 */
+        .camera-float-btn {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .camera-float-btn:hover {
+            background: linear-gradient(135deg, #45a049, #3d8b40);
+            box-shadow: 0 8px 25px rgba(76, 175, 80, 0.5);
+        }
+
+        /* 日曆按鈕 - 青色漸層 */
+        .calendar-float-btn {
+            background: linear-gradient(135deg, #2f9988, #267b6f);
+            color: white;
+            box-shadow: 0 6px 20px rgba(47, 153, 136, 0.4);
+        }
+
+        .calendar-float-btn:hover {
+            background: linear-gradient(135deg, #267b6f, #1f6b61);
+            box-shadow: 0 8px 25px rgba(47, 153, 136, 0.5);
+        }
+
+        /* 上傳中的遮罩 */
+        .upload-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s;
+        }
+
+        .upload-progress {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            min-width: 280px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .upload-progress .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        .upload-progress .upload-text {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .upload-progress .upload-subtext {
+            font-size: 13px;
+            color: #666;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 手機版調整 */
+        @media (max-width: 480px) {
+            .floating-buttons {
+                bottom: 20px;
+                right: 20px;
+                gap: 12px;
+            }
+
+            .float-btn {
+                width: 55px;
+                height: 55px;
+                font-size: 22px;
+            }
+        }
+
+        /* 平板和電腦版 */
+        @media (min-width: 768px) {
+            .floating-buttons {
+                bottom: 30px;
+                right: 30px;
+                gap: 18px;
+            }
+
+            .float-btn {
+                width: 65px;
+                height: 65px;
+                font-size: 26px;
+            }
         }
 
         /* 其他樣式保持不變 */
@@ -877,9 +995,36 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 📷 工單圖片 -->
+            <div class="detail-section">
+                <div class="section-title">📷 工單圖片</div>
+                <div id="imageContainer" style="display:flex; flex-wrap:wrap; gap:10px; padding:10px;">
+                    <div style="color:#777;">載入中...</div>
+                </div>
+            </div>
+
         </div>
 
-        <button class="calendar-btn" id="calendarBtn">📅</button>
+        <!-- ✅ 浮動按鈕群組 -->
+        <div class="floating-buttons">
+            <!-- 拍照按鈕 -->
+            <button class="float-btn camera-float-btn" id="cameraFloatBtn" title="拍照上傳">
+                📸
+            </button>
+            <!-- 日曆按鈕 -->
+            <button class="float-btn calendar-float-btn" id="calendarBtn">
+                📅
+            </button>
+        </div>
+
+        <input
+                type="file"
+                id="cameraInput"
+                accept="image/*"
+                capture="environment"
+                style="display: none;"
+        >
     </div>
 
     <!-- 日曆視圖 -->
@@ -914,6 +1059,6 @@
 </div>
 
 <!-- 引入 JS 檔案 -->
-<script src="/page/script/ProdUnitScript.js?v=99999"></script>
+<script src="/page/script/ProdUnitScript.js?v=399999"></script>
 </body>
 </html>

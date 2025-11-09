@@ -549,6 +549,15 @@ function showDetail(workOrderNum) {
     window.scrollTo(0, 0);
     document.body.scrollTop = 0;
     document.documentElement.scrollTop = 0;
+
+    // ✅ 延遲載入圖片,確保 DOM 準備好
+    setTimeout(() => {
+        if (typeof loadWorkOrderImages === 'function') {
+            loadWorkOrderImages(item.workOrderNum);
+        } else {
+            console.error('loadWorkOrderImages 函數不存在');
+        }
+    }, 100);
 }
 
 // 修改 showList 函數
@@ -876,7 +885,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     // 綁定事件監聽器
     if (searchInput) {
-        searchInput.addEventListener('input', filterData);
+        //searchInput.addEventListener('input', filterData);
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 filterData();
@@ -887,6 +896,53 @@ window.addEventListener("DOMContentLoaded", () => {
     if (backBtn) {
         backBtn.addEventListener('click', showList);
     }
+
+    // ✅✅✅ 拍照浮動按鈕 - 修正版 ✅✅✅
+    const cameraFloatBtn = document.getElementById('cameraFloatBtn');
+    const cameraInput = document.getElementById('cameraInput');
+
+    if (cameraFloatBtn && cameraInput) {
+        // 桌機/一般 click 事件
+        cameraFloatBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (!currentDetailItem?.workOrderNum) {
+                alert('⚠️ 請先選擇工單再拍照');
+                return;
+            }
+
+            // 延遲觸發，讓 iOS 有時間反應
+            setTimeout(() => {
+                cameraInput.click();
+            }, 100);
+        });
+
+        // 手機觸控事件
+        cameraFloatBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (!currentDetailItem?.workOrderNum) {
+                alert('⚠️ 請先選擇工單再拍照');
+                return;
+            }
+
+            setTimeout(() => {
+                cameraInput.click();
+            }, 100);
+        }, { passive: false });
+    }
+
+    // ✅ 檔案輸入變更事件
+    if (cameraInput) {
+        cameraInput.addEventListener('change', async (e) => {
+            if (e.target.files.length > 0) {
+                await handleImageCapture(e);
+            }
+        });
+    }
+
 
     // 日曆按鈕 - 防止雙擊縮放
     const calendarBtn = document.getElementById('calendarBtn');
@@ -1199,3 +1255,439 @@ window.showDetail = showDetail;
 window.jumpToDateMonth = jumpToDateMonth;
 // 在文件末尾添加，讓 HTML 中的 onclick 能呼叫
 window.loadMoreItems = loadMoreItems;
+
+async function loadWorkOrderImages(workOrderNum) {
+    const imageContainer = document.getElementById('imageContainer');
+
+    if (!imageContainer) {
+        console.error('找不到 imageContainer 元素');
+        return;
+    }
+
+    // 顯示載入中
+    imageContainer.innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:center; padding:20px; color:#999;">
+            <div style="text-align:center;">
+                <div style="font-size:24px; margin-bottom:10px;">⏳</div>
+                <div>載入圖片中...</div>
+            </div>
+        </div>
+    `;
+
+    try {
+        const apiUrl = `https://line.nldlab.com/api/scaner/${workOrderNum}`;
+
+        // 發送 API 請求
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const imageUrls = await response.json();
+
+        // ✅ 如果沒有圖片 - 顯示小一點的紅色 X,靠近頂部
+        if (!imageUrls || imageUrls.length === 0) {
+            imageContainer.innerHTML = `
+                <div style="
+                    display: flex; 
+                    align-items: flex-start; 
+                    justify-content: center; 
+                    padding: 20px 15px;
+                    padding-bottom: 80px;
+                    min-height: 120px;
+                ">
+                    <div style="text-align: center;">
+                        <div style="
+                            font-size: 36px; 
+                            margin-bottom: 8px; 
+                            color: #f44336;
+                            font-weight: bold;
+                            line-height: 1;
+                        ">✕</div>
+                        <div style="
+                            font-size: 14px; 
+                            color: #666; 
+                            font-weight: 500;
+                            white-space: nowrap;
+                        ">無圖片</div>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        // 清空容器並建立圖片網格 (增加底部 padding)
+        imageContainer.innerHTML = '';
+        imageContainer.style.cssText = `
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 12px; 
+            padding: 15px; 
+            padding-bottom: 80px;
+            background: #f9f9f9; 
+            border-radius: 8px;
+        `;
+
+        // 載入每張圖片
+        imageUrls.forEach((url, index) => {
+            // 建立圖片容器
+            const imgWrapper = document.createElement('div');
+            imgWrapper.style.cssText = `
+                position: relative;
+                width: 150px;
+                height: 150px;
+                border-radius: 12px;
+                overflow: hidden;
+                background: #e0e0e0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                cursor: pointer;
+                transition: transform 0.2s, box-shadow 0.2s;
+            `;
+
+            // 加入點擊提示
+            const clickHint = document.createElement('div');
+            clickHint.style.cssText = `
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                background: rgba(0,0,0,0.6);
+                color: white;
+                padding: 4px 8px;
+                border-radius: 6px;
+                font-size: 11px;
+                display: none;
+                z-index: 10;
+            `;
+            clickHint.textContent = '點擊放大';
+            imgWrapper.appendChild(clickHint);
+
+            // Hover 效果
+            imgWrapper.onmouseover = () => {
+                imgWrapper.style.transform = 'scale(1.05)';
+                imgWrapper.style.boxShadow = '0 4px 16px rgba(0,0,0,0.2)';
+                clickHint.style.display = 'block';
+            };
+            imgWrapper.onmouseout = () => {
+                imgWrapper.style.transform = 'scale(1)';
+                imgWrapper.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                clickHint.style.display = 'none';
+            };
+
+            // 手機觸控效果
+            imgWrapper.ontouchstart = () => {
+                imgWrapper.style.transform = 'scale(0.95)';
+            };
+            imgWrapper.ontouchend = () => {
+                imgWrapper.style.transform = 'scale(1)';
+            };
+
+            // 顯示載入指示
+            imgWrapper.innerHTML += '<div style="color:#999; font-size:12px;">載入中...</div>';
+
+            // 建立圖片元素
+            const img = new Image();
+
+            // 確保 URL 是完整路徑
+            let fullImageUrl;
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+                fullImageUrl = url;
+            } else if (url.startsWith('/')) {
+                fullImageUrl = `https://line.nldlab.com${url}`;
+            } else {
+                fullImageUrl = `https://line.nldlab.com/${url}`;
+            }
+
+            // 設定圖片樣式
+            img.style.cssText = `
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            `;
+
+            // 圖片載入成功
+            img.onload = function() {
+                // 清除載入中文字,保留點擊提示
+                const loadingText = imgWrapper.querySelector('div:not([style*="position: absolute"])');
+                if (loadingText) {
+                    loadingText.remove();
+                }
+                imgWrapper.appendChild(img);
+            };
+
+            // 圖片載入失敗
+            img.onerror = function() {
+                imgWrapper.innerHTML = `
+                    <div style="text-align:center; color:#f44336;">
+                        <div style="font-size:32px; margin-bottom:5px;">❌</div>
+                        <div style="font-size:11px;">載入失敗</div>
+                    </div>
+                `;
+            };
+
+            // 點擊放大 - 全螢幕預覽
+            imgWrapper.onclick = function(e) {
+                e.preventDefault();
+
+                // 建立全螢幕預覽
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.95);
+                    z-index: 99999;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: zoom-out;
+                    animation: fadeIn 0.2s;
+                `;
+
+                const previewImg = document.createElement('img');
+                previewImg.src = fullImageUrl;
+                previewImg.style.cssText = `
+                    max-width: 95%;
+                    max-height: 95%;
+                    object-fit: contain;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+                `;
+
+                // 關閉按鈕
+                const closeBtn = document.createElement('div');
+                closeBtn.innerHTML = '✕';
+                closeBtn.style.cssText = `
+                    position: absolute;
+                    top: 20px;
+                    right: 20px;
+                    width: 40px;
+                    height: 40px;
+                    background: rgba(255,255,255,0.9);
+                    color: #333;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 24px;
+                    cursor: pointer;
+                    font-weight: bold;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+                `;
+
+                overlay.appendChild(previewImg);
+                overlay.appendChild(closeBtn);
+                document.body.appendChild(overlay);
+
+                // 點擊任何地方關閉
+                overlay.onclick = function(e) {
+                    if (e.target === overlay || e.target === closeBtn) {
+                        overlay.style.animation = 'fadeOut 0.2s';
+                        setTimeout(() => overlay.remove(), 200);
+                    }
+                };
+            };
+
+            // 開始載入圖片
+            img.src = fullImageUrl;
+
+            // 加入到容器
+            imageContainer.appendChild(imgWrapper);
+        });
+
+    } catch (error) {
+        console.error('載入圖片錯誤:', error);
+        imageContainer.innerHTML = `
+            <div style="display:flex; align-items:center; justify-content:center; padding:30px; color:#f44336;">
+                <div style="text-align:center; max-width:300px;">
+                    <div style="font-size:48px; margin-bottom:15px;">⚠️</div>
+                    <div style="font-weight:bold; margin-bottom:8px; font-size:16px;">載入失敗</div>
+                    <div style="font-size:13px; color:#666;">
+                        ${error.message || '無法載入圖片,請稍後再試'}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// ============================================
+// 拍照上傳功能
+// ============================================
+
+// 開啟相機
+function openCamera() {
+    // 檢查是否在詳細頁面
+    if (!currentDetailItem || !currentDetailItem.workOrderNum) {
+        alert('❌ 請先選擇一筆工單');
+        return;
+    }
+
+    const input = document.getElementById('cameraInput');
+    if (input) {
+        input.click();
+    } else {
+        console.error('找不到 cameraInput 元素');
+    }
+}
+
+// 處理拍照/選擇的圖片
+async function handleImageCapture(event) {
+    const file = event.target.files[0];
+    if (!file) {
+        return;
+    }
+
+    if (!currentDetailItem?.workOrderNum) {
+        alert("⚠️ 請先選擇工單再拍照");
+        event.target.value = "";
+        return;
+    }
+
+    try {
+        const workOrderNum = currentDetailItem.workOrderNum;
+
+        // ✅ 檢查檔案大小（20MB = 20 * 1024 * 1024 bytes）
+        const maxSize = 20 * 1024 * 1024;
+        if (file.size > maxSize) {
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            alert(`❌ 檔案太大！\n檔案大小: ${sizeMB} MB\n最大限制: 20 MB\n\n請壓縮照片後再試`);
+            event.target.value = "";
+            return;
+        }
+
+        showUploadOverlay(); // 顯示載入中
+
+        const formData = new FormData();
+        formData.append("image", file);
+        formData.append("workOrderNum", workOrderNum);
+
+        const res = await fetch("https://line.nldlab.com/api/scaner/upload", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await res.json();
+
+        hideUploadOverlay(); // 隱藏載入中
+
+        if (res.ok && data.success) {
+            showSuccessMessage("📸 照片上傳成功");
+
+            // 重新載入圖片列表
+            await loadWorkOrderImages(workOrderNum);
+        } else {
+            // 顯示後端回傳的錯誤訊息
+            const errorMsg = data.message || "上傳失敗";
+            alert(`❌ ${errorMsg}`);
+        }
+
+    } catch (err) {
+        console.error("❌ Upload error:", err);
+        hideUploadOverlay();
+
+        // 檢查是否是網路錯誤
+        if (err.name === 'TypeError' && err.message.includes('Failed to fetch')) {
+            alert("❌ 網路連線失敗，請檢查網路後再試");
+        } else {
+            alert("❌ 無法上傳照片：" + err.message);
+        }
+    } finally {
+        event.target.value = ""; // 清空 input
+    }
+}
+
+// 顯示上傳中遮罩
+function showUploadOverlay() {
+    const overlay = document.createElement('div');
+    overlay.id = 'uploadOverlay';
+    overlay.className = 'upload-overlay';
+    overlay.innerHTML = `
+        <div class="upload-progress">
+            <div class="spinner"></div>
+            <div class="upload-text">📸 上傳中...</div>
+            <div class="upload-subtext">請稍候，正在處理您的照片</div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
+
+// 隱藏上傳中遮罩
+function hideUploadOverlay() {
+    const overlay = document.getElementById('uploadOverlay');
+    if (overlay) {
+        overlay.style.animation = 'fadeOut 0.3s';
+        setTimeout(() => overlay.remove(), 300);
+    }
+}
+
+// 顯示成功訊息
+function showSuccessMessage(message) {
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 25px;
+        font-size: 15px;
+        font-weight: 500;
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        z-index: 10001;
+        animation: slideDown 0.3s ease;
+    `;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    // 3秒後自動消失
+    setTimeout(() => {
+        toast.style.animation = 'slideUp 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// 添加動畫樣式
+if (!document.getElementById('toastStyles')) {
+    const style = document.createElement('style');
+    style.id = 'toastStyles';
+    style.textContent = `
+        @keyframes slideDown {
+            from {
+                transform: translateX(-50%) translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideUp {
+            from {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(-50%) translateY(-100%);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// 暴露全域函數
+window.openCamera = openCamera;
+window.handleImageCapture = handleImageCapture;

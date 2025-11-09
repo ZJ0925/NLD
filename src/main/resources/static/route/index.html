@@ -52,6 +52,13 @@
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
 <script>
+    // ✅ 修正函數：建立正確的 redirect URI（不帶任何查詢參數）
+    function getRedirectUri() {
+        const protocol = window.location.protocol;
+        const host = window.location.host;
+        return `${protocol}//${host}/route/index.html`;
+    }
+
     // IndexedDB 儲存類
     class SimpleNLDStorage {
         constructor() {
@@ -140,67 +147,76 @@
 
     function updateStatus(message) {
         document.getElementById('statusText').textContent = message;
+        console.log('📍 狀態:', message);
     }
 
     function showError(message) {
         document.getElementById('errorText').textContent = message;
         document.getElementById('errorText').style.display = 'block';
         updateStatus('發生錯誤');
+        console.error('❌ 錯誤:', message);
     }
 
     // 主程式
     (async () => {
         try {
-
             const storage = new SimpleNLDStorage();
             await storage.init();
 
-            // 不要清除 localStorage！
-            // await storage.clearData();  // 註解掉這行
-
             updateStatus('初始化 LIFF...');
 
+            // ✅ 從 URL 獲取 Group ID
             const urlParams = new URLSearchParams(window.location.search);
-            let groupIdFromUrl = urlParams.get('g');
+            const groupIdFromUrl = urlParams.get('g');
 
-            // 檢查是否有暫存的 Group ID
-            const pendingGroupId = localStorage.getItem('pendingGroupId');
+            console.log('📌 URL 中的 Group ID:', groupIdFromUrl);
+            console.log('📌 當前完整 URL:', window.location.href);
 
-            if (groupIdFromUrl) {
-                localStorage.setItem('pendingGroupId', groupIdFromUrl);
-            } else {
-                groupIdFromUrl = pendingGroupId;
-            }
-
-
-
+            // ✅ 初始化 LIFF（使用正確的 ID）
             await liff.init({
-                liffId: '2008232728-Raq7rdq9'// 佈署時註解
-                // liffId: '2008239415-2lBZ9KeE' //開發時註解
-
+                liffId: '2008239415-2lBZ9KeE' // 開發環境
             });
 
+            console.log('✅ LIFF 初始化成功');
+
             const isInLineClient = liff.isInClient();
+            console.log('📱 是否在 LINE 客戶端:', isInLineClient);
 
             if (isInLineClient) {
+                // ===== 在 LINE 客戶端內 =====
                 if (!liff.isLoggedIn()) {
-                    // 確保 Group ID 已存到 localStorage 才跳轉
+                    console.log('🔑 用戶未登入，開始登入流程');
+
+                    // 必須保存 Group ID 再跳轉
                     if (groupIdFromUrl) {
                         localStorage.setItem('pendingGroupId', groupIdFromUrl);
+                        console.log('💾 已保存 Group ID:', groupIdFromUrl);
                     }
-                    liff.login({ redirectUri: window.location.origin + window.location.pathname });
+
+                    const redirectUri = getRedirectUri();
+                    console.log('🔀 登入後重定向到:', redirectUri);
+                    liff.login({ redirectUri: redirectUri });
                     return;
                 }
+
+                console.log('✅ 用戶已登入');
 
                 const accessToken = liff.getAccessToken();
                 const context = liff.getContext();
                 const groupIdFromContext = context.groupId || null;
-                const groupId = groupIdFromContext || groupIdFromUrl;
+
+                console.log('📍 Context Group ID:', groupIdFromContext);
+                console.log('📍 URL Group ID:', groupIdFromUrl);
+
+                // 優先使用 Context 中的 Group ID，其次使用 URL 參數
+                const groupId = groupIdFromContext || groupIdFromUrl || localStorage.getItem('pendingGroupId');
 
                 if (!groupId) {
                     showError('無法取得 Group ID');
                     return;
                 }
+
+                console.log('✅ 最終使用的 Group ID:', groupId);
 
                 // 清除暫存的 Group ID
                 localStorage.removeItem('pendingGroupId');
@@ -208,17 +224,25 @@
                 await processUserAuth(storage, accessToken, groupId);
 
             } else {
+                // ===== 在瀏覽器中（非 LINE 客戶端） =====
+                console.log('🌐 在瀏覽器環境中');
+
                 if (!groupIdFromUrl) {
-                    showError('請使用包含群組 ID 的完整連結');
+                    showError('請使用包含群組 ID 的完整連結\n例如: ?g=your_group_id');
                     return;
                 }
 
                 if (!liff.isLoggedIn()) {
+                    console.log('🔑 用戶未登入，開始登入流程');
                     localStorage.setItem('pendingGroupId', groupIdFromUrl);
-                    liff.login({ redirectUri: window.location.origin + window.location.pathname });
+
+                    const redirectUri = getRedirectUri();
+                    console.log('🔀 登入後重定向到:', redirectUri);
+                    liff.login({ redirectUri: redirectUri });
                     return;
                 }
 
+                console.log('✅ 用戶已登入');
                 const accessToken = liff.getAccessToken();
 
                 // 清除暫存的 Group ID
@@ -228,8 +252,8 @@
             }
 
         } catch (error) {
-            console.error('錯誤:', error);
-            showError(error.message);
+            console.error('❌ 錯誤:', error);
+            showError(error.message || '發生未知錯誤');
         }
     })();
 
@@ -240,6 +264,11 @@
         const protocol = window.location.protocol;
         const host = window.location.host;
         const apiUrl = `${protocol}//${host}/NLD/user/role`;
+
+        console.log('🔐 發送權限查詢:', {
+            url: apiUrl,
+            groupId: groupId
+        });
 
         const response = await fetch(apiUrl, {
             method: 'POST',
@@ -257,6 +286,7 @@
         }
 
         const userData = await response.json();
+        console.log('✅ 權限查詢成功:', userData);
 
         const roleConfig = {
             1: { page: '/page/Admin.html', api: '/NLD/admin/workOrders', name: 'Admin' },
@@ -268,12 +298,22 @@
 
         const config = roleConfig[userData.roleID];
         if (!config) {
-            throw new Error('未知的角色類型: ' + userData.roleID);
+            // 特別處理 roleID = 0 的情況
+            if (userData.roleID === 0) {
+                showError('此帳號或網址已失效，無法使用系統');
+            } else {
+                showError('網址已失效無法使用');
+            }
+            return; // 終止執行
         }
+
+        console.log('👤 用戶角色:', config.name);
 
         updateStatus('載入資料中...');
 
         const dataUrl = `${protocol}//${host}${config.api}`;
+        console.log('📥 開始載入數據:', dataUrl);
+
         const dataResponse = await fetch(dataUrl, {
             method: 'POST',
             headers: {
@@ -289,17 +329,28 @@
         }
 
         const workOrders = await dataResponse.json();
+        console.log('✅ 數據載入成功，共', workOrders.length, '筆工單');
+
         await storage.saveData(workOrders);
 
+        // ✅ 保存用戶信息
         localStorage.setItem('liffAccessToken', accessToken);
         localStorage.setItem('groupId', groupId);
         localStorage.setItem('userRole', config.name);
 
+        console.log('💾 用戶信息已保存');
+
         updateStatus('跳轉中...');
 
         const redirectUrl = `${protocol}//${host}${config.page}`;
-        window.location.href = redirectUrl;
+        console.log('🚀 準備跳轉到:', redirectUrl);
+
+        // ✅ 添加延遲確保數據已保存
+        setTimeout(() => {
+            window.location.href = redirectUrl;
+        }, 100);
     }
+
 </script>
 </body>
 </html>

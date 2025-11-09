@@ -1,3 +1,5 @@
+
+
 // ==================== LIFF 驗證相關 ====================
 let accessToken = null;
 let userInfo = null;
@@ -7,8 +9,8 @@ async function initLIFFAuth() {
     try {
 
         await liff.init({
-            liffId: '2008232728-npRj74R0' //部署時註解
-            // liffId: '2008239415-pKx0DNmY' //開發時註解
+            // liffId: '2008232728-npRj74R0' //部署時註解
+            liffId: '2008239415-pKx0DNmY' //開發時註解
         });
 
 
@@ -149,7 +151,8 @@ const roleMap = {
     2: "醫師",
     3: "業務",
     4: "生產單位",
-    5: "牙助"
+    5: "牙助",
+    0: "失效人員"
 };
 
 // 計算每頁可以顯示的卡片數量
@@ -742,11 +745,13 @@ function createUserRow(user) {
         }
     }
 
+    // 修改这里，包含 0
     let roleOptions = '';
-    for (let i = 1; i <= 5; i++) {
+    const roleIds = [1, 2, 3, 4, 5, 0];  // 改为 0
+    roleIds.forEach(i => {
         const selected = i === parseInt(user.roleID) ? 'selected' : '';
         roleOptions += `<option value="${i}" ${selected}>${i} - ${roleMap[i]}</option>`;
-    }
+    });
 
     return `
         <tr>

@@ -86,7 +86,6 @@ public class NLDServiceImpl implements NLDService {
     }
 
 
-
     // 根據 Access Token 和角色類型取得工單
     @Transactional(readOnly = true)
     @Override
@@ -137,7 +136,7 @@ public class NLDServiceImpl implements NLDService {
         };
     }
 
-    // 業務搜尋篩選
+
     @Transactional(readOnly = true)
     @Override
     public List<?> searchTypeWorkOrders(
@@ -145,8 +144,7 @@ public class NLDServiceImpl implements NLDService {
             String groupId,
             String keyword,
             String dateType,
-            String startDate,
-            String endDate
+            String startDate
     ) {
         // 1. 驗證 Token
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -174,7 +172,7 @@ public class NLDServiceImpl implements NLDService {
 
         // 5. 轉換日期格式
         Date parsedStartDate = null;
-        Date parsedEndDate = null;
+        //Date parsedEndDate = null;
 
         if (startDate != null && !startDate.trim().isEmpty()) {
             try {
@@ -184,146 +182,250 @@ public class NLDServiceImpl implements NLDService {
             }
         }
 
-        if (endDate != null && !endDate.trim().isEmpty()) {
-            try {
-                parsedEndDate = new SimpleDateFormat("yyyy-MM-dd").parse(endDate);
-            } catch (ParseException e) {
-                throw new IllegalArgumentException("結束日期格式錯誤");
-            }
-        }
-
-
         // 6. 根據角色取得工單
         return switch (userGroupRole.getRoleID()) {
-            case 1 -> nldRepository.AdminSearchWithFilters(keyword, dateType, parsedStartDate, parsedEndDate);
+            case 1 -> nldRepository.AdminSearchWithFilters(keyword, dateType, parsedStartDate, null);
             case 2 -> nldRepository.DocWithFilters(
                     userGroupRole.getGroupNameID(),
                     userGroupRole.getUserNameID(),
                     keyword,
                     dateType,
-                    parsedStartDate,
-                    parsedEndDate
+                    parsedStartDate
             );
             case 3 -> nldRepository.SalesSearchWithFilters(
                     userGroupRole.getUserNameID(),
                     keyword,
                     dateType,
-                    parsedStartDate,
-                    parsedEndDate
+                    parsedStartDate
              );
             case 4 -> nldRepository.ProdUnitSearchWithFilters(
                     keyword,
                     dateType,
-                    parsedStartDate,
-                    parsedEndDate
+                    parsedStartDate
             );
             case 5 -> nldRepository.AssistantSearchWithFilters(
                     userGroupRole.getGroupNameID(),
                     keyword,
                     dateType,
-                    parsedStartDate,
-                    parsedEndDate
+                    parsedStartDate
             );
 
             default -> Collections.emptyList();  // 改這裡：回傳空 List 而非 null
         };
     }
 
-    // 業務搜尋篩選
-//    @Transactional(readOnly = true)
-//    @Override
-//    public List<NldSalesDTO> searchSalesWorkOrders(
-//            String authHeader,
-//            String groupId,
-//            String keyword,
-//            String dateType,
-//            String startDate,
-//            String endDate
-//    ) {
-//        // 1. 驗證 Token
-//        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-//            throw new IllegalArgumentException("Invalid Authorization Header");
-//        }
-//
-//        String accessToken = authHeader.substring(7);
-//        String lineId = lineVerificationService.verifyAccessTokenAndGetUserId(accessToken);
-//
-//        if (lineId == null || lineId.trim().isEmpty()) {
-//            throw new SecurityException("無效的 Access Token");
-//        }
-//
-//        // 2. 驗證 Group ID
-//        if (groupId == null || groupId.trim().isEmpty()) {
-//            throw new IllegalArgumentException("缺少 Group ID");
-//        }
-//
-//        // 3. 查詢使用者角色
-//        UserGroupRole userGroupRole = userGroupRoleService.getRoleId(lineId, groupId);
-//
-//        if (userGroupRole == null) {
-//            throw new RuntimeException("使用者不存在或未授權此群組");
-//        }
-//
-//        // 4. 確認是 Sales 角色
-//        if (userGroupRole.getRoleID() != 3) {
-//            throw new RuntimeException("此功能僅限 Sales 角色使用");
-//        }
-//
-//        // 5. 轉換日期格式
-//        Date parsedStartDate = null;
-//        Date parsedEndDate = null;
-//
-//        if (startDate != null && !startDate.trim().isEmpty()) {
-//            try {
-//                parsedStartDate = new SimpleDateFormat("yyyy-MM-dd").parse(startDate);
-//            } catch (ParseException e) {
-//                throw new IllegalArgumentException("起始日期格式錯誤");
-//            }
-//        }
-//
-//        if (endDate != null && !endDate.trim().isEmpty()) {
-//            try {
-//                parsedEndDate = new SimpleDateFormat("yyyy-MM-dd").parse(endDate);
-//            } catch (ParseException e) {
-//                throw new IllegalArgumentException("結束日期格式錯誤");
-//            }
-//        }
-//
-//        // 6. 呼叫 Repository 搜尋
-//        return nldRepository.SalesSearchWithFilters(
-//                userGroupRole.getUserNameID(),
-//                keyword,
-//                dateType,
-//                parsedStartDate,
-//                parsedEndDate
-//        );
-//    }
+    /**
+     * 取得業務列表（僅限管理員）
+     */
+    @Transactional(readOnly = true)
+    @Override
+    public List<?> getSalesList(String authHeader, String groupId) {
+        // 1. 驗證 Token
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Invalid Authorization Header");
+        }
 
-//    // 牙助搜尋篩選
-//    @Transactional(readOnly = true)
-//    @Override
-//    public List<NldClientDTO> searchAssistantWorkOrders(String authHeader, String groupId, String keyword, String dateType, String startDate, String endDate) {
-//        return List.of();
-//    }
-//
-//    // 醫生搜尋篩選
-//    @Transactional(readOnly = true)
-//    @Override
-//    public List<NldClientDTO> searchDocWorkOrders(String authHeader, String groupId, String keyword, String dateType, String startDate, String endDate) {
-//        return List.of();
-//    }
-//
-//    // 生產單位搜尋篩選
-//    @Transactional(readOnly = true)
-//    @Override
-//    public List<NLDProdUnitDTO> searchProdUnitWorkOrders(String authHeader, String groupId, String keyword, String dateType, String startDate, String endDate) {
-//        return List.of();
-//    }
-//
-//    // 管理員搜尋篩選
-//    @Transactional(readOnly = true)
-//    @Override
-//    public List<NldDTO> searchAdminWorkOrders(String authHeader, String groupId, String keyword, String dateType, String startDate, String endDate) {
-//        return List.of();
-//    }
+        String accessToken = authHeader.substring(7);
+        String lineId = lineVerificationService.verifyAccessTokenAndGetUserId(accessToken);
+
+        if (lineId == null || lineId.trim().isEmpty()) {
+            throw new SecurityException("無效的 Access Token");
+        }
+
+        // 2. 驗證 Group ID
+        if (groupId == null || groupId.trim().isEmpty()) {
+            throw new IllegalArgumentException("缺少 Group ID");
+        }
+
+        // 3. 查詢使用者角色
+        UserGroupRole userGroupRole = userGroupRoleService.getRoleId(lineId, groupId);
+
+        if (userGroupRole == null) {
+            throw new RuntimeException("使用者不存在或未授權此群組");
+        }
+
+        // 4. 驗證是否為管理員
+        if (userGroupRole.getRoleID() != 1) {
+            throw new RuntimeException("無權限：僅限管理員使用此功能");
+        }
+
+        // 5. 查詢業務列表
+        return nldRepository.getSalesList();
+    }
+
+    /**
+     * 根據工單號查詢詳細資料（包含所有相關的 VED 資料）
+     */
+    @Transactional(readOnly = true)
+    @Override
+    public List<?> getWorkOrderDetailByNum(String authHeader, String groupId, String workOrderNum) {
+        // 1. 驗證 Token
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Invalid Authorization Header");
+        }
+
+        String accessToken = authHeader.substring(7);
+        String lineId = lineVerificationService.verifyAccessTokenAndGetUserId(accessToken);
+
+        if (lineId == null || lineId.trim().isEmpty()) {
+            throw new SecurityException("無效的 Access Token");
+        }
+
+        // 2. 驗證 Group ID
+        if (groupId == null || groupId.trim().isEmpty()) {
+            throw new IllegalArgumentException("缺少 Group ID");
+        }
+
+        // 3. 驗證工單號
+        if (workOrderNum == null || workOrderNum.trim().isEmpty()) {
+            throw new IllegalArgumentException("缺少工單號");
+        }
+
+        // 4. 查詢使用者角色
+        UserGroupRole userGroupRole = userGroupRoleService.getRoleId(lineId, groupId);
+
+        if (userGroupRole == null) {
+            throw new RuntimeException("使用者不存在或未授權此群組");
+        }
+
+        // 5. 根據角色和工單號查詢完整數據
+        return switch (userGroupRole.getRoleID()) {
+            case 1 -> nldRepository.AdminGetDetailByWorkOrderNum(workOrderNum);
+
+            case 2 -> nldRepository.DocGetDetailByWorkOrderNum(
+                    userGroupRole.getGroupNameID(),
+                    userGroupRole.getUserNameID(),
+                    workOrderNum
+            );
+
+            case 3 -> nldRepository.SalesGetDetailByWorkOrderNum(
+                    userGroupRole.getUserNameID(),
+                    workOrderNum
+            );
+
+            case 4 -> nldRepository.ProdUnitGetDetailByWorkOrderNum(workOrderNum);
+
+            case 5 -> nldRepository.AssistantGetDetailByWorkOrderNum(
+                    userGroupRole.getGroupNameID(),
+                    workOrderNum
+            );
+
+            default -> Collections.emptyList();
+        };
+    }
+
+    @Transactional
+    @Override
+    public boolean updateWorkOrderRemarks(String authHeader, String groupId, String workOrderNum, String remarks) {
+        // 1. 驗證 Token
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Invalid Authorization Header");
+        }
+
+        String accessToken = authHeader.substring(7);
+        String lineId = lineVerificationService.verifyAccessTokenAndGetUserId(accessToken);
+
+        if (lineId == null || lineId.trim().isEmpty()) {
+            throw new SecurityException("無效的 Access Token");
+        }
+
+        // 2. 驗證 Group ID
+        if (groupId == null || groupId.trim().isEmpty()) {
+            throw new IllegalArgumentException("缺少 Group ID");
+        }
+
+        // 3. 查詢使用者角色
+        UserGroupRole userGroupRole = userGroupRoleService.getRoleId(lineId, groupId);
+
+        if (userGroupRole == null) {
+            throw new RuntimeException("使用者不存在或未授權此群組");
+        }
+
+
+        // 5. 更新備註 - 直接調用 Repository 的 @Modifying 方法，返回更新的行數
+        int updatedRows = nldRepository.updateWorkOrderRemarks(workOrderNum, remarks);
+
+        return updatedRows > 0;
+    }
+
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<?> searchAdminWorkOrders(
+            String authHeader,
+            String groupId,
+            String keyword,
+            String dateType,
+            String startDate,
+            String salesName
+    ) {
+        // 1. 驗證 Token
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Invalid Authorization Header");
+        }
+
+        String accessToken = authHeader.substring(7);
+        String lineId = lineVerificationService.verifyAccessTokenAndGetUserId(accessToken);
+
+        if (lineId == null || lineId.trim().isEmpty()) {
+            throw new SecurityException("無效的 Access Token");
+        }
+
+        // 2. 驗證 Group ID
+        if (groupId == null || groupId.trim().isEmpty()) {
+            throw new IllegalArgumentException("缺少 Group ID");
+        }
+
+        // 3. 查詢使用者角色
+        UserGroupRole userGroupRole = userGroupRoleService.getRoleId(lineId, groupId);
+
+        if (userGroupRole == null) {
+            throw new RuntimeException("使用者不存在或未授權此群組");
+        }
+
+        // 5. 轉換日期格式
+        Date parsedStartDate = null;
+        //Date parsedEndDate = null;
+
+        if (startDate != null && !startDate.trim().isEmpty()) {
+            try {
+                parsedStartDate = new SimpleDateFormat("yyyy-MM-dd").parse(startDate);
+            } catch (ParseException e) {
+                throw new IllegalArgumentException("起始日期格式錯誤");
+            }
+        }
+
+        // 6. 根據角色取得工單
+        return switch (userGroupRole.getRoleID()) {
+            case 1 -> nldRepository.AdminSearchWithFilters(keyword, dateType, parsedStartDate, salesName);
+            case 2 -> nldRepository.DocWithFilters(
+                    userGroupRole.getGroupNameID(),
+                    userGroupRole.getUserNameID(),
+                    keyword,
+                    dateType,
+                    parsedStartDate
+            );
+            case 3 -> nldRepository.SalesSearchWithFilters(
+                    userGroupRole.getUserNameID(),
+                    keyword,
+                    dateType,
+                    parsedStartDate
+            );
+            case 4 -> nldRepository.ProdUnitSearchWithFilters(
+                    keyword,
+                    dateType,
+                    parsedStartDate
+            );
+            case 5 -> nldRepository.AssistantSearchWithFilters(
+                    userGroupRole.getGroupNameID(),
+                    keyword,
+                    dateType,
+                    parsedStartDate
+            );
+
+            default -> Collections.emptyList();  // 改這裡：回傳空 List 而非 null
+        };
+    }
+
+
 }

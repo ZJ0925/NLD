@@ -11,6 +11,19 @@ public interface NLDService {
 
     List<?> getWorkOrdersByAccessToken(String authHeader, String roleType, String groupId);
 
+    List<?> getWorkOrderDetailByNum(String authHeader, String groupId, String workOrderNum);
+
+    boolean updateWorkOrderRemarks(String authHeader, String groupId, String workOrderNum, String remarks);
+
+    // 業務搜尋篩選
+    List<?> searchAdminWorkOrders(
+            String authHeader,
+            String groupId,
+            String keyword,
+            String dateType,
+            String startDate,
+            String saleName
+    );
 
     // 業務搜尋篩選
     List<?> searchTypeWorkOrders(
@@ -18,9 +31,11 @@ public interface NLDService {
             String groupId,
             String keyword,
             String dateType,
-            String startDate,
-            String endDate
+            String startDate
     );
+
+    // ✅ 新增：取得業務列表
+    List<?> getSalesList(String authHeader, String groupId);
 
 //
 //    // 牙助搜尋篩選

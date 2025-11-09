@@ -23,6 +23,9 @@ public class LineServiceImpl implements LineService {
     // 群組權限網址
     private String groupRoleURL;
 
+    // 公司群組權限網址
+
+
 
     @Value("${IndexURL}")
     public void setIndexURL(String indexURL) {

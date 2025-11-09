@@ -1,10 +1,10 @@
 package com.zj.nld.Model.Entity;
 
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.zj.nld.Converter.FTBooleanConverter;
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Entity
@@ -23,7 +23,6 @@ public class HVED {
     @Column(name = "CUN_DH")
     private String cundh;
 
-
     @Id
     @Column(name = "NO1_DH")
     private String workOrderNum; // 1.技工單號
@@ -41,7 +40,7 @@ public class HVED {
     private String patientName; // 4.患者名稱
 
     @Column(name = "DAT_1_DH")
-    private Date receivedDate;  // 5.收件日
+    private Date receivedDate;  // 5.收模日
 
     @Column(name = "DAT_4_DH")
     private Date deliveryDate; // 6.完成交件日
@@ -50,7 +49,7 @@ public class HVED {
     private String salesIdNum; // 7.業務名稱
 
     @Column(name = "DAT_5_DH")
-    private Date tryInDate; // 10.試戴交件
+    private Date tryInDate; // 10.試戴交件日
 
     @Column(name = "DAT_3_DH")
     private Date estFinishDate; // 11.預計完成日
@@ -80,12 +79,27 @@ public class HVED {
     @Column(name = "RR__DH")
     private String remarks; // 21.備註
 
+    // ✅ 新增：工單總金額
+    @Column(name = "AMO_DH")
+    private BigDecimal amoDh; // 工單總金額
+
+    @Column(name = "VER_DH")
+    private String salesName; // 或驗收業務名
+
+    public String getSalesName() {
+        return salesName;
+    }
+
+    public void setSalesName(String salesName) {
+        this.salesName = salesName;
+    }
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "SALE_DH", referencedColumnName = "NO_P1", insertable = false, updatable = false)
     @JsonIgnore // 忽略這個屬性
     private Sales sales; // 添加與 Sales 實體的關聯
 
-
+    // Getter/Setter
     public Sales getSales() {
         return sales;
     }
@@ -236,5 +250,38 @@ public class HVED {
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+
+    // ✅ 新增 Getter/Setter
+    public BigDecimal getAmoDh() {
+        return amoDh;
+    }
+
+    public void setAmoDh(BigDecimal amoDh) {
+        this.amoDh = amoDh;
+    }
+
+    public String getNodh() {
+        return nodh;
+    }
+
+    public void setNodh(String nodh) {
+        this.nodh = nodh;
+    }
+
+    public String getRem2dh() {
+        return rem2dh;
+    }
+
+    public void setRem2dh(String rem2dh) {
+        this.rem2dh = rem2dh;
+    }
+
+    public String getCundh() {
+        return cundh;
+    }
+
+    public void setCundh(String cundh) {
+        this.cundh = cundh;
     }
 }

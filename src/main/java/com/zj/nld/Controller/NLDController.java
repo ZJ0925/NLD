@@ -88,8 +88,7 @@ public class NLDController {
             @RequestParam(required = false) String groupId,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String dateType,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate
+            @RequestParam(required = false) String startDate
     ) {
         try {
             List<?> results = nldService.searchTypeWorkOrders(
@@ -97,8 +96,7 @@ public class NLDController {
                     groupId,
                     keyword,
                     dateType,
-                    startDate,
-                    endDate
+                    startDate
             );
 
             return ResponseEntity.ok(results);
@@ -129,8 +127,7 @@ public class NLDController {
             @RequestParam(required = false) String groupId,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String dateType,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate
+            @RequestParam(required = false) String startDate
     ) {
         try {
             List<?> results = nldService.searchTypeWorkOrders(
@@ -138,8 +135,7 @@ public class NLDController {
                     groupId,
                     keyword,
                     dateType,
-                    startDate,
-                    endDate
+                    startDate
             );
 
             return ResponseEntity.ok(results);
@@ -170,8 +166,8 @@ public class NLDController {
             @RequestParam(required = false) String groupId,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String dateType,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate
+            @RequestParam(required = false) String startDate
+
     ) {
         try {
             List<?> results = nldService.searchTypeWorkOrders(
@@ -179,8 +175,7 @@ public class NLDController {
                     groupId,
                     keyword,
                     dateType,
-                    startDate,
-                    endDate
+                    startDate
             );
 
             return ResponseEntity.ok(results);
@@ -211,8 +206,7 @@ public class NLDController {
             @RequestParam(required = false) String groupId,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String dateType,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate
+            @RequestParam(required = false) String startDate
     ) {
         try {
             List<?> results = nldService.searchTypeWorkOrders(
@@ -220,11 +214,39 @@ public class NLDController {
                     groupId,
                     keyword,
                     dateType,
-                    startDate,
-                    endDate
+                    startDate
             );
 
             return ResponseEntity.ok(results);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "系統錯誤"));
+        }
+    }
+
+    // 取得業務列表
+    @GetMapping("/Admin/salesList")
+    public ResponseEntity<?> getSalesList(
+            @RequestHeader(value = "Authorization", required = true) String authHeader,
+            @RequestParam(required = false) String groupId
+    ) {
+        try {
+            List<?> salesList = nldService.getSalesList(authHeader, groupId);
+            return ResponseEntity.ok(salesList);
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -253,16 +275,16 @@ public class NLDController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String dateType,
             @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate
+            @RequestParam(required = false) String salesName
     ) {
         try {
-            List<?> results = nldService.searchTypeWorkOrders(
+            List<?> results = nldService.searchAdminWorkOrders(
                     authHeader,
                     groupId,
                     keyword,
                     dateType,
                     startDate,
-                    endDate
+                    salesName
             );
             return ResponseEntity.ok(results);
 
@@ -284,4 +306,95 @@ public class NLDController {
                     .body(Map.of("error", "系統錯誤"));
         }
     }
+
+    /**
+     * 更新工單備註
+     */
+    @PutMapping("/Admin/workorder/{workOrderNum}/remarks")
+    public ResponseEntity<?> updateWorkOrderRemarks(
+            @PathVariable String workOrderNum,
+            @RequestHeader(value = "Authorization", required = true) String authHeader,
+            @RequestBody Map<String, String> requestBody) {
+
+        try {
+            String groupId = requestBody.get("groupId");
+            String remarks = requestBody.get("remarks");
+            System.out.println("groupId:"+groupId);
+            System.out.println("remarks:"+remarks);
+            if (remarks == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("error", "備註內容不可為空"));
+            }
+
+            boolean success = nldService.updateWorkOrderRemarks(
+                    authHeader,
+                    groupId,
+                    workOrderNum,
+                    remarks
+            );
+
+            if (success) {
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "message", "備註已更新"
+                ));
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("error", "更新失敗"));
+            }
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "系統錯誤"));
+        }
+    }
+
+    /**
+     * 查詢工單詳細資料（包含所有相關的 VED 資料）
+     * 各角色共用端點，根據使用者權限自動返回對應資料
+     */
+    @GetMapping("/{roleType}/workorder/{workOrderNum}")
+    public ResponseEntity<?> getWorkOrderDetail(
+            @PathVariable String roleType,
+            @PathVariable String workOrderNum,
+            @RequestHeader(value = "Authorization", required = true) String authHeader,
+            @RequestParam(required = false) String groupId
+    ) {
+        try {
+            List<?> result = nldService.getWorkOrderDetailByNum(authHeader, groupId, workOrderNum);
+            return ResponseEntity.ok(result);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", e.getMessage()));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "系統錯誤"));
+        }
+    }
+
+
 }

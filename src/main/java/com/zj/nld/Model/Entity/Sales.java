@@ -17,6 +17,17 @@ public class Sales {
     @Column(name = "NAM_P1")
     private String name;
 
+    // ✅ 新增：工作類型
+    @Column(name = "WORK3_P1")
+    private String work3P1;
+
+    public String getWork3P1() {
+        return work3P1;
+    }
+
+    public void setWork3P1(String work3P1) {
+        this.work3P1 = work3P1;
+    }
 
     public String getId() {
         return id;
