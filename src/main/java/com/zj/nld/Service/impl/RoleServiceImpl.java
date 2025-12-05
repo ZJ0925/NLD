@@ -36,9 +36,19 @@ public class RoleServiceImpl implements RoleService {
     public List<UserGroupRoleDTO> getUserGroup(String groupID) {
         List<UserGroupRole> userGroupRole = userGroupRoleRepository.findUserGroupRolesByGroupID(groupID);
 
-        // 建構子轉換 Entity → DTO
+        // ✅ 建構子轉換 Entity → DTO，並在 DTO 層面補充 lineNiceName
         return userGroupRole.stream()
-                .map(UserGroupRoleDTO::new) // 直接 new DTO
+                .map(entity -> {
+                    UserGroupRoleDTO dto = new UserGroupRoleDTO(entity);
+
+                    // ✅ 如果 lineNiceName 為空，在 DTO 中補上 userName
+                    if (dto.getLineNiceName() == null || dto.getLineNiceName().isEmpty()) {
+                        dto.setLineNiceName(dto.getUserName());
+                        System.out.println("📝 DTO 層補充 lineNiceName: " + dto.getUserName());
+                    }
+
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -60,6 +70,7 @@ public class RoleServiceImpl implements RoleService {
         userGroupRole.setExternalID(userGroupRoleDTO.getExternalID());
         userGroupRole.setLineID(userGroupRoleDTO.getLineID());
         userGroupRole.setUserName(userGroupRoleDTO.getUserName());
+        userGroupRole.setLineNiceName(userGroupRoleDTO.getLineNiceName());
         userGroupRole.setGroupID(userGroupRoleDTO.getGroupID());
         userGroupRole.setGroupName(userGroupRoleDTO.getGroupName());
         userGroupRole.setRoleID(2);
@@ -80,11 +91,25 @@ public class RoleServiceImpl implements RoleService {
                 throw new EntityNotFoundException("UserGroupRole not found: " + externalID);
             }
 
+            // ✅ 如果是第一次更新且 lineNiceName 為空，先記錄原始名稱
+            if (existing.getLineNiceName() == null || existing.getLineNiceName().isEmpty()) {
+                existing.setLineNiceName(existing.getUserName());
+            }
+
             existing.setLineID(userGroupRoleDTO.getLineID());
             existing.setUserName(userGroupRoleDTO.getUserName());
+            existing.setUserNameID(userGroupRoleDTO.getUserNameID());
             existing.setGroupID(userGroupRoleDTO.getGroupID());
             existing.setGroupName(userGroupRoleDTO.getGroupName());
+            existing.setGroupNameID(userGroupRoleDTO.getGroupNameID());
             existing.setRoleID(userGroupRoleDTO.getRoleID());
+
+            // ✅ lineNiceName 不更新，除非 DTO 有提供且原本是空的
+            if (userGroupRoleDTO.getLineNiceName() != null && !userGroupRoleDTO.getLineNiceName().isEmpty()) {
+                if (existing.getLineNiceName() == null || existing.getLineNiceName().isEmpty()) {
+                    existing.setLineNiceName(userGroupRoleDTO.getLineNiceName());
+                }
+            }
 
             UserGroupRole updated = userGroupRoleRepository.save(existing);
             return new UserGroupRoleDTO(updated);
@@ -135,6 +160,12 @@ public class RoleServiceImpl implements RoleService {
                 UserGroupRole userGroupRole = userGroupRoleRepository.findByLineIDAndGroupID(dto.getLineID(), dto.getGroupID());
 
                 if (userGroupRole != null) {
+
+                    if (userGroupRole.getLineNiceName() == null || userGroupRole.getLineNiceName().isEmpty()) {
+                        userGroupRole.setLineNiceName(userGroupRole.getUserName());
+                        System.out.println("   📝 補充 lineNiceName: " + userGroupRole.getUserName());
+                    }
+
                     userGroupRole.setRoleID(dto.getRoleID());
                     // 安全的 trim 處理
                     userGroupRole.setGroupName(dto.getGroupName() != null ?
@@ -143,6 +174,14 @@ public class RoleServiceImpl implements RoleService {
                             dto.getUserNameID().trim() : null);
                     userGroupRole.setUserName(dto.getUserName() != null ?
                             dto.getUserName().trim() : null);
+
+                    if (dto.getLineNiceName() != null && !dto.getLineNiceName().isEmpty()) {
+                        // 只在第一次設定時允許更新
+                        if (userGroupRole.getLineNiceName() == null || userGroupRole.getLineNiceName().isEmpty()) {
+                            userGroupRole.setLineNiceName(dto.getLineNiceName().trim());
+                        }
+                    }
+
                     userGroupRoleRepository.save(userGroupRole);
 
                     updatedRoles.add(userGroupRole); // 更新成功才加到結果

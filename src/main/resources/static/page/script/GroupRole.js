@@ -195,13 +195,18 @@ function toggleSort() {
 
 // 頁面載入初始化
 window.addEventListener('DOMContentLoaded', () => {
-    filterBtn.addEventListener('click', applyFilters);
-    resetBtn.addEventListener('click', resetFilters);
+    filterBtn.addEventListener('click', async () => {
+        await applyFilters();
+    });
 
-    searchGroupName.addEventListener('keypress', e => {
+    resetBtn.addEventListener('click', async () => {
+        await resetFilters();
+    });
+
+    searchGroupName.addEventListener('keypress', async e => {
         if (e.key === 'Enter') {
             e.preventDefault();
-            applyFilters();
+            await applyFilters();
         }
     });
 
@@ -366,6 +371,7 @@ async function loadGroupsFromAPI() {
 }
 
 // 3. 從 API 載入特定群組的使用者資料
+// 在 loadGroupUsersFromAPI 函數中加入 console.log
 async function loadGroupUsersFromAPI(groupId) {
     const apiUrl = `${window.location.protocol}//${window.location.host}/Role/GET/UserGroup?groupID=${encodeURIComponent(groupId)}`;
 
@@ -375,7 +381,6 @@ async function loadGroupUsersFromAPI(groupId) {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                // 加入 ngrok 需要的 header - 重要修正!!!
                 'ngrok-skip-browser-warning': 'true'
             }
         });
@@ -383,11 +388,14 @@ async function loadGroupUsersFromAPI(groupId) {
         if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
 
         const data = await res.json();
+
+        // ✅ 加入這行來檢查資料
+        console.log('📥 API 回傳的使用者資料:', data);
+        console.log('📋 第一筆使用者資料:', data[0]);
+
         originalUserData = Array.isArray(data) ? data : [];
 
-        // 重建篩選後的使用者資料
         rebuildFilteredUserData();
-
         renderGroupDetail();
         updatePagination();
 
@@ -506,31 +514,82 @@ function applySorting() {
     }
 }
 
-// 6. 應用篩選條件
-function applyFilters() {
+// 6. 應用篩選條件 - 即時查詢版本
+// 修改 applyFilters 函數 - 兩種視圖都呼叫後端
+async function applyFilters() {
     if (currentView === 'groupList') {
-        rebuildFilteredGroupData();
+        // 群組列表：重新從後端載入最新資料
+        const groupListView = document.getElementById('groupListView');
+        if (groupListView) {
+            groupListView.innerHTML = `
+                <div class="loading-container">
+                    <div class="spinner"></div>
+                    <p>🔍 查詢中，請稍候...</p>
+                </div>
+            `;
+        }
+
+        // 重新從 API 載入資料
+        await loadGroupsFromAPI();
+
     } else {
-        rebuildFilteredUserData();
+        // ✅ 使用者列表：也重新從後端載入資料
+        const groupDetailContent = document.getElementById('groupDetailContent');
+        if (groupDetailContent) {
+            groupDetailContent.innerHTML = `
+                <div class="loading-container">
+                    <div class="spinner"></div>
+                    <p>🔍 查詢中，請稍候...</p>
+                </div>
+            `;
+        }
+
+        // 重新從 API 載入該群組的使用者資料
+        await loadGroupUsersFromAPI(currentGroupId);
     }
+
     currentPage = 1;
-    renderCurrentView();
-    updatePagination();
 }
 
-// 7. 重設篩選條件
-function resetFilters() {
+// 7. 重設篩選條件 - 即時查詢版本
+async function resetFilters() {
     if (currentView === 'groupList') {
         searchGroupName.value = '';
-        rebuildFilteredGroupData();
+
+        // 顯示載入中
+        const groupListView = document.getElementById('groupListView');
+        if (groupListView) {
+            groupListView.innerHTML = `
+                <div class="loading-container">
+                    <div class="spinner"></div>
+                    <p>🔄 重新載入資料中...</p>
+                </div>
+            `;
+        }
+
+        // 重新從 API 載入所有資料
+        await loadGroupsFromAPI();
+
     } else {
+        // ✅ 使用者列表：清空篩選條件並重新從後端載入
         searchUserName.value = '';
         searchRole.value = '';
-        rebuildFilteredUserData();
+
+        const groupDetailContent = document.getElementById('groupDetailContent');
+        if (groupDetailContent) {
+            groupDetailContent.innerHTML = `
+                <div class="loading-container">
+                    <div class="spinner"></div>
+                    <p>🔄 重新載入資料中...</p>
+                </div>
+            `;
+        }
+
+        // 重新從 API 載入該群組的使用者資料
+        await loadGroupUsersFromAPI(currentGroupId);
     }
+
     currentPage = 1;
-    renderCurrentView();
-    updatePagination();
 }
 
 function switchToGroupListView() {
@@ -567,12 +626,7 @@ async function switchToGroupDetailView(groupId, groupName) {
 
     const isBusinessGroup = groupName.includes('業務');
 
-    if (isBusinessGroup && allSalesPersons.length === 0) {
-        await loadAllSalesPersons();
-    } else if (!isBusinessGroup && allDoctors.length === 0) {
-        await loadAllDoctors();
-    }
-
+    // ✅ 先顯示載入中
     document.getElementById('groupListView').style.display = 'none';
     document.getElementById('groupDetailView').style.display = 'block';
     document.getElementById('groupFilters').style.display = 'none';
@@ -583,18 +637,98 @@ async function switchToGroupDetailView(groupId, groupName) {
     document.getElementById('breadcrumbGroup').style.display = 'inline';
     document.getElementById('breadcrumbGroup').textContent = groupName;
 
-    document.getElementById('currentGroupName').textContent = groupName;
+// ========== 顯示群組名稱和 GroupID（同一行版本，可直接複製 ID） ==========
+    const groupNameElement = document.getElementById('currentGroupName');
+
+// 同一行顯示群組名稱和 GroupID
+    groupNameElement.innerHTML = `
+    ${groupName}
+    <span style="
+        display: inline-block;
+        margin-left: 12px;
+        padding: 4px 10px;
+        background-color: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(0, 131, 144, 0.3);
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: normal;
+        color: #008390;
+        font-family: monospace;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        vertical-align: middle;
+    " 
+    onclick="
+        navigator.clipboard.writeText('${groupId}').then(() => {
+            this.style.backgroundColor = '#d4edda';
+            this.style.borderColor = '#28a745';
+            this.style.color = '#155724';
+            const originalText = this.innerHTML;
+            this.innerHTML = '✓ 已複製';
+            setTimeout(() => {
+                this.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+                this.style.borderColor = 'rgba(0, 131, 144, 0.3)';
+                this.style.color = '#008390';
+                this.innerHTML = originalText;
+            }, 1500);
+        });
+    "
+    title="點擊複製完整 GroupID：${groupId}">
+        Group ID: <span style="user-select: all;">${groupId}</span>
+    </span>
+    `;
+
+
 
     document.getElementById('groupDetailContent').innerHTML = `
         <div class="loading-container">
             <div class="spinner"></div>
-            <p>載入群組成員資料中，請稍候...</p>
+            <p>正在同步群組成員資料，請稍候...</p>
         </div>
     `;
 
-    currentPage = 1;
-    itemsPerPage = 20; // 使用者列表固定每頁20筆
-    await loadGroupUsersFromAPI(groupId);
+    try {
+        // ✅ 第一步：呼叫後端 API 同步群組成員
+        console.log('📥 開始同步群組成員...', groupId);
+        const syncApiUrl = `${window.location.protocol}//${window.location.host}/Role/sync/GroupMembers?groupID=${encodeURIComponent(groupId)}`;
+
+        const syncResponse = await fetch(syncApiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+
+        if (!syncResponse.ok) {
+            console.warn('⚠️ 群組成員同步失敗:', syncResponse.status);
+        } else {
+            console.log('✅ 群組成員同步成功');
+        }
+
+        // ✅ 第二步：載入醫生和業務資料
+        if (allDoctors.length === 0) {
+            await loadAllDoctors();
+        }
+
+        if (allSalesPersons.length === 0) {
+            await loadAllSalesPersons();
+        }
+
+        // ✅ 第三步：載入群組成員資料
+        currentPage = 1;
+        itemsPerPage = 20;
+        await loadGroupUsersFromAPI(groupId);
+
+    } catch (error) {
+        console.error('❌ 載入群組成員時發生錯誤:', error);
+        document.getElementById('groupDetailContent').innerHTML = `
+            <div class="error-message">
+                載入失敗：${error.message}<br>
+                請稍後再試或聯繫系統管理員
+            </div>
+        `;
+    }
 }
 
 // 10. 渲染當前視圖
@@ -668,30 +802,45 @@ function createGroupCard(group) {
     `;
 }
 
-// 修正 renderGroupDetail 以保持視覺狀態
 function renderGroupDetail() {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const currentPageData = filteredUserData.slice(startIndex, endIndex);
 
+    console.log('📊 renderGroupDetail 資料:', {
+        startIndex,
+        endIndex,
+        currentPageDataLength: currentPageData.length,
+        filteredUserDataLength: filteredUserData.length,
+        currentPage,
+        itemsPerPage
+    });
+
     const groupDetailContent = document.getElementById('groupDetailContent');
-    if (!groupDetailContent) return;
+    if (!groupDetailContent) {
+        console.error('❌ 找不到 groupDetailContent 元素');
+        return;
+    }
 
     if (currentPageData.length === 0) {
+        console.warn('⚠️ currentPageData 是空的');
         groupDetailContent.innerHTML = '<div class="no-data">此群組沒有成員或沒有找到匹配的使用者</div>';
         return;
     }
 
+    console.log('✅ 準備渲染 ' + currentPageData.length + ' 個使用者');
+
     // 在重新渲染前保存視覺狀態
     const savedState = preserveVisualState();
 
-    // 創建使用者表格 - 只顯示使用者名稱和權限設定
+    // ✅ 修改表格標題：新增「LINE 暱稱」欄位
     let htmlContent = `
         <table class="users-table">
             <thead>
                 <tr>
-                    <th>使用者名稱</th>
-                    <th>
+                    <th style="width: 30%;">LINE 暱稱</th>
+                    <th style="width: 40%;">使用者名稱</th>
+                    <th style="width: 30%;">
                         <div class="sort-header" onclick="toggleSort()">
                             權限設定
                             <div class="sort-arrows">
@@ -717,20 +866,23 @@ function renderGroupDetail() {
     groupDetailContent.innerHTML = htmlContent;
 
     // 為每個使用者行綁定事件
-    currentPageData.forEach(user => {
+    console.log('🔗 開始為 ' + currentPageData.length + ' 個使用者綁定事件...');
+    currentPageData.forEach((user, index) => {
+        console.log(`🔗 綁定第 ${index + 1}/${currentPageData.length} 個使用者:`, user.userName);
         bindUserRowEvents(user);
     });
+    console.log('✅ 所有使用者事件綁定完成');
 
     // 恢復視覺狀態
     setTimeout(() => {
         restoreVisualState(savedState);
+        console.log('✅ 視覺狀態已恢復');
     }, 10);
 }
 
-
-
-// 創建使用者行HTML - 修正版本
 function createUserRow(user) {
+    console.log('🔍 createUserRow 收到的使用者資料:', user);
+
     const originalUser = originalUserData.find(orig =>
         orig.groupID === user.groupID && orig.externalID === user.externalID
     );
@@ -745,20 +897,31 @@ function createUserRow(user) {
         }
     }
 
-    // 修改这里，包含 0
     let roleOptions = '';
-    const roleIds = [1, 2, 3, 4, 5, 0];  // 改为 0
+    const roleIds = [1, 2, 3, 4, 5, 0];
     roleIds.forEach(i => {
         const selected = i === parseInt(user.roleID) ? 'selected' : '';
         roleOptions += `<option value="${i}" ${selected}>${i} - ${roleMap[i]}</option>`;
     });
 
+    // ✅ 取得 LINE 暱稱
+    const lineNiceName = user.lineNiceName || user.LineNiceName || user.userName || '';
+    const displayUserName = user.userName || '';
+
+    console.log('📝 使用者名稱資訊:', {
+        userName: displayUserName,
+        lineNiceName: lineNiceName
+    });
+
     return `
         <tr>
+            <td style="padding: 12px; text-align: center; border-bottom: 1px solid #dee2e6; color: #666; font-size: 14px;">
+                ${safeValue(lineNiceName)}
+            </td>
             <td>
                 <div class="user-name-dropdown-container" data-group-id="${user.groupID}" data-external-id="${user.externalID}" style="position: relative;">
                     <button type="button" class="user-name-display" style="background: transparent; border: 1px solid transparent; border-radius: 4px; padding: 8px 12px; cursor: pointer; width: 100%; text-align: left; font-size: 14px; transition: all 0.3s; position: relative;">
-                        ${safeValue(user.userName)}
+                        ${safeValue(displayUserName)}
                         <span style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #008390;">▼</span>
                     </button>
                     <div class="user-options" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 2px solid #008390; border-radius: 4px; max-height: 180px; overflow-y: auto; z-index: 1000; display: none; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
@@ -797,13 +960,155 @@ function createUserOptionsList(isBusinessGroup) {
     return optionsHtml;
 }
 
-// 綁定使用者行事件
+function handleRoleChange(element, groupId, externalId, newRoleId) {
+    console.log('🔥 handleRoleChange 函數被調用!', {
+        groupId,
+        externalId,
+        newRoleId,
+        elementValue: element.value
+    });
+
+    const originalUser = originalUserData.find(user =>
+        user.groupID === groupId && user.externalID === externalId
+    );
+
+    if (!originalUser) {
+        console.error('❌ 找不到原始使用者資料:', { groupId, externalId });
+        return;
+    }
+
+    const originalRole = parseInt(originalUser.roleID);
+    const newRole = parseInt(newRoleId);
+    const changeKey = `${groupId}-${externalId}`;
+
+    // ✅ 取得 LINE 暱稱
+    const lineNiceName = originalUser.lineNiceName || originalUser.userName;
+
+    const userNameBtn = document.querySelector(`[data-group-id="${groupId}"][data-external-id="${externalId}"] .user-name-display`);
+    const currentUserName = userNameBtn ? userNameBtn.childNodes[0].textContent.trim() : originalUser.userName;
+    const isUserNameChanged = originalUser.userName !== currentUserName;
+
+    // ... (userNameID 判斷邏輯保持不變)
+    let userNameID = null;
+
+    if (newRole === 2) {
+        const doctor = allDoctors.find(d => {
+            const doctorName = (d.name || d.doctorName || d.namD || '').trim();
+            return doctorName === currentUserName.trim();
+        });
+
+        if (doctor) {
+            userNameID = doctor.numD || doctor.id || doctor.doctorId;
+        } else {
+            const dbRecord = originalUserData.find(u =>
+                u.groupID === groupId && u.externalID === externalId
+            );
+            userNameID = dbRecord ? dbRecord.userNameID : null;
+        }
+    } else if (newRole === 3) {
+        const sales = allSalesPersons.find(s => {
+            const salesName = (s.name || s.salesName || '').trim();
+            return salesName === currentUserName.trim();
+        });
+
+        if (sales) {
+            userNameID = sales.id || sales.salesId;
+        } else {
+            const dbRecord = originalUserData.find(u =>
+                u.groupID === groupId && u.externalID === externalId
+            );
+            userNameID = dbRecord ? dbRecord.userNameID : null;
+        }
+    } else {
+        userNameID = null;
+    }
+
+    const isRoleChanged = originalRole !== newRole;
+
+    // 更新或創建變更記錄
+    if (isRoleChanged || isUserNameChanged) {
+        const changeData = {
+            externalID: externalId,
+            lineID: originalUser.lineID,
+            userName: currentUserName,
+            lineNiceName: lineNiceName,  // ✅ 保留原始 LINE 暱稱
+            userNameID: userNameID,
+            groupID: groupId,
+            groupName: originalUser.groupName,
+            roleID: newRole
+        };
+
+        if (!currentChanges.has(changeKey)) {
+            currentChanges.set(changeKey, changeData);
+        } else {
+            const existingChange = currentChanges.get(changeKey);
+            existingChange.roleID = newRole;
+            existingChange.userNameID = userNameID;
+            existingChange.lineNiceName = lineNiceName;  // ✅ 確保保留
+        }
+        changedRows.add(changeKey);
+    } else {
+        if (currentChanges.has(changeKey)) {
+            currentChanges.delete(changeKey);
+            changedRows.delete(changeKey);
+        }
+    }
+
+    // 處理視覺效果
+    if (isRoleChanged) {
+        element.classList.remove('saved', 'saved-fadeout');
+        element.classList.add('changed');
+    } else {
+        element.classList.remove('changed', 'saved', 'saved-fadeout');
+    }
+
+    updateSaveButtonVisibility();
+}
+
+// 綁定使用者行事件 - 加強調試版本
 function bindUserRowEvents(user) {
+    console.log('🔗 開始綁定使用者行事件:', {
+        groupID: user.groupID,
+        externalID: user.externalID,
+        userName: user.userName
+    });
+
     const roleSelect = document.querySelector(`select[data-group-id="${user.groupID}"][data-external-id="${user.externalID}"]`);
+
     if (roleSelect) {
+        console.log('✅ 找到權限選擇器:', {
+            groupID: user.groupID,
+            externalID: user.externalID,
+            currentValue: roleSelect.value
+        });
+
         roleSelect.addEventListener('change', function(e) {
             const newRoleId = parseInt(e.target.value);
+            console.log('🎯 權限選擇器 change 事件被觸發!', {
+                groupID: user.groupID,
+                externalID: user.externalID,
+                oldValue: user.roleID,
+                newValue: newRoleId
+            });
             handleRoleChange(e.target, user.groupID, user.externalID, newRoleId);
+        });
+
+        console.log('✅ 事件監聽器已綁定');
+    } else {
+        console.error('❌ 找不到權限選擇器!', {
+            selector: `select[data-group-id="${user.groupID}"][data-external-id="${user.externalID}"]`,
+            groupID: user.groupID,
+            externalID: user.externalID
+        });
+
+        // 列出所有存在的 select 元素
+        const allSelects = document.querySelectorAll('select.role-select');
+        console.log('📋 頁面上所有的權限選擇器:', allSelects.length);
+        allSelects.forEach((select, index) => {
+            console.log(`  [${index}]`, {
+                groupID: select.getAttribute('data-group-id'),
+                externalID: select.getAttribute('data-external-id')
+            });
         });
     }
 
@@ -903,7 +1208,6 @@ function bindUserNameDropdownEvents(user) {
     document.addEventListener('click', closeDropdown);
 }
 
-// 修正版本的 handleUserNameChange 函數 - 處理 userNameID
 function handleUserNameChange(groupId, externalId, newUserName, newUserNameID) {
     const originalUser = originalUserData.find(user =>
         user.groupID === groupId && user.externalID === externalId
@@ -921,16 +1225,15 @@ function handleUserNameChange(groupId, externalId, newUserName, newUserNameID) {
     }
 
     const originalUserName = originalUser.userName;
-    const originalUserNameID = originalUser.userNameID; // 原始的 userNameID
+    const originalUserNameID = originalUser.userNameID;
+    const lineNiceName = originalUser.lineNiceName || originalUser.userName; // ✅ 取得 LINE 暱稱
 
-    // 檢查使用者名稱和 userNameID 是否有變更
     const isUserNameChanged = originalUserName !== newUserName;
     const isUserNameIDChanged = originalUserNameID !== newUserNameID;
     const isUserChanged = isUserNameChanged || isUserNameIDChanged;
 
     const changeKey = `${groupId}-${externalId}`;
 
-    // 檢查權限是否也有變更
     const roleSelect = document.querySelector(`select[data-group-id="${groupId}"][data-external-id="${externalId}"]`);
     const currentRoleId = roleSelect ? parseInt(roleSelect.value) : originalUser.roleID;
     const isRoleChanged = parseInt(originalUser.roleID) !== currentRoleId;
@@ -938,6 +1241,7 @@ function handleUserNameChange(groupId, externalId, newUserName, newUserNameID) {
     console.log('變更檢查:', {
         originalUserName,
         newUserName,
+        lineNiceName,  // ✅ 加入 log
         originalUserNameID,
         newUserNameID,
         isUserNameChanged,
@@ -952,16 +1256,17 @@ function handleUserNameChange(groupId, externalId, newUserName, newUserNameID) {
                 externalID: externalId,
                 lineID: originalUser.lineID,
                 userName: newUserName,
-                userNameID: newUserNameID,     // 加上這個欄位
+                lineNiceName: lineNiceName,  // ✅ 保留原始 LINE 暱稱
+                userNameID: newUserNameID,
                 groupID: groupId,
                 groupName: originalUser.groupName,
                 roleID: currentRoleId
             });
         } else {
-            // 更新現有的變更記錄
             const existingChange = currentChanges.get(changeKey);
             existingChange.userName = newUserName;
-            existingChange.userNameID = newUserNameID;  // 也要更新這個
+            existingChange.userNameID = newUserNameID;
+            existingChange.lineNiceName = lineNiceName;  // ✅ 確保保留
         }
         changedRows.add(changeKey);
     } else {
@@ -971,7 +1276,7 @@ function handleUserNameChange(groupId, externalId, newUserName, newUserNameID) {
         }
     }
 
-    // **只處理使用者名稱欄位的視覺效果**
+    // 處理視覺效果
     if (isUserNameChanged) {
         userNameBtn.style.color = '#dc3545';
         userNameBtn.style.fontWeight = 'bold';
@@ -985,8 +1290,6 @@ function handleUserNameChange(groupId, externalId, newUserName, newUserNameID) {
     updateSaveButtonVisibility();
 }
 
-
-
 // 過濾使用者選項 - 參照群組名稱搜尋的實現方式
 function filterUserOptions(groupId, externalId, searchTerm) {
     const options = document.querySelectorAll(`[data-group-id="${groupId}"][data-external-id="${externalId}"] .user-option`);
@@ -997,70 +1300,37 @@ function filterUserOptions(groupId, externalId, searchTerm) {
     });
 }
 
+async function loadAllDoctors() {
+    const apiUrl = `${window.location.protocol}//${window.location.host}/Person/GET/Doctor`;
 
-// 處理權限變更 - 完全移除重新渲染的版本
-function handleRoleChange(element, groupId, externalId, newRoleId) {
-    const originalUser = originalUserData.find(user =>
-        user.groupID === groupId && user.externalID === externalId
-    );
+    try {
+        console.log('📥 開始載入醫生資料...');
+        const res = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
 
-    if (!originalUser) {
-        console.error('找不到原始使用者資料:', { groupId, externalId });
-        return;
-    }
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
 
-    const originalRole = parseInt(originalUser.roleID);
-    const newRole = parseInt(newRoleId);
-    const changeKey = `${groupId}-${externalId}`;
+        const data = await res.json();
+        allDoctors = Array.isArray(data) ? data : [];
 
-    // 檢查使用者名稱是否也有變更
-    const userNameBtn = document.querySelector(`[data-group-id="${groupId}"][data-external-id="${externalId}"] .user-name-display`);
-    const currentUserName = userNameBtn ? userNameBtn.childNodes[0].textContent : originalUser.userName;
-    const isUserNameChanged = originalUser.userName !== currentUserName;
+        console.log('✅ 醫生資料載入完成，數量:', allDoctors.length);
+        console.log('✅ 醫生資料內容:', allDoctors);
 
-    // 判斷權限是否與原始值不同
-    const isRoleChanged = originalRole !== newRole;
-
-    // 更新或創建變更記錄
-    if (isRoleChanged || isUserNameChanged) {
-        if (!currentChanges.has(changeKey)) {
-            currentChanges.set(changeKey, {
-                externalID: externalId,
-                lineID: originalUser.lineID,
-                userName: currentUserName,
-                groupID: groupId,
-                groupName: originalUser.groupName,
-                roleID: newRole
-            });
-        } else {
-            // 只更新權限部分
-            currentChanges.get(changeKey).roleID = newRole;
+        // 檢查欄位結構
+        if (allDoctors.length > 0) {
+            console.log('📋 第一筆醫生資料的欄位:', Object.keys(allDoctors[0]));
         }
-        changedRows.add(changeKey);
-    } else {
-        // 如果兩者都沒有變更，完全移除變更記錄
-        if (currentChanges.has(changeKey)) {
-            currentChanges.delete(changeKey);
-            changedRows.delete(changeKey);
-        }
+
+    } catch (err) {
+        console.error("❌ 醫生 API 錯誤", err);
+        allDoctors = [];
     }
-
-    // **關鍵修正：只處理權限選擇欄位的視覺效果，不重新渲染**
-    if (isRoleChanged) {
-        // 權限有變更：標記為紅色
-        element.classList.remove('saved', 'saved-fadeout');
-        element.classList.add('changed');
-    } else {
-        // 權限沒有變更：移除紅色樣式
-        element.classList.remove('changed', 'saved', 'saved-fadeout');
-    }
-
-    // **移除這些會破壞顏色標記的程式碼！**
-    // rebuildFilteredUserData();  // <- 刪除這行
-    // renderGroupDetail();        // <- 刪除這行
-    // setTimeout(() => { ... });  // <- 刪除這整個 setTimeout
-
-    updateSaveButtonVisibility();
 }
 
 

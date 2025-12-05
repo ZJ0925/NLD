@@ -18,6 +18,9 @@ public class UserGroupRole {
     @Column(name = "LineID")
     private String lineID; // LINE ID
 
+    @Column(name = "LineNiceName")  // ✅ 新增這個欄位
+    private String lineNiceName; // LINE 原始暱稱
+
     @Column(name = "GroupID")
     private String groupID;
 
@@ -35,6 +38,14 @@ public class UserGroupRole {
 
     @Column(name = "RoleID")
     private int roleID;
+
+    public String getLineNiceName() {
+        return lineNiceName;
+    }
+
+    public void setLineNiceName(String lineNiceName) {
+        this.lineNiceName = lineNiceName;
+    }
 
     public String getUserNameID() {
         return userNameID;

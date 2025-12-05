@@ -4,6 +4,7 @@ import com.zj.nld.Model.DTO.GroupDTO;
 import com.zj.nld.Model.DTO.UserGroupRoleDTO;
 import com.zj.nld.Model.Entity.UserGroupRole;
 import com.zj.nld.Service.RoleService;
+import com.zj.nld.Service.LineService;  // ✅ 新增
 import com.zj.nld.Service.UserGroupRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -33,6 +35,9 @@ public class RoleController {
     private static final Logger log = LoggerFactory.getLogger(RoleController.class);
     @Autowired
     private UserGroupRoleService userGroupRoleService;
+
+    @Autowired
+    private LineService lineService;
 
 
     @GetMapping("/Admin")
@@ -84,6 +89,42 @@ public class RoleController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    /**
+     * 同步群組成員資料
+     * @param groupID LINE 群組 ID
+     * @return 同步結果
+     */
+    @PostMapping("/sync/GroupMembers")
+    public ResponseEntity<Map<String, Object>> syncGroupMembers(
+            @RequestParam String groupID) {
+
+        log.info("📥 開始同步群組成員，groupID: {}", groupID);
+
+        try {
+            // 呼叫 LineService 的同步方法
+            Map<String, Object> result = lineService.syncGroupMembers(groupID);
+
+            if ((Boolean) result.get("success")) {
+                log.info("✅ 群組成員同步成功: {}", result);
+                return ResponseEntity.ok(result);
+            } else {
+                log.warn("⚠️ 群組成員同步失敗: {}", result.get("message"));
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+            }
+
+        } catch (Exception e) {
+            log.error("❌ 同步群組成員時發生錯誤: {}", e.getMessage(), e);
+
+            Map<String, Object> errorResult = Map.of(
+                    "success", false,
+                    "message", "同步失敗: " + e.getMessage()
+            );
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResult);
+        }
+    }
+
 
     //批量更新
     @PutMapping("update")

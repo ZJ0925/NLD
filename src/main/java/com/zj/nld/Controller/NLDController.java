@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -396,5 +397,26 @@ public class NLDController {
         }
     }
 
+    /**
+     * 取得當前使用者的群組資訊（用於顯示標題）
+     */
+    @GetMapping("/Doc/userInfo")
+    public ResponseEntity<?> getUserInfo(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestParam String groupId
+    ) {
+        try {
+            // 驗證並取得使用者資訊
+            UserGroupRoleDTO userInfo = nldService.getUserRoleByAccessToken(authHeader, groupId);
 
+            Map<String, String> response = new HashMap<>();
+            response.put("clinicName", userInfo.getGroupName());  // 診所名稱
+            response.put("docName", userInfo.getUserName());      // 醫生名稱
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
 }

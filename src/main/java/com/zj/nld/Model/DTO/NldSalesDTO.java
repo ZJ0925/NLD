@@ -3,83 +3,78 @@ package com.zj.nld.Model.DTO;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import java.util.Date;
 
-
 public class NldSalesDTO {
 
-    private String workOrderNum; // 1.技工單號
+    private String workOrderNum;
+    private String clinicName;
+    private String docName;
+    private String patientName;
 
-    private String clinicName; // 2.診所名稱
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")
+    private Date receivedDate;
 
-    private String docName; // 3.醫師名稱
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")
+    private Date deliveryDate;
 
-    private String patientName; // 4.患者名稱
+    private String toothPosition;
+    private String prodItem;
+    private String prodName;
 
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date receivedDate;  // 5.收件日
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")
+    private Date tryInDate;
 
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date deliveryDate; // 6.完成交件日
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")
+    private Date estFinishDate;
 
-    private String toothPosition; //8.齒位
+    private String workOrderStatus;
 
-    private String prodItem; // 9-1.製作項目
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")
+    private Date estTryInDate;
 
-    private String prodName; // 9-2. 產品名稱日
+    private Integer price;
 
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date tryInDate; // 10.試戴交件
+    // ✅ 布林欄位 - 按正確順序
+    private boolean isPaused;    // 1.暫停 (UN3E_DH)
+    private boolean isVoided;    // 2.作廢 (UN2_DH)
+    private boolean isNoCharge;  // 3.不計價 (CRM_DH)
+    private boolean isRemake;    // 4.重製 (MODE3_DH)
+    private boolean isReFix;     // 5.修整 (FIX_DH)
 
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date estFinishDate; // 11.預計完成日
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")
+    private Date tryInReceivedDate;
 
-    private String workOrderStatus; // 13.工單現況;
+    private String remarks;
 
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date estTryInDate; // 14.預計試戴日
-
-    private Integer price; // 15.單價
-
-    private boolean isRemake; // 16.重製
-
-    private boolean isNoCharge; // 17.不計價
-
-    private boolean isPaused; // 18.暫停
-
-    private boolean isVoided; // 19.作廢
-
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date tryInReceivedDate; // 20.試戴收件日
-
-    private String remarks; // 21.備註
-
-
-    // 空的建構子
+    // 空建構子
     public NldSalesDTO() {
     }
 
-
-    //建立constructor讓JPA函式可以讀取
+    /**
+     * ✅ 完整建構子 - 21個參數
+     * 順序必須與 Repository 查詢一致!
+     */
     public NldSalesDTO(
-            String workOrderNum,
-            String clinicName,
-            String docName,
-            String patientName,
-            Date receivedDate,
-            Date deliveryDate,
-            String toothPosition,
-            String prodItem,
-            String prodName,
-            Date tryInDate,
-            Date estFinishDate,
-            String workOrderStatus,
-            Date estTryInDate,
-            Integer price,
-            boolean isRemake,
-            boolean isNoCharge,
-            boolean isPaused,
-            boolean isVoided,
-            Date tryInReceivedDate,
-            String remarks
+            String workOrderNum,      // 1
+            String clinicName,        // 2
+            String docName,           // 3
+            String patientName,       // 4
+            Date receivedDate,        // 5
+            Date deliveryDate,        // 6
+            String toothPosition,     // 7
+            String prodItem,          // 8
+            String prodName,          // 9
+            Date tryInDate,           // 10
+            Date estFinishDate,       // 11
+            String workOrderStatus,   // 12
+            Date estTryInDate,        // 13
+            Integer price,            // 14
+            boolean isPaused,         // 15 ✅
+            boolean isVoided,         // 16 ✅
+            boolean isNoCharge,       // 17 ✅
+            boolean isRemake,         // 18 ✅
+            boolean isReFix,          // 19 ✅ 新增
+            Date tryInReceivedDate,   // 20
+            String remarks            // 21
     ) {
         this.workOrderNum = workOrderNum;
         this.clinicName = clinicName;
@@ -95,15 +90,16 @@ public class NldSalesDTO {
         this.workOrderStatus = workOrderStatus;
         this.estTryInDate = estTryInDate;
         this.price = price;
-        this.isRemake = isRemake;
-        this.isNoCharge = isNoCharge;
         this.isPaused = isPaused;
         this.isVoided = isVoided;
+        this.isNoCharge = isNoCharge;
+        this.isRemake = isRemake;
+        this.isReFix = isReFix;
         this.tryInReceivedDate = tryInReceivedDate;
         this.remarks = remarks;
     }
 
-
+    // Getter/Setter
 
     public String getWorkOrderNum() {
         return workOrderNum;
@@ -152,7 +148,6 @@ public class NldSalesDTO {
     public void setDeliveryDate(Date deliveryDate) {
         this.deliveryDate = deliveryDate;
     }
-
 
     public String getToothPosition() {
         return toothPosition;
@@ -218,23 +213,7 @@ public class NldSalesDTO {
         this.price = price;
     }
 
-    public boolean getRemake() {
-        return isRemake;
-    }
-
-    public void setRemake(boolean remake) {
-        isRemake = remake;
-    }
-
-    public boolean getNoCharge() {
-        return isNoCharge;
-    }
-
-    public void setNoCharge(boolean noCharge) {
-        isNoCharge = noCharge;
-    }
-
-    public boolean getPaused() {
+    public boolean isPaused() {
         return isPaused;
     }
 
@@ -242,12 +221,36 @@ public class NldSalesDTO {
         isPaused = paused;
     }
 
-    public boolean getVoided() {
+    public boolean isVoided() {
         return isVoided;
     }
 
     public void setVoided(boolean voided) {
         isVoided = voided;
+    }
+
+    public boolean isNoCharge() {
+        return isNoCharge;
+    }
+
+    public void setNoCharge(boolean noCharge) {
+        isNoCharge = noCharge;
+    }
+
+    public boolean isRemake() {
+        return isRemake;
+    }
+
+    public void setRemake(boolean remake) {
+        isRemake = remake;
+    }
+
+    public boolean isReFix() {
+        return isReFix;
+    }
+
+    public void setReFix(boolean reFix) {
+        isReFix = reFix;
     }
 
     public Date getTryInReceivedDate() {
@@ -266,5 +269,3 @@ public class NldSalesDTO {
         this.remarks = remarks;
     }
 }
-
-

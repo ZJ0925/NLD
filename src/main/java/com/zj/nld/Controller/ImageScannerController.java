@@ -136,87 +136,112 @@ public class ImageScannerController {
 
     // ✅ 新增：圖片上傳 API - 修改版（儲存到根目錄）
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadImage(
-            @RequestParam("image") MultipartFile image,
+    public ResponseEntity<?> uploadImages(
+            @RequestParam("image") MultipartFile[] images,  // ← 改为数组
             @RequestParam("workOrderNum") String workOrderNum) {
+
         System.out.println("=== Upload Debug ===");
         System.out.println("workOrderNum = " + workOrderNum);
-        System.out.println("image = " + (image != null));
-        System.out.println("image size = " + (image != null ? image.getSize() : "null"));
-        System.out.println("image contentType = " + (image != null ? image.getContentType() : "null"));
+        System.out.println("images count = " + (images != null ? images.length : 0));
 
         try {
-            // 驗證參數
-            if (image == null || image.isEmpty()) {
-                return ResponseEntity.badRequest().body("No image file provided");
+            // 验证参数
+            if (images == null || images.length == 0) {
+                return ResponseEntity.badRequest().body("No image files provided");
             }
 
             if (workOrderNum == null || workOrderNum.trim().isEmpty()) {
                 return ResponseEntity.badRequest().body("Work order number is required");
             }
 
-            // 驗證檔案類型
-            String contentType = image.getContentType();
-            if (contentType == null || !contentType.startsWith("image/")) {
-                return ResponseEntity.badRequest().body("Only image files are allowed");
-            }
-
-            // 驗證檔案大小 (限制 20MB)
-            if (image.getSize() > 20 * 1024 * 1024) {
-                Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put("success", false);
-                errorResponse.put("message", "檔案大小超過 20MB 限制");
-                return ResponseEntity.badRequest().body(errorResponse);
-            }
-
-            // ✅ 修改：直接儲存到根目錄，不建立子資料夾
+            // ✅ 准备根目录
             File rootDir = new File(SCANNER_ROOT);
             if (!rootDir.exists()) {
                 rootDir.mkdirs();
             }
 
-            // ✅ 生成檔名 (工單號.jpg 或 工單號_001.jpg)
-            String fileName = generateFileNameInRoot(rootDir, workOrderNum);
-            File targetFile = new File(rootDir, fileName);
+            // ✅ 用于统计上传结果
+            List<Map<String, String>> uploadedFiles = new ArrayList<>();
+            List<String> errorMessages = new ArrayList<>();
 
-            // 儲存檔案
-            Path targetPath = targetFile.toPath();
-            Files.copy(image.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-            System.out.println("✅ File saved to: " + targetPath);
+            // ✅ 遍历每个文件进行上传
+            for (int i = 0; i < images.length; i++) {
+                MultipartFile image = images[i];
 
-            // 回傳成功訊息
+                try {
+                    // 跳过空文件
+                    if (image.isEmpty()) {
+                        continue;
+                    }
+
+                    // 验证文件类型
+                    String contentType = image.getContentType();
+                    if (contentType == null || !contentType.startsWith("image/")) {
+                        errorMessages.add("File " + (i + 1) + ": Not an image file");
+                        continue;
+                    }
+
+                    // 验证文件大小 (限制 20MB)
+                    if (image.getSize() > 20 * 1024 * 1024) {
+                        errorMessages.add("File " + (i + 1) + ": File size exceeds 20MB");
+                        continue;
+                    }
+
+                    // ✅ 生成唯一档名
+                    String fileName = generateFileNameInRoot(rootDir, workOrderNum);
+                    File targetFile = new File(rootDir, fileName);
+
+                    // 储存档案
+                    Path targetPath = targetFile.toPath();
+                    Files.copy(image.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+                    System.out.println("✅ File " + (i + 1) + " saved: " + fileName);
+
+                    // 记录成功上传的文件
+                    Map<String, String> fileInfo = new HashMap<>();
+                    fileInfo.put("fileName", fileName);
+                    fileInfo.put("originalName", image.getOriginalFilename());
+                    fileInfo.put("size", String.valueOf(image.getSize()));
+                    uploadedFiles.add(fileInfo);
+
+                } catch (IOException e) {
+                    System.err.println("❌ Error saving file " + (i + 1) + ": " + e.getMessage());
+                    errorMessages.add("File " + (i + 1) + ": " + e.getMessage());
+                }
+            }
+
+            // ✅ 构建回应
             Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Image uploaded successfully");
-            response.put("fileName", fileName);
+            response.put("success", uploadedFiles.size() > 0);
             response.put("workOrderNum", workOrderNum);
-            response.put("filePath", targetFile.getAbsolutePath());
+            response.put("totalFiles", images.length);
+            response.put("uploadedCount", uploadedFiles.size());
+            response.put("uploadedFiles", uploadedFiles);
+
+            if (!errorMessages.isEmpty()) {
+                response.put("errors", errorMessages);
+                response.put("message", "Partial upload: " + uploadedFiles.size() + " succeeded, " + errorMessages.size() + " failed");
+            } else {
+                response.put("message", "All " + uploadedFiles.size() + " images uploaded successfully");
+            }
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
                     .body(response);
 
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error uploading image: " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Unexpected error: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Unexpected error: " + e.getMessage());
+                    .body(errorResponse);
         }
     }
 
-    // ✅ 新增：在根目錄生成檔名的方法
+    // ✅ 修改：第一张照片就从 100 开始编号
     private String generateFileNameInRoot(File rootDirectory, String workOrderNum) {
-        // 檢查是否存在 工單號.jpg
-        File baseFile = new File(rootDirectory, workOrderNum + ".jpg");
-        if (!baseFile.exists()) {
-            // 如果不存在，直接使用 工單號.jpg
-            return workOrderNum + ".jpg";
-        }
-
-        // 如果存在，找出最大的序號
+        // ✅ 直接从 100 开始查找最大序号
         Pattern pattern = Pattern.compile(
                 Pattern.quote(workOrderNum) + "_(\\d{3})\\.(jpg|jpeg|png)",
                 Pattern.CASE_INSENSITIVE
@@ -226,7 +251,7 @@ public class ImageScannerController {
                 pattern.matcher(name).matches()
         );
 
-        int maxNumber = 0;
+        int maxNumber = 99; // 设为 99，这样第一个就会是 100
         if (existingFiles != null && existingFiles.length > 0) {
             for (File file : existingFiles) {
                 java.util.regex.Matcher matcher = pattern.matcher(file.getName());
@@ -237,7 +262,7 @@ public class ImageScannerController {
             }
         }
 
-        // 新檔案序號 = 最大序號 + 1，格式化為 3 位數
+        // 新档案序号 = 最大序号 + 1，格式化为 3 位数
         int newNumber = maxNumber + 1;
         return String.format("%s_%03d.jpg", workOrderNum, newNumber);
     }

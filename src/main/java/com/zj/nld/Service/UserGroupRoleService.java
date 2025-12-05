@@ -6,6 +6,27 @@ import java.util.List;
 
 public interface UserGroupRoleService {
 
+    /**
+     * 取得所有不重複的群組 ID
+     * @return 群組 ID 清單
+     */
+    List<String> getAllGroupIds();
+
+    /**
+     * 更新指定群組的名稱
+     * @param groupId 群組 ID
+     * @param newGroupName 新的群組名稱
+     * @return 是否更新成功
+     */
+    boolean updateGroupName(String groupId, String newGroupName);
+
+    /**
+     * 從資料庫取得群組名稱
+     * @param groupId 群組 ID
+     * @return 群組名稱，查無則返回 null
+     */
+    String getGroupNameFromDB(String groupId);
+
     // 查詢同一群組的所有成員
     List<UserGroupRole> findByGroupID(String groupID);
 
@@ -34,5 +55,7 @@ public interface UserGroupRoleService {
      * 透過 Authorization Header 中的 Access Token 驗證
      */
     boolean findRoleManagerByauthHeader(String authHeader);
+
+    boolean updateUserGroupRole(UserGroupRole userGroupRole);
 
 }

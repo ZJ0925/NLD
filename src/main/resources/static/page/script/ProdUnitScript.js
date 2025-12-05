@@ -1,7 +1,245 @@
-// ===== 第1部分：在 SalesScript.js 開頭添加這個存儲類 =====
-// 在所有現有代碼之前添加
-// 在全局變數區域加入(檔案開頭附近,與其他全局變數放在一起)
+// ===== 第1部分：在 AdminScript.js 開頭添加這個存儲類 =====
+
+// ===== 🚫 強力禁用瀏覽器返回（包括手勢） =====
+// ===== 🚫 統一的瀏覽器返回阻止機制 =====
+(function() {
+    'use strict';
+
+    console.log('🔧 初始化返回阻止機制...');
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    // 1. 禁用左邊緣向右滑動手勢
+    document.addEventListener('touchstart', function(e) {
+        if (e.touches && e.touches.length > 0) {
+            touchStartX = e.touches[0].pageX;
+            touchStartY = e.touches[0].pageY;
+        }
+    }, { passive: false });
+
+    document.addEventListener('touchmove', function(e) {
+        if (!e.touches || e.touches.length === 0) return;
+
+        const touchX = e.touches[0].pageX;
+        const touchY = e.touches[0].pageY;
+        const deltaX = touchX - touchStartX;
+        const deltaY = Math.abs(touchY - touchStartY);
+
+        // ✅ 修正：使用 touchStartX 而不是 startX
+        if (touchStartX < 50 && deltaX > 10 && deltaX > deltaY) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🚫 已阻止左邊緣滑動');
+            return false;
+        }
+    }, { passive: false });
+
+    // 2. 阻止 popstate（瀏覽器返回鍵）
+    window.history.pushState(null, '', window.location.href);
+
+    window.addEventListener('popstate', function(event) {
+        console.log('🚫 檢測到返回動作');
+
+        // 立即推入新的歷史記錄
+        window.history.pushState(null, '', window.location.href);
+
+        // 檢查當前頁面狀態
+        const detailView = document.getElementById('detailView');
+        const isDetailPage = detailView && detailView.style.display === 'block';
+
+        if (isDetailPage) {
+            // 在詳細頁面，返回到列表
+            console.log('📄 在詳細頁面，返回列表');
+            if (typeof showList === 'function') {
+                showList();
+            }
+        } else {
+            // 在列表頁面，阻止返回
+            console.log('📋 在列表頁面，阻止返回');
+        }
+
+        return false;
+    });
+
+    // 3. 頁面可見性變化檢測（返回時重新推入歷史）
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') {
+            window.history.pushState(null, '', window.location.href);
+            console.log('👁️ 頁面重新可見，重新推入歷史');
+        }
+    });
+
+    console.log('✅ 返回阻止機制已啟用');
+})();
+
+// ===== 以下是你的原始代碼 =====
 let scrollPosition = 0;
+
+// ✅ 簡易 Debug Viewer (手機用)
+function debug(msg) {
+    try {
+        const logDiv = document.getElementById("debugLog");
+        if (!logDiv) return;
+
+        const time = new Date().toLocaleTimeString();
+        logDiv.style.display = "block";
+        logDiv.innerHTML += `<div>[${time}] ${msg}</div>`;
+        logDiv.scrollTop = logDiv.scrollHeight;
+    } catch (e) {
+        console.log("Debug error:", e);
+    }
+}
+
+
+
+// ===== 簡單路由控制 =====
+
+// 進入 Admin 時，記錄前一頁
+sessionStorage.setItem('previousPage', 'roleSelection');
+
+// 設置歷史狀態
+history.pushState({ page: 'adminPage' }, 'Admin', window.location.href);
+
+// ✅ 簡易 Debug Viewer (手機用)
+function debug(msg) {
+    try {
+        const logDiv = document.getElementById("debugLog");
+        if (!logDiv) return;
+
+        const time = new Date().toLocaleTimeString();
+        logDiv.style.display = "block";
+        logDiv.innerHTML += `<div>[${time}] ${msg}</div>`;
+        logDiv.scrollTop = logDiv.scrollHeight;
+    } catch (e) {
+        console.log("Debug error:", e);
+    }
+}
+
+/**
+ * 新增備註到後端（不覆蓋原有備註）
+ */
+async function addNewRemark() {
+    try {
+        const newRemarkInput = document.getElementById('newRemarkInput');
+        const newRemarkText = newRemarkInput.value.trim();
+
+        if (!newRemarkText) {
+            alert('請輸入備註內容！');
+            return;
+        }
+
+        // ✅ 添加确认提示
+        const confirmMessage = `確定要新增以下備註嗎？\n\n${newRemarkText}`;
+        if (!confirm(confirmMessage)) {
+            console.log('❌ 使用者取消新增備註');
+            return;
+        }
+
+        // ✅ 只從 localStorage 獲取 lineDisplayName
+        let lineUserName = localStorage.getItem('lineDisplayName') || '未命名';
+
+        console.log('👤 從 localStorage 獲取的名稱:', lineUserName);
+
+        // ✅ 处理用户名称长度
+        if (lineUserName !== '未命名') {
+            if (/[\u4e00-\u9fa5]/.test(lineUserName)) {
+                // 包含中文字，只取前3个字符
+                lineUserName = lineUserName.substring(0, 3);
+            } else {
+                // 英文或其他字符，取前6个字符
+                lineUserName = lineUserName.substring(0, 6);
+            }
+        }
+
+        console.log('👤 最終使用的用戶名稱:', lineUserName);
+
+        // ✅ 时间格式：[月/日 时:分]（24小时制，带方括号）
+        const now = new Date();
+        const month = String(now.getMonth() + 1);
+        const day = String(now.getDate());
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const formattedTime = `[${month}/${day} ${hours}:${minutes}]`;
+
+        // === 取得現有備註 ===
+        const existingRemarks = safeRemarksValue(currentDetailItem.remarks);
+
+        // === 合併新備註（格式：用户名：内容 时间）===
+        const newRemark = `${lineUserName}：${newRemarkText} ${formattedTime}`;
+        const combinedRemarks = existingRemarks
+            ? `${newRemark}\n${existingRemarks}`
+            : newRemark;
+
+        console.log('📝 准备提交的备注:', combinedRemarks);
+
+        // === 呼叫後端 API 更新備註 ===
+        const accessToken = localStorage.getItem('liffAccessToken');
+        const groupId = localStorage.getItem('groupId');
+
+        const protocol = window.location.protocol;
+        const host = window.location.host;
+        const apiUrl = `${protocol}//${host}/NLD/Admin/workorder/${currentDetailItem.workOrderNum}/remarks`;
+
+        console.log('🌐 API URL:', apiUrl);
+
+        const response = await fetch(apiUrl, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify({
+                groupId: groupId,
+                remarks: combinedRemarks
+            })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ API 错误响应:', errorText);
+            throw new Error(`HTTP 錯誤：${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ API 响应:', result);
+
+        // === 成功后更新本地数据 ===
+        currentDetailItem.remarks = combinedRemarks;
+
+        // ✅ 立即更新 UI 显示
+        const existingRemarksDiv = document.getElementById('existingRemarks');
+        if (existingRemarksDiv) {
+            existingRemarksDiv.innerHTML = combinedRemarks.replace(/\n/g, '<br>');
+            existingRemarksDiv.style.color = '#333';
+        }
+
+        // 更新本地存储
+        const allData = await nldStorage.getData();
+        if (allData && Array.isArray(allData)) {
+            const updatedData = allData.map(item => {
+                if (item.workOrderNum === currentDetailItem.workOrderNum) {
+                    return { ...item, remarks: combinedRemarks };
+                }
+                return item;
+            });
+            await nldStorage.saveData(updatedData);
+            console.log('📦 IndexedDB 備註同步完成');
+        }
+
+        // === 清空輸入框 ===
+        newRemarkInput.value = '';
+        showSuccessMessage('✅ 備註新增成功！');
+
+    } catch (error) {
+        console.error('⚠️ 新增备注失败:', error);
+        alert('備註新增失敗，請稍後再試\n錯誤: ' + error.message);
+    }
+}
+
+// 暴露到全域
+window.addNewRemark = addNewRemark;
 
 class NLDStorage {
     constructor() {
@@ -202,12 +440,23 @@ async function emergencyCleanup() {
     }
 }
 
+
+function deduplicateWorkOrders(data) {
+    const seen = new Set();
+    return data.filter(item => {
+        if (seen.has(item.workOrderNum)) {
+            return false;
+        }
+        seen.add(item.workOrderNum);
+        return true;
+    });
+}
+
 // 暴露緊急清理功能到全局
 window.emergencyCleanup = emergencyCleanup;
 
 // ===== 修改 DOMContentLoaded 事件監聽器 =====
 // 找到你現有的 window.addEventListener("DOMContentLoaded", ...)
-// 完全替換為以下版本：
 
 
 // 監聽頁面離開事件（可選）
@@ -223,53 +472,7 @@ let currentDetailItem = null;
 let currentCalendarYear = new Date().getFullYear();
 let currentCalendarMonth = new Date().getMonth();
 
-// ===== 第2部分：替換現有的 fetchDataFromAPI 函數 =====
-// 找到你現有的 fetchDataFromAPI 函數，完全替換為以下版本
 
-async function fetchDataFromAPI() {
-    const token = localStorage.getItem("jwtToken");
-    if (!token) {
-        console.error("沒有找到JWT token");
-        return null;
-    }
-
-    try {
-
-        const response = await fetch('/api/sales/workorders', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            }
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-
-            // 使用新的存儲系統
-            const saveSuccess = await nldStorage.saveData(data);
-
-            return data;
-        } else {
-            console.error("API請求失敗:", response.status, response.statusText);
-            // API失敗時從存儲中獲取備份數據
-            const backupData = await nldStorage.getData();
-            if (backupData) {
-                return backupData;
-            }
-            return null;
-        }
-    } catch (error) {
-        console.error('獲取資料時發生錯誤:', error);
-        // 網路錯誤時從存儲中獲取備份數據
-        const backupData = await nldStorage.getData();
-        if (backupData) {
-            return backupData;
-        }
-        return null;
-    }
-}
 
 // 格式化日期顯示 - 支援後端Date物件和字串格式
 function formatDate(dateInput) {
@@ -289,6 +492,7 @@ function formatDate(dateInput) {
 
     if (isNaN(date.getTime())) return '-';
     return date.toLocaleDateString('zh-TW', {
+        year: 'numeric',
         month: 'numeric',
         day: 'numeric'
     });
@@ -315,6 +519,91 @@ function formatFullDate(dateInput) {
         month: '2-digit',
         day: '2-digit'
     });
+}
+
+// ✅ 新增：格式化狀態標籤 (Admin 有,ProdUnit 沒有)
+function formatStatusLabels(statusText) {
+    if (!statusText) return '';
+
+    // 特殊規則：不計價 + 修整 → 不計價-修整
+    if (statusText.includes('不計價') && statusText.includes('修整')) {
+        statusText = statusText.replace(/不計價\s+修整/, '不計價-修整');
+    }
+
+    // 特殊規則：不計價 + 重製 → 不計價-重製
+    if (statusText.includes('不計價') && statusText.includes('重製')) {
+        statusText = statusText.replace(/不計價\s+重製/, '不計價-重製');
+    }
+
+    return statusText;
+}
+
+// 格式化日期 + 時段（用於列表顯示）
+function formatDateWithTimeSlot(dateInput, timeSlot) {
+    console.log('📅 formatDateWithTimeSlot - 日期:', dateInput, '時段:', timeSlot);
+
+    const dateStr = formatDateShort(dateInput);
+    const timeStr = formatTimeSlot(timeSlot);
+
+    if (dateStr === '-') {
+        return '-';
+    }
+
+    if (timeStr) {
+        const result = `${dateStr} ${timeStr}`;
+        console.log('✅ 完整日期時段:', result);
+        return result;
+    }
+
+    return dateStr;
+}
+
+
+// 格式化日期顯示 - 只顯示月/日（不含年份）
+function formatDateShort(dateInput) {
+    if (!dateInput) return '-';
+
+    let date;
+    // 處理不同的日期輸入格式
+    if (typeof dateInput === 'string') {
+        date = new Date(dateInput);
+    } else if (typeof dateInput === 'number') {
+        date = new Date(dateInput);
+    } else if (dateInput instanceof Date) {
+        date = dateInput;
+    } else {
+        return '-';
+    }
+
+    if (isNaN(date.getTime())) return '-';
+
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    return `${month}/${day}`;
+}
+
+function formatTimeSlot(timeCode) {
+    //console.log('🕐 formatTimeSlot 輸入:', timeCode);
+
+    if (!timeCode) {
+        console.log('⏰ timeCode 為空，返回空字串');
+        return '';
+    }
+
+    const code = String(timeCode).trim();
+    let result = '';
+
+    if (code === '01') {
+        result = '中午前';
+    } else if (code === '02') {
+        result = '5點前';
+    } else {
+        console.log('⚠️ 未知的時段代碼:', code);
+        result = '';
+    }
+
+    console.log('✅ formatTimeSlot 輸出:', result);
+    return result;
 }
 
 // 將日期轉換為 YYYY-MM-DD 格式用於日曆比對
@@ -365,34 +654,34 @@ function generateStatusTags(item) {
     return tags.join('');
 }
 
-// 渲染列表項目
 function renderListItem(item) {
+    // ✅ 使用格式化函數
+    const statusText = formatStatusLabels(item.statusLabels || '');
+
     return `
         <div class="work-item" onclick="showDetail('${item.workOrderNum}')">
             <div class="work-item-header">
                 <div class="clinic-name">${safeValue(item.clinicName)}</div>
+                ${statusText ? `<span class="status-text">${statusText}</span>` : ''}
                 <div class="work-order-num">${safeValue(item.workOrderNum)}</div>
             </div>
             <div class="work-item-content">
                 <div class="work-item-field">
-                    <div class="label">醫師</div>
-                    <div class="value">${safeValue(item.docName)}</div>
+                    <div class="label">患者</div>
+                    <div class="value">${safeValue(item.patientName)}</div>
                 </div>
                 <div class="work-item-field">
                     <div class="label">業務</div>
                     <div class="value">${safeValue(item.salesName)}</div>
                 </div>
                 <div class="work-item-field">
-                    <div class="label">預計完成</div>
-                    <div class="value">${formatDate(item.estFinishDate)}</div>
+                    <div class="label">醫師</div>
+                    <div class="value">${safeValue(item.docName)}</div>
                 </div>
                 <div class="work-item-field">
-                    <div class="label">工單現況</div>
-                    <div class="value">${safeValue(item.workOrderStatus)}</div>
+                    <div class="label">預計完成日</div>
+                    <div class="value">${formatDateWithTimeSlot(item.estFinishDate, item.tim3Dh)}</div>
                 </div>
-            </div>
-            <div class="status-tags">
-                ${generateStatusTags(item)}
             </div>
         </div>
     `;
@@ -446,6 +735,52 @@ function loadMoreItems() {
     }, 100);
 }
 
+
+
+/**
+ * ✅ 费用区块插入函数 - 开眼👀 闭眼🔒
+ */
+function insertFeeBlockBeforeDateInfo(detailDataList) {
+
+
+    console.log('📊 准备计算费用...'+insertFeeBlockBeforeDateInfo);
+
+
+}
+
+/**
+ * 设置显示/隐藏按钮事件 - 开眼👀 闭眼🔒
+ */
+function setupToggleButtons(totalAmountToggleId) {
+    // 工单总金额按钮
+    const totalAmountBtn = document.getElementById(`${totalAmountToggleId}_btn`);
+    if (totalAmountBtn) {
+        totalAmountBtn.addEventListener('click', function() {
+            const masked = document.getElementById(`${totalAmountToggleId}_masked`);
+            const value = document.getElementById(`${totalAmountToggleId}_value`);
+
+            if (masked.style.display === 'none') {
+                // 隐藏金额，显示密码
+                masked.style.display = 'inline';
+                value.style.display = 'none';
+                this.textContent = '👀';  // ✅ 开眼
+            } else {
+                // 显示金额，隐藏密码
+                masked.style.display = 'none';
+                value.style.display = 'inline';
+                this.textContent = '🔒';  // ✅ 闭眼
+            }
+        });
+    }
+
+    console.log('✅ 眼睛按钮事件绑定成功！');
+}
+
+// 暴露到全局（确保可以调用）
+window.insertFeeBlockBeforeDateInfo = insertFeeBlockBeforeDateInfo;
+window.setupToggleButtons = setupToggleButtons;
+
+
 // 找到該筆工單最早的有效日期
 function findEarliestDate(item) {
 
@@ -495,28 +830,241 @@ function findEarliestDate(item) {
     return earliest.date;
 }
 
-// 修改 showDetail 函數
-function showDetail(workOrderNum) {
-    const item = filteredData.find(d => d.workOrderNum === workOrderNum);
-    if (!item) return;
+// 在 safeValue 函數後面添加
+function safeRemarksValue(value) {
+    // 備註欄位專用：空值返回空字串而不是 '-'
+    return (value === null || value === undefined || value === "NULL" || value === "-") ? '' : value;
+}
 
-    currentDetailItem = item;
+async function showDetail(workOrderNum) {
+    // 先從本地找到基本資訊（用於快速顯示）
+    let item = filteredData.find(d => d.workOrderNum === workOrderNum);
+    if (!item) item = {};
 
-    // 儲存當前滾動位置
+    // 保存當前滾動位置
     scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
 
-    // 填入資料
+    // ✅ 從後端查詢完整數據（包含所有齒位）
+    const accessToken = localStorage.getItem('liffAccessToken');
+    const groupId = localStorage.getItem('groupId');
+    console.log("🧩 showDetail debug start");
+    try {
+        const protocol = window.location.protocol;
+        const host = window.location.host;
+        const apiUrl = `${protocol}//${host}/NLD/Admin/workorder/${workOrderNum}?groupId=${groupId}`;
+
+        console.log('📤 查詢詳細資料:', apiUrl);
+
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+
+        let detailDataList = [];
+        if (response.ok) {
+            detailDataList = await response.json();
+            console.log('✅ 查詢成功，返回資料筆數:', detailDataList.length);
+        } else {
+            console.warn(`查詢詳細數據失敗: ${response.status}，使用本地數據`);
+            detailDataList = [item];
+        }
+
+        // 第一筆用於基本信息顯示
+        const detailItem = detailDataList.length > 0 ? detailDataList[0] : item;
+        currentDetailItem = detailItem;
+
+        // ===== 填入基本資訊 =====
+        document.getElementById('detailWorkNum').textContent = safeValue(detailItem.workOrderNum);
+        document.getElementById('detailClinic').textContent = safeValue(detailItem.clinicName);
+        document.getElementById('detailDoctor').textContent = safeValue(detailItem.docName);
+        document.getElementById('detailPatient').textContent = safeValue(detailItem.patientName);
+
+        // 業務名稱
+        document.getElementById('detailSales').textContent = safeValue(detailItem.salesName);
+
+        // ✅ 新增：顯示所有齒位的詳細卡片（替換原本的簡單齒位顯示）
+        displayToothPositionCards(detailDataList);
+
+        insertFeeBlockBeforeDateInfo(detailDataList);
+
+        // ===== 填入日期資訊 =====
+        document.getElementById('detailReceiveDate').textContent = formatDate(detailItem.receivedDate);
+        document.getElementById('detailExpectedDate').textContent = formatDate(detailItem.estFinishDate);
+        document.getElementById('detailTryInDate').textContent = formatDate(detailItem.tryInDate);
+        document.getElementById('detailDeliveryDate').textContent = formatDate(detailItem.deliveryDate);
+        document.getElementById('detailTryReceiveDate').textContent = formatDate(detailItem.tryInReceivedDate);
+        document.getElementById('detailExpectedTryDate').textContent = formatDate(detailItem.estTryInDate);
+
+        // ===== 填入狀態資訊 =====
+        const statusLabels = detailItem.statusLabels || '-';
+        document.getElementById('detailTags').textContent = statusLabels;
+
+        const existingRemarksDiv = document.getElementById('existingRemarks');
+        if (existingRemarksDiv) {
+            const remarks = safeRemarksValue(detailItem.remarks);
+            if (remarks) {
+                existingRemarksDiv.innerHTML = remarks.replace(/\n/g, '<br>');
+                existingRemarksDiv.style.color = '#333';
+            } else {
+                existingRemarksDiv.innerHTML = '<span style="color:#999;">暫無備註</span>';
+            }
+        }
+        // 隱藏搜尋區塊
+        const searchHeader = document.querySelector('.search-header');
+        if (searchHeader) {
+            searchHeader.classList.add('hidden');
+        }
+
+        // 切換視圖
+        document.getElementById('listView').style.display = 'none';
+        document.getElementById('detailView').style.display = 'block';
+
+        const floatingButtons = document.querySelector('.floating-buttons');
+        if (floatingButtons) {
+            floatingButtons.style.display = 'flex';
+        }
+
+        // 詳細頁面滾動到頂部
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
+
+        // ✅ 延遲載入圖片,確保 DOM 準備好
+        setTimeout(() => {
+            if (typeof loadWorkOrderImages === 'function') {
+                loadWorkOrderImages(workOrderNum);
+            } else {
+                console.error('loadWorkOrderImages 函數不存在');
+            }
+        }, 100);
+
+    } catch (error) {
+        console.error('查詢詳細數據時發生錯誤:', error);
+        // 錯誤時顯示本地數據
+        showDetailWithLocalData(item);
+    }
+    console.log("🧩 showDetail debug end");
+}
+
+/**
+ * ✅ 显示齒位詳細卡片 - 单价加密显示
+ * 替换现有的 displayToothPositionCards 函数
+ */
+function displayToothPositionCards(detailDataList) {
+    const container = document.getElementById('toothPositionContainer');
+
+    if (!container) {
+        console.error('找不到 toothPositionContainer 元素');
+        return;
+    }
+
+    container.innerHTML = '';
+
+    if (!detailDataList || detailDataList.length === 0) {
+        container.innerHTML = '<div style="color: #999; padding: 12px; text-align: center;">暫無齒位資料</div>';
+        return;
+    }
+
+    // ✅ 添加 debug 日誌
+    console.log('📊 開始顯示齒位卡片，共', detailDataList.length, '筆');
+    console.log('📋 詳細資料:', detailDataList);
+
+    // ✅ 改為：直接遍歷所有資料
+    detailDataList.forEach((item, index) => {
+        console.log(`🔹 處理第 ${index + 1} 筆:`, {
+            齒位: item.toothPosition,
+            製作項目: item.prodItem,
+            產品名稱: item.prodName
+        });
+
+        const card = document.createElement('div');
+        card.className = 'tooth-card';
+
+        // 生成唯一ID（使用 index 確保不重複）
+        const priceToggleId = `priceToggle_${item.toothPosition}_${index}_${Date.now()}`;
+
+        const cardHTML = `
+            <div class="tooth-card-grid">
+                <div>
+                    <div class="tooth-card-field" style="margin-bottom: 12px;">
+                        <div class="tooth-card-label" style="font-size: 16px;">🦷 齒位</div>
+                        <div class="tooth-number" style="font-size: 18px;">${safeValue(item.toothPosition)}</div>
+                    </div>
+                    
+                    <div class="tooth-card-field" style="margin-bottom: 12px;">
+                        <div class="tooth-card-label" style="font-size: 16px;">📦 製作項目</div>
+                        <div class="tooth-card-value" style="font-size: 16px;">${safeValue(item.prodItem)}</div>
+                    </div>
+                    
+
+                </div>
+
+                <div>
+                    <div class="tooth-card-field" style="margin-bottom: 12px;">
+                        <div class="tooth-card-label" style="font-size: 14px;">🛠️ 產品名稱</div>
+                        <div class="tooth-card-value" style="font-size: 16px;">${safeValue(item.prodName)}</div>
+                    </div>
+                    
+                    <div class="tooth-card-field">
+                        <div class="tooth-card-label" style="font-size: 14px;">📊 工單現況</div>
+                        <div class="tooth-card-value" style="color: #000; font-size: 16px;">
+                            ${safeValue(item.workOrderStatus)}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        card.innerHTML = cardHTML;
+        container.appendChild(card);
+
+        console.log(`✅ 第 ${index + 1} 筆卡片已加入 DOM`);
+
+        // 绑定单价按钮事件
+        setTimeout(() => {
+            const priceBtn = document.getElementById(`${priceToggleId}_btn`);
+            if (priceBtn) {
+                priceBtn.addEventListener('click', function() {
+                    const masked = document.getElementById(`${priceToggleId}_masked`);
+                    const value = document.getElementById(`${priceToggleId}_value`);
+
+                    if (masked.style.display === 'none') {
+                        masked.style.display = 'inline';
+                        value.style.display = 'none';
+                        this.textContent = '👀';
+                    } else {
+                        masked.style.display = 'none';
+                        value.style.display = 'inline';
+                        this.textContent = '🔒';
+                    }
+                });
+            }
+        }, 50);
+    });
+
+    console.log('✅ 所有齒位卡片顯示完成');
+}
+
+/**
+ * 使用本地數據顯示詳細信息（後端查詢失敗時）
+ */
+/**
+ * 使用本地數據顯示詳細信息（後端查詢失敗時）
+ */
+function showDetailWithLocalData(item) {
+    currentDetailItem = item;
+
     document.getElementById('detailWorkNum').textContent = safeValue(item.workOrderNum);
     document.getElementById('detailClinic').textContent = safeValue(item.clinicName);
     document.getElementById('detailDoctor').textContent = safeValue(item.docName);
     document.getElementById('detailPatient').textContent = safeValue(item.patientName);
-    document.getElementById('detailToothPosition').textContent = safeValue(item.toothPosition);
-
-    // 生產單位顯示業務名稱而非單價
     document.getElementById('detailSales').textContent = safeValue(item.salesName);
 
-    // 產品名稱（生產單位沒有 prodItem）
-    document.getElementById('detailProductName').textContent = safeValue(item.prodName);
+    // 顯示單筆齒位卡片
+    displayToothPositionCards([item]);
 
     document.getElementById('detailReceiveDate').textContent = formatDate(item.receivedDate);
     document.getElementById('detailExpectedDate').textContent = formatDate(item.estFinishDate);
@@ -524,41 +1072,93 @@ function showDetail(workOrderNum) {
     document.getElementById('detailDeliveryDate').textContent = formatDate(item.deliveryDate);
     document.getElementById('detailTryReceiveDate').textContent = formatDate(item.tryInReceivedDate);
     document.getElementById('detailExpectedTryDate').textContent = formatDate(item.estTryInDate);
-    document.getElementById('detailStatus').textContent = safeValue(item.workOrderStatus);
 
-    // 隱藏搜尋區塊
+    // ✅ 修正：使用 item 而不是 detailItem
+    const statusLabels = item.statusLabels || '-';
+    document.getElementById('detailTags').textContent = statusLabels;
+
+    // ✅ 修改：显示现有备注（只读）
+    const existingRemarksDiv = document.getElementById('existingRemarks');
+    if (existingRemarksDiv) {
+        const remarks = safeRemarksValue(item.remarks);
+        if (remarks) {
+            existingRemarksDiv.innerHTML = remarks.replace(/\n/g, '<br>');
+            existingRemarksDiv.style.color = '#333';
+        } else {
+            existingRemarksDiv.innerHTML = '<span style="color: #999;">暫無備註</span>';
+        }
+    }
+
+    // ✅ 清空新增备注输入框
+    const newRemarkInput = document.getElementById('newRemarkInput');
+    if (newRemarkInput) {
+        newRemarkInput.value = '';
+    }
+
     const searchHeader = document.querySelector('.search-header');
     if (searchHeader) {
         searchHeader.classList.add('hidden');
     }
 
-    const statusTags = [
-        item.isRemake && '重製',
-        item.isNoCharge && '不計價',
-        item.isPaused && '暫停',
-        item.isVoided && '作廢'
-    ].filter(Boolean).join('、');
-    document.getElementById('detailTags').textContent = statusTags || '-';
-    document.getElementById('detailRemarks').textContent = safeValue(item.remarks);
-
-    // 切換視圖
     document.getElementById('listView').style.display = 'none';
     document.getElementById('detailView').style.display = 'block';
 
-    // 詳細頁面滾動到頂部
     window.scrollTo(0, 0);
-    document.body.scrollTop = 0;
-    document.documentElement.scrollTop = 0;
 
-    // ✅ 延遲載入圖片,確保 DOM 準備好
     setTimeout(() => {
         if (typeof loadWorkOrderImages === 'function') {
             loadWorkOrderImages(item.workOrderNum);
-        } else {
-            console.error('loadWorkOrderImages 函數不存在');
         }
     }, 100);
 }
+
+// 暴露函數到全域
+window.displayToothPositionCards = displayToothPositionCards;
+window.showDetailWithLocalData = showDetailWithLocalData;
+
+function setupFloatingButtonsVisibility() {
+    const floatingButtons = document.querySelector('.floating-buttons');
+
+    if (!floatingButtons) {
+        console.warn('找不到浮動按鈕元素');
+        return;
+    }
+
+    // 監控頁面變化
+    const observer = new MutationObserver(() => {
+        // 檢查詳細頁面是否顯示
+        const detailView = document.getElementById('detailView');
+        const isDetailPage = detailView && detailView.style.display === 'block';
+
+        // 只有在詳細頁面才顯示浮動按鈕
+        if (isDetailPage) {
+            floatingButtons.style.display = 'flex';
+            console.log('✅ 顯示浮動按鈕');
+        } else {
+            floatingButtons.style.display = 'none';
+            console.log('✅ 隱藏浮動按鈕');
+        }
+    });
+
+    // 開始監控
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+
+    // 首次運行
+    setTimeout(() => {
+        const detailView = document.getElementById('detailView');
+        const isDetailPage = detailView && detailView.style.display === 'block';
+        floatingButtons.style.display = isDetailPage ? 'flex' : 'none';
+    }, 0);
+}
+
+// 暴露到全局
+window.setupFloatingButtonsVisibility = setupFloatingButtonsVisibility;
+
+// 自動運行
+document.addEventListener('DOMContentLoaded', setupFloatingButtonsVisibility);
 
 // 修改 showList 函數
 function showList() {
@@ -572,6 +1172,11 @@ function showList() {
     document.getElementById('detailView').style.display = 'none';
     document.getElementById('calendarView').style.display = 'none';
     currentDetailItem = null;
+
+    const floatingButtons = document.querySelector('.floating-buttons');
+    if (floatingButtons) {
+        floatingButtons.style.display = 'none';
+    }
 
     // 恢復到之前的捲動位置
     setTimeout(() => {
@@ -810,14 +1415,13 @@ function jumpToDateMonth(dateInput) {
     }
 }
 
-
-
 async function initializeData() {
     currentDisplayCount = ITEMS_PER_PAGE;
     const listViewElement = document.getElementById("listView");
     if (!listViewElement) return;
 
     listViewElement.innerHTML = '<div class="loading">資料載入中...</div>';
+
     await nldStorage.init();
 
     // 載入所有資料 (使用第一個 API)
@@ -841,6 +1445,7 @@ async function loadAllData() {
     try {
         const protocol = window.location.protocol;
         const host = window.location.host;
+        // ✅ 改為 ProdUnit 的 API
         const apiUrl = `${protocol}//${host}/NLD/ProdUnit/workOrders`;
 
         const response = await fetch(apiUrl, {
@@ -857,7 +1462,9 @@ async function loadAllData() {
             throw new Error(`載入失敗: ${response.status}`);
         }
 
-        const data = await response.json();
+        let data = await response.json();
+        data = deduplicateWorkOrders(data);
+
         originalData = Array.isArray(data) ? data : [];
         filteredData = [...originalData];
 
@@ -870,31 +1477,193 @@ async function loadAllData() {
     }
 }
 
+// 搜尋按鈕點擊事件
+async function performSearch() {
+    const keyword = document.getElementById('searchInput').value.trim();
+    const dateType = document.getElementById('dateTypeSelect').value;
+    const startDate = document.getElementById('startDate').value;
 
+    // === 防呆驗證 ===
+    const hasDateInput = dateType || startDate;
+
+    if (hasDateInput) {
+        if (!dateType) {
+            alert('請選擇日期類型');
+            return;
+        }
+        if (!startDate) {
+            alert('請選擇開始日期');
+            return;
+        }
+    }
+
+    if (!keyword && !hasDateInput && !salesName) {
+        alert('請至少輸入一個搜尋條件（關鍵字、日期或業務）');
+        return;
+    }
+
+    const accessToken = localStorage.getItem('liffAccessToken');
+    const groupId = localStorage.getItem('groupId');
+
+    if (!accessToken || !groupId) {
+        alert('請重新登入');
+        window.location.href = '/route/index.html';
+        return;
+    }
+
+    const listView = document.getElementById('listView');
+    listView.innerHTML = '<div class="loading">🔍 搜尋中...</div>';
+
+    try {
+        const params = new URLSearchParams();
+        params.append('groupId', groupId);
+
+        if (keyword) params.append('keyword', keyword);
+        if (dateType) params.append('dateType', dateType);
+        if (startDate) params.append('startDate', startDate);
+
+        const protocol = window.location.protocol;
+        const host = window.location.host;
+        // ✅ 改為 ProdUnit 的搜尋 API
+        console.log("/NLD/Admin/search");
+
+        const apiUrl = `${protocol}//${host}/NLD/Admin/search?${params.toString()}`;
+
+        const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`搜尋失敗: ${response.status}`);
+        }
+
+        let data = await response.json();
+        data = deduplicateWorkOrders(data);
+
+        originalData = Array.isArray(data) ? data : [];
+        filteredData = [...originalData];
+
+        await nldStorage.saveData(data);
+        renderListView(filteredData);
+
+    } catch (error) {
+        console.error('搜尋錯誤:', error);
+        listView.innerHTML = '<div class="loading" style="color: red;">搜尋失敗,請重試</div>';
+    }
+}
+
+
+function clearAndSearch() {
+    // 清除所有搜尋條件
+    document.getElementById('searchInput').value = '';
+    document.getElementById('dateTypeSelect').value = '';
+    document.getElementById('startDate').value = '';
+    document.getElementById('salesSelect').value = '';
+
+    // 清除後載入所有資料
+    loadAllData();
+}
+
+
+
+// 在 DOMContentLoaded 中綁定搜尋按鈕
 // 頁面載入完成後初始化
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async () => {
+
+    // 🧹 先清空舊快取，確保載入最新資料
+    await nldStorage.clearData();
+    console.log("🧹 已清空舊快取，將重新載入最新資料");
+
+    // 初始化資料
+    await initializeData();
+
+// ===== 新增：滾動時顯示/隱藏搜尋框 =====
+    let lastScrollTop = 0;
+    let scrollTimeout;
+    const searchHeader = document.querySelector('.search-header');
+    const scrollThreshold = 10; // 滾動靈敏度（像素）
+
+    window.addEventListener('scroll', function() {
+        // 只在列表頁面才執行（詳細頁面不需要）
+        const listView = document.getElementById('listView');
+        const isListPage = listView && listView.style.display !== 'none';
+
+        if (!isListPage || !searchHeader) return;
+
+        // 清除之前的延遲
+        clearTimeout(scrollTimeout);
+
+        // 延遲執行，避免滾動時頻繁觸發
+        scrollTimeout = setTimeout(() => {
+            const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+            // 避免在頂部時誤判
+            if (currentScrollTop <= 0) {
+                searchHeader.classList.remove('hidden');
+                lastScrollTop = currentScrollTop;
+                return;
+            }
+
+            // 向下滾動 - 隱藏搜尋框
+            if (currentScrollTop > lastScrollTop + scrollThreshold) {
+                searchHeader.classList.add('hidden');
+            }
+            // 向上滾動 - 顯示搜尋框
+            else if (currentScrollTop < lastScrollTop - scrollThreshold) {
+                searchHeader.classList.remove('hidden');
+            }
+
+            lastScrollTop = currentScrollTop;
+        }, 50); // 50ms 延遲，讓滾動更順暢
+    }, { passive: true }); // passive: true 提升滾動效能
+
+
+    if (typeof setupFloatingButtonsVisibility === 'function') {
+        setupFloatingButtonsVisibility();
+    }
 
     // 檢查關鍵元素是否存在
     const listView = document.getElementById('listView');
     const searchInput = document.getElementById('searchInput');
     const backBtn = document.getElementById('backBtn');
 
+    // 搜尋按鈕
+    const searchBtn = document.getElementById('searchBtn');
+    if (searchBtn) {
+        searchBtn.addEventListener('click', performSearch);
+    }
 
-    // 初始化資料
-    initializeData();
-
-    // 綁定事件監聽器
+    // Enter 鍵搜尋
     if (searchInput) {
-        //searchInput.addEventListener('input', filterData);
         searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                filterData();
+                performSearch();
             }
         });
     }
 
+    // 清除按鈕
+    const clearFilterBtn = document.getElementById('clearFilterBtn');
+    if (clearFilterBtn) {
+        clearFilterBtn.addEventListener('click', clearAndSearch);
+    }
+
+    // 返回按鈕
     if (backBtn) {
-        backBtn.addEventListener('click', showList);
+        backBtn.addEventListener('click', () => {
+            // 如果在詳細頁面，先回到列表
+            if (document.getElementById('detailView').style.display === 'block') {
+                showList();
+            }
+            // 如果在列表頁面，回到 route/index.html
+            else {
+                window.location.href = '/route/index.html';
+            }
+        });
     }
 
     // ✅✅✅ 拍照浮動按鈕 - 修正版 ✅✅✅
@@ -907,6 +1676,8 @@ window.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             e.stopPropagation();
 
+            //debug("📸 相機按鈕被點擊 (click)");
+
             if (!currentDetailItem?.workOrderNum) {
                 alert('⚠️ 請先選擇工單再拍照');
                 return;
@@ -914,6 +1685,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
             // 延遲觸發，讓 iOS 有時間反應
             setTimeout(() => {
+                //debug("🎯 準備觸發 input.click()");
                 cameraInput.click();
             }, 100);
         });
@@ -923,20 +1695,25 @@ window.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             e.stopPropagation();
 
+            //debug("📱 相機按鈕被觸控 (touchend)");
+
             if (!currentDetailItem?.workOrderNum) {
                 alert('⚠️ 請先選擇工單再拍照');
                 return;
             }
 
             setTimeout(() => {
+                //debug("🎯 準備觸發 input.click() (touch)");
                 cameraInput.click();
             }, 100);
         }, { passive: false });
     }
 
-    // ✅ 檔案輸入變更事件
+// ✅ 檔案輸入變更事件
     if (cameraInput) {
         cameraInput.addEventListener('change', async (e) => {
+            //debug("📁 Change 事件觸發！檔案數量: " + e.target.files.length);
+
             if (e.target.files.length > 0) {
                 await handleImageCapture(e);
             }
@@ -1016,203 +1793,6 @@ window.addEventListener("DOMContentLoaded", () => {
     addNavigationListener(prevMonth, 'prevMonth');
     addNavigationListener(nextMonth, 'nextMonth');
 
-    // 添加重新整理功能（可選）
-    window.refreshData = function() {
-        initializeData();
-    };
-
-});
-
-
-// 格式化今天的日期為 YYYY-MM-DD 格式
-function formatTodayForInput() {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
-
-
-// 搜尋按鈕點擊事件
-async function performSearch() {
-    const keyword = document.getElementById('searchInput').value.trim();
-    const dateType = document.getElementById('dateTypeSelect').value;
-    const startDate = document.getElementById('startDate').value;
-    const endDate = document.getElementById('endDate').value;
-    const accessToken = localStorage.getItem('liffAccessToken');
-    const groupId = localStorage.getItem('groupId');
-
-    // === 防呆驗證 ===
-    // 檢查是否有任何日期相關的輸入
-    const hasDateInput = dateType || startDate || endDate;
-
-    if (hasDateInput) {
-        // 如果有任何日期相關輸入，就需要完整的日期資訊
-        if (!dateType) {
-            alert('請選擇日期類型');
-            return;
-        }
-        if (!startDate || !endDate) {
-            alert('請選擇完整的日期區間（開始日期和結束日期）');
-            return;
-        }
-
-        // 驗證日期區間是否合理
-        if (new Date(startDate) > new Date(endDate)) {
-            alert('開始日期不能晚於結束日期');
-            return;
-        }
-    }
-
-    // 檢查是否至少有一個搜尋條件
-    if (!keyword && !hasDateInput) {
-        alert('請至少輸入一個搜尋條件（關鍵字或日期篩選）');
-        return;
-    }
-
-    if (!accessToken || !groupId) {
-        alert('請重新登入');
-        window.location.href = '/route/index.html';
-        return;
-    }
-
-    const listView = document.getElementById('listView');
-    listView.innerHTML = '<div class="loading">🔍 搜尋中...</div>';
-
-    try {
-        const params = new URLSearchParams();
-        params.append('groupId', groupId);
-        if (keyword) params.append('keyword', keyword);
-        if (dateType) params.append('dateType', dateType);
-        if (startDate) params.append('startDate', startDate);
-        if (endDate) params.append('endDate', endDate);
-
-        const protocol = window.location.protocol;
-        const host = window.location.host;
-        const apiUrl = `${protocol}//${host}/NLD/ProdUnit/search?${params.toString()}`;
-
-        const response = await fetch(apiUrl, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'ngrok-skip-browser-warning': 'true'
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`搜尋失敗: ${response.status}`);
-        }
-
-        const data = await response.json();
-        originalData = Array.isArray(data) ? data : [];
-        filteredData = [...originalData];
-
-        await nldStorage.saveData(data);
-        renderListView(filteredData);
-
-    } catch (error) {
-        console.error('搜尋錯誤:', error);
-        listView.innerHTML = '<div class="loading" style="color: red;">搜尋失敗,請重試</div>';
-    }
-}
-
-function clearAndSearch() {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('dateTypeSelect').value = '';
-    document.getElementById('startDate').value = '';
-    document.getElementById('endDate').value = formatTodayForInput();
-
-    // 清除後載入所有資料,不是搜尋
-    loadAllData();
-}
-
-// 在 DOMContentLoaded 中綁定搜尋按鈕
-window.addEventListener("DOMContentLoaded", async () => {
-    await initializeData();
-
-    // 搜尋按鈕
-    const searchBtn = document.getElementById('searchBtn');
-    if (searchBtn) {
-        searchBtn.addEventListener('click', performSearch);
-    }
-
-    // Enter 鍵搜尋
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                performSearch();
-            }
-        });
-    }
-
-    // 清除按鈕
-    const clearFilterBtn = document.getElementById('clearFilterBtn');
-    if (clearFilterBtn) {
-        clearFilterBtn.addEventListener('click', clearAndSearch);
-    }
-
-    // 返回按鈕
-    const backBtn = document.getElementById('backBtn');
-    if (backBtn) {
-        backBtn.addEventListener('click', showList);
-    }
-
-    // 日曆按鈕
-    const calendarBtn = document.getElementById('calendarBtn');
-    if (calendarBtn) {
-        let touchHandled = false;
-        calendarBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            touchHandled = true;
-            showCalendar();
-        });
-        calendarBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (!touchHandled) {
-                showCalendar();
-            }
-            touchHandled = false;
-        });
-    }
-
-    // 日曆關閉按鈕
-    const calendarClose = document.getElementById('calendarClose');
-    if (calendarClose) {
-        let touchHandled = false;
-        calendarClose.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            touchHandled = true;
-            document.getElementById('calendarView').style.display = 'none';
-        });
-        calendarClose.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (!touchHandled) {
-                document.getElementById('calendarView').style.display = 'none';
-            }
-            touchHandled = false;
-        });
-    }
-
-    // 日曆導航按鈕
-    function addNavigationListener(element, direction) {
-        if (!element) return;
-        let touchHandled = false;
-        element.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            touchHandled = true;
-            navigateCalendar(direction);
-        });
-        element.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (!touchHandled) {
-                navigateCalendar(direction);
-            }
-            touchHandled = false;
-        });
-    }
-
     // 電腦版:點擊日曆外部區域關閉日曆
     const calendarView = document.getElementById('calendarView');
     if (calendarView) {
@@ -1243,10 +1823,10 @@ window.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    addNavigationListener(document.getElementById('prevYear'), 'prevYear');
-    addNavigationListener(document.getElementById('nextYear'), 'nextYear');
-    addNavigationListener(document.getElementById('prevMonth'), 'prevMonth');
-    addNavigationListener(document.getElementById('nextMonth'), 'nextMonth');
+    // 添加重新整理功能（可選）
+    window.refreshData = function() {
+        initializeData();
+    };
 });
 
 
@@ -1255,6 +1835,12 @@ window.showDetail = showDetail;
 window.jumpToDateMonth = jumpToDateMonth;
 // 在文件末尾添加，讓 HTML 中的 onclick 能呼叫
 window.loadMoreItems = loadMoreItems;
+
+
+
+// ============================================
+// 完整版圖片載入函數 - 小一點的紅色 X,靠近頂部
+// ============================================
 
 async function loadWorkOrderImages(workOrderNum) {
     const imageContainer = document.getElementById('imageContainer');
@@ -1521,6 +2107,41 @@ async function loadWorkOrderImages(workOrderNum) {
     }
 }
 
+// ✅ 加入 CSS 動畫 (放在檔案最後面,只加入一次)
+if (!document.getElementById('imageLoaderStyles')) {
+    const style = document.createElement('style');
+    style.id = 'imageLoaderStyles';
+    style.textContent = `
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// ✅ 加入 CSS 動畫 (放在檔案最後面)
+if (!document.getElementById('imageLoaderStyles')) {
+    const style = document.createElement('style');
+    style.id = 'imageLoaderStyles';
+    style.textContent = `
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+
 // ============================================
 // 拍照上傳功能
 // ============================================
@@ -1542,36 +2163,56 @@ function openCamera() {
 }
 
 // 處理拍照/選擇的圖片
+// ============================================
+// 拍照上傳功能 - 支援多檔案上傳
+// ============================================
+
+// 處理拍照/選擇的圖片 - 支援多檔案
 async function handleImageCapture(event) {
-    const file = event.target.files[0];
-    if (!file) {
+    const files = event.target.files;
+
+    if (!files || files.length === 0) {
+        debug("❌ No files captured");
         return;
     }
 
     if (!currentDetailItem?.workOrderNum) {
-        alert("⚠️ 請先選擇工單再拍照");
+        alert("⚠️ 請先選擇工單再上傳照片");
         event.target.value = "";
         return;
     }
 
     try {
         const workOrderNum = currentDetailItem.workOrderNum;
+        const maxSize = 20 * 1024 * 1024; // 20MB
 
-        // ✅ 檢查檔案大小（20MB = 20 * 1024 * 1024 bytes）
-        const maxSize = 20 * 1024 * 1024;
-        if (file.size > maxSize) {
-            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-            alert(`❌ 檔案太大！\n檔案大小: ${sizeMB} MB\n最大限制: 20 MB\n\n請壓縮照片後再試`);
+        // ✅ 驗證所有檔案大小
+        const oversizedFiles = [];
+        for (let i = 0; i < files.length; i++) {
+            if (files[i].size > maxSize) {
+                const sizeMB = (files[i].size / (1024 * 1024)).toFixed(2);
+                oversizedFiles.push(`${files[i].name} (${sizeMB} MB)`);
+            }
+        }
+
+        if (oversizedFiles.length > 0) {
+            alert(`❌ 以下檔案超過 20MB 限制：\n${oversizedFiles.join('\n')}\n\n請壓縮後再試`);
             event.target.value = "";
             return;
         }
 
-        showUploadOverlay(); // 顯示載入中
+        // ✅ 顯示上傳中（帶檔案數量提示）
+        showUploadOverlay(`正在上傳 ${files.length} 張照片...`);
 
+        // ✅ 建立 FormData，加入所有檔案
         const formData = new FormData();
-        formData.append("image", file);
         formData.append("workOrderNum", workOrderNum);
 
+        for (let i = 0; i < files.length; i++) {
+            formData.append("image", files[i]); // 使用相同的參數名 "image"
+        }
+
+        // ✅ 一次性上傳所有檔案
         const res = await fetch("https://line.nldlab.com/api/scaner/upload", {
             method: "POST",
             body: formData
@@ -1579,15 +2220,15 @@ async function handleImageCapture(event) {
 
         const data = await res.json();
 
-        hideUploadOverlay(); // 隱藏載入中
+        hideUploadOverlay();
 
         if (res.ok && data.success) {
-            showSuccessMessage("📸 照片上傳成功");
+            const uploadedCount = data.uploadedCount || files.length;
+            showSuccessMessage(`📸 成功上傳 ${uploadedCount} 張照片`);
 
             // 重新載入圖片列表
             await loadWorkOrderImages(workOrderNum);
         } else {
-            // 顯示後端回傳的錯誤訊息
             const errorMsg = data.message || "上傳失敗";
             alert(`❌ ${errorMsg}`);
         }
@@ -1596,7 +2237,6 @@ async function handleImageCapture(event) {
         console.error("❌ Upload error:", err);
         hideUploadOverlay();
 
-        // 檢查是否是網路錯誤
         if (err.name === 'TypeError' && err.message.includes('Failed to fetch')) {
             alert("❌ 網路連線失敗，請檢查網路後再試");
         } else {
@@ -1607,15 +2247,15 @@ async function handleImageCapture(event) {
     }
 }
 
-// 顯示上傳中遮罩
-function showUploadOverlay() {
+// 顯示上傳中遮罩 - 支援自訂訊息
+function showUploadOverlay(message = '上傳中...') {
     const overlay = document.createElement('div');
     overlay.id = 'uploadOverlay';
     overlay.className = 'upload-overlay';
     overlay.innerHTML = `
         <div class="upload-progress">
             <div class="spinner"></div>
-            <div class="upload-text">📸 上傳中...</div>
+            <div class="upload-text">📸 ${message}</div>
             <div class="upload-subtext">請稍候，正在處理您的照片</div>
         </div>
     `;
@@ -1691,3 +2331,6 @@ if (!document.getElementById('toastStyles')) {
 // 暴露全域函數
 window.openCamera = openCamera;
 window.handleImageCapture = handleImageCapture;
+
+
+

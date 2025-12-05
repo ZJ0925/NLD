@@ -126,13 +126,13 @@ public class NLDServiceImpl implements NLDService {
         return switch (userGroupRole.getRoleID()) {
             case 1 -> nldRepository.AdminSearch(top500);
             case 2 -> nldRepository.DocSearch(
-                    userGroupRole.getGroupNameID(),
-                    userGroupRole.getUserNameID(),top500
+                    userGroupRole.getUserNameID(),   // docID - 只傳醫生ID
+                    top500
             );
             case 3 -> nldRepository.SalesSearch(userGroupRole.getUserNameID(), top500);
-            case 4 -> nldRepository.ProdUnitSearch(top500);
+            case 4 -> nldRepository.AdminSearch(top500);
             case 5 -> nldRepository.AssistantSearch(userGroupRole.getGroupNameID(), top500);
-            default -> Collections.emptyList();  // 改這裡：回傳空 List 而非 null
+            default -> Collections.emptyList();
         };
     }
 
@@ -186,8 +186,7 @@ public class NLDServiceImpl implements NLDService {
         return switch (userGroupRole.getRoleID()) {
             case 1 -> nldRepository.AdminSearchWithFilters(keyword, dateType, parsedStartDate, null);
             case 2 -> nldRepository.DocWithFilters(
-                    userGroupRole.getGroupNameID(),
-                    userGroupRole.getUserNameID(),
+                    userGroupRole.getUserNameID(),   // docID - 只傳醫生ID
                     keyword,
                     dateType,
                     parsedStartDate
@@ -197,7 +196,7 @@ public class NLDServiceImpl implements NLDService {
                     keyword,
                     dateType,
                     parsedStartDate
-             );
+            );
             case 4 -> nldRepository.ProdUnitSearchWithFilters(
                     keyword,
                     dateType,
@@ -210,7 +209,7 @@ public class NLDServiceImpl implements NLDService {
                     parsedStartDate
             );
 
-            default -> Collections.emptyList();  // 改這裡：回傳空 List 而非 null
+            default -> Collections.emptyList();
         };
     }
 
@@ -291,25 +290,19 @@ public class NLDServiceImpl implements NLDService {
         // 5. 根據角色和工單號查詢完整數據
         return switch (userGroupRole.getRoleID()) {
             case 1 -> nldRepository.AdminGetDetailByWorkOrderNum(workOrderNum);
-
             case 2 -> nldRepository.DocGetDetailByWorkOrderNum(
-                    userGroupRole.getGroupNameID(),
-                    userGroupRole.getUserNameID(),
+                    userGroupRole.getUserNameID(),   // docID - 只傳醫生ID
                     workOrderNum
             );
-
             case 3 -> nldRepository.SalesGetDetailByWorkOrderNum(
                     userGroupRole.getUserNameID(),
                     workOrderNum
             );
-
             case 4 -> nldRepository.ProdUnitGetDetailByWorkOrderNum(workOrderNum);
-
             case 5 -> nldRepository.AssistantGetDetailByWorkOrderNum(
                     userGroupRole.getGroupNameID(),
                     workOrderNum
             );
-
             default -> Collections.emptyList();
         };
     }
@@ -399,8 +392,7 @@ public class NLDServiceImpl implements NLDService {
         return switch (userGroupRole.getRoleID()) {
             case 1 -> nldRepository.AdminSearchWithFilters(keyword, dateType, parsedStartDate, salesName);
             case 2 -> nldRepository.DocWithFilters(
-                    userGroupRole.getGroupNameID(),
-                    userGroupRole.getUserNameID(),
+                    userGroupRole.getUserNameID(),  // ✅ 只傳 docID
                     keyword,
                     dateType,
                     parsedStartDate
@@ -423,7 +415,7 @@ public class NLDServiceImpl implements NLDService {
                     parsedStartDate
             );
 
-            default -> Collections.emptyList();  // 改這裡：回傳空 List 而非 null
+            default -> Collections.emptyList();
         };
     }
 

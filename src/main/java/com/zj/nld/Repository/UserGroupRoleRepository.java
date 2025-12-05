@@ -18,9 +18,6 @@ public interface UserGroupRoleRepository extends JpaRepository<UserGroupRole, UU
     @Query("SELECT DISTINCT new com.zj.nld.Model.DTO.GroupDTO(u.groupID, u.groupName) FROM UserGroupRole u")
     List<GroupDTO> findDistinctGroups();
 
-
-
-
     // 根據groupID找到該群組的userGroupRole
     @Query("SELECT u FROM UserGroupRole u WHERE u.groupID = :groupID")
     List<UserGroupRole> findUserGroupRolesByGroupID(@Param("groupID") String groupID);
@@ -71,5 +68,25 @@ public interface UserGroupRoleRepository extends JpaRepository<UserGroupRole, UU
     @Modifying
     @Query("DELETE FROM UserGroupRole u WHERE u.groupID = :groupID")
     void deleteUserGroupRoleByGroupID(@Param("groupID") String groupID);
+
+
+    /**
+     * 查詢所有不重複的群組 ID
+     */
+    @Query("SELECT DISTINCT u.groupID FROM UserGroupRole u WHERE u.groupID IS NOT NULL")
+    List<String> findAllDistinctGroupIds();
+
+    /**
+     * 根據群組 ID 更新群組名稱
+     */
+    @Modifying
+    @Query("UPDATE UserGroupRole u SET u.groupName = :newGroupName WHERE u.groupID = :groupId")
+    int updateGroupNameByGroupId(@Param("groupId") String groupId, @Param("newGroupName") String newGroupName);
+
+    /**
+     * 根據群組 ID 查詢群組名稱
+     */
+    @Query("SELECT u.groupName FROM UserGroupRole u WHERE u.groupID = :groupId")
+    String findGroupNameByGroupId(@Param("groupId") String groupId);
 
 }

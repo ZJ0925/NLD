@@ -11,6 +11,8 @@ public class UserGroupRoleDTO {
 
     private String lineID; // LINE ID
 
+    private String lineNiceName; // LINE 原始暱稱
+
     private String groupID;
 
     private String userName; // 使用者名稱
@@ -24,6 +26,14 @@ public class UserGroupRoleDTO {
     private int roleID;
 
     private List<UserGroupRoleDTO> groupList;
+
+    public String getLineNiceName() {
+        return lineNiceName;
+    }
+
+    public void setLineNiceName(String lineNiceName) {
+        this.lineNiceName = lineNiceName;
+    }
 
     public String getUserNameID() {
         return userNameID;
@@ -100,6 +110,7 @@ public class UserGroupRoleDTO {
     public UserGroupRoleDTO(UserGroupRole userGroupRole) {
         this.externalID = userGroupRole.getExternalID();
         this.lineID = userGroupRole.getLineID();
+        this.lineNiceName = userGroupRole.getLineNiceName();
         this.groupID = userGroupRole.getGroupID();
         this.userName = userGroupRole.getUserName();
         this.userNameID = userGroupRole.getUserNameID();

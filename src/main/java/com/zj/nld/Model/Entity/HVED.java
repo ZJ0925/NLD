@@ -59,19 +59,23 @@ public class HVED {
 
     @Column(name = "UN3E_DH")
     @Convert(converter = FTBooleanConverter.class)
-    private boolean isRemake; // 16.重製
-
-    @Column(name = "CRM_DH")
-    @Convert(converter = FTBooleanConverter.class)
-    private boolean isNoCharge; // 17.不計價
-
-    @Column(name = "UN3_DH")
-    @Convert(converter = FTBooleanConverter.class)
-    private boolean isPaused; // 18.暫停
+    private boolean isPaused; // 16.暫停
 
     @Column(name = "UN2_DH")
     @Convert(converter = FTBooleanConverter.class)
-    private boolean isVoided; // 19.作廢
+    private boolean isVoided; // 17.作廢
+
+    @Column(name = "CRM_DH")
+    @Convert(converter = FTBooleanConverter.class)
+    private boolean isNoCharge; // 18.不計價
+
+    @Column(name = "MODE3_DH")
+    @Convert(converter = FTBooleanConverter.class)
+    private boolean isRemake; // 19.重製
+
+    @Column(name = "FIX_DH")
+    @Convert(converter = FTBooleanConverter.class)
+    private boolean isReFix; // 20.修整
 
     @Column(name = "DAT_22_DH")
     private Date tryInReceivedDate; // 20.試戴收件日
@@ -85,6 +89,28 @@ public class HVED {
 
     @Column(name = "VER_DH")
     private String salesName; // 或驗收業務名
+
+    @Column(name = "TIM2_DH")
+    private String tim2Dh; // 試戴交件日時段
+
+    @Column(name = "TIM3_DH")
+    private String tim3Dh; // 預計完成日時段
+
+    public String getTim2Dh() {
+        return tim2Dh;
+    }
+
+    public void setTim2Dh(String tim2Dh) {
+        this.tim2Dh = tim2Dh;
+    }
+
+    public String getTim3Dh() {
+        return tim3Dh;
+    }
+
+    public void setTim3Dh(String tim3Dh) {
+        this.tim3Dh = tim3Dh;
+    }
 
     public String getSalesName() {
         return salesName;

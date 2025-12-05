@@ -7,6 +7,19 @@
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 
     <style>
+        /* LINE 暱稱欄位樣式 */
+        .users-table td:first-child {
+            color: #666;
+            font-style: italic;
+            font-size: 13px;
+        }
+
+        /* 當 LINE 暱稱與使用者名稱不同時，使用較深的顏色 */
+        .users-table tr:has(.user-name-display[style*="color: rgb(220, 53, 69)"]) td:first-child {
+            color: #333;
+            font-weight: 500;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -975,6 +988,6 @@
     </div>
 </div>
 
-<script src="/page/script/GroupRole.js?v=22222854878"></script>
+<script src="/page/script/GroupRole.js?v=222222222222854878"></script>
 </body>
 </html>

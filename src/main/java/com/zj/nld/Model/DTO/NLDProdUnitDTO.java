@@ -1,86 +1,82 @@
 package com.zj.nld.Model.DTO;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import java.util.ArrayList;
 import java.util.Date;
-
+import java.util.List;
 
 public class NLDProdUnitDTO {
 
-    private String workOrderNum; // 1.技工單號
+    private String workOrderNum;
+    private String clinicName;
+    private String docName;
+    private String patientName;
 
-    private String clinicName; // 2.診所名稱
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")
+    private Date receivedDate;
 
-    private String docName; // 3.醫師名稱
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")
+    private Date deliveryDate;
 
-    private String patientName; // 4.患者名稱
+    private String toothPosition;
+    private String prodName;
 
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date receivedDate;  // 5.收件日
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")
+    private Date tryInDate;
 
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date deliveryDate; // 6.完成交件日
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")
+    private Date estFinishDate;
 
-    private String toothPosition; // 8.齒位
+    private String workOrderStatus;
 
-    private String prodName; // 9-2. 產品名稱日
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")
+    private Date estTryInDate;
 
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date tryInDate; // 10.試戴交件
+    // ✅ 布林欄位 - 按正確順序
+    private boolean isPaused;    // 1.暫停 (UN3E_DH)
+    private boolean isVoided;    // 2.作廢 (UN2_DH)
+    private boolean isNoCharge;  // 3.不計價 (CRM_DH)
+    private boolean isRemake;    // 4.重製 (MODE3_DH)
+    private boolean isReFix;     // 5.修整 (FIX_DH)
 
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date estFinishDate; // 11.預計完成日
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")
+    private Date tryInReceivedDate;
 
-    private String taskType;  //目前無12派工別--------------------------------------------------------------------------------
+    private String remarks;
+    private String salesName;
 
-    private String workOrderStatus; // 13.工單現況;
+    // ✅ 新增：狀態標籤字段
+    private String statusLabels;
 
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date estTryInDate; // 14.預計試戴日
-
-
-    private boolean isRemake; // 16.重製
-
-    private boolean isNoCharge; // 17.不計價
-
-    private boolean isPaused; // 18.暫停
-
-    private boolean isVoided; // 19.作廢
-
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date tryInReceivedDate; // 20.試戴收件日
-
-    private String remarks; // 21.備註
-
-    private String salesName;  // 新增 salesName 屬性，只傳回 Sales.Name
-
-
-    //目前無12派工別--------------------------------------------------------------------------------
-
-    // 空的建構子
+    // 空建構子
     public NLDProdUnitDTO() {
     }
 
-
+    /**
+     * ✅ 完整建構子 - 20個參數
+     * 順序必須與 Repository 查詢一致!
+     */
     public NLDProdUnitDTO(
-            String workOrderNum,
-            String clinicName,
-            String docName,
-            String patientName,
-            Date receivedDate,
-            Date deliveryDate,
-            String toothPosition,
-            String prodName,
-            Date tryInDate,
-            Date estFinishDate,
-            String workOrderStatus,
-            Date estTryInDate,
-            Boolean isRemake,
-            Boolean isNoCharge,
-            Boolean isPaused,
-            Boolean isVoided,
-            Date tryInReceivedDate,
-            String remarks,
-            String salesName  // 新增 salesName 參數
+            String workOrderNum,      // 1
+            String clinicName,        // 2
+            String docName,           // 3
+            String patientName,       // 4
+            Date receivedDate,        // 5
+            Date deliveryDate,        // 6
+            String toothPosition,     // 7
+            String prodName,          // 8
+            Date tryInDate,           // 9
+            Date estFinishDate,       // 10
+            String workOrderStatus,   // 11
+            Date estTryInDate,        // 12
+            boolean isPaused,         // 13 ✅
+            boolean isVoided,         // 14 ✅
+            boolean isNoCharge,       // 15 ✅
+            boolean isRemake,         // 16 ✅
+            boolean isReFix,          // 17 ✅
+            Date tryInReceivedDate,   // 18
+            String remarks,           // 19
+            String salesName          // 20
     ) {
         this.workOrderNum = workOrderNum;
         this.clinicName = clinicName;
@@ -94,23 +90,44 @@ public class NLDProdUnitDTO {
         this.estFinishDate = estFinishDate;
         this.workOrderStatus = workOrderStatus;
         this.estTryInDate = estTryInDate;
-        this.isRemake = isRemake;
-        this.isNoCharge = isNoCharge;
         this.isPaused = isPaused;
         this.isVoided = isVoided;
+        this.isNoCharge = isNoCharge;
+        this.isRemake = isRemake;
+        this.isReFix = isReFix;
         this.tryInReceivedDate = tryInReceivedDate;
         this.remarks = remarks;
-        this.salesName = salesName;  // 設置 salesName
+        this.salesName = salesName;
+
+        // ✅ 自動生成狀態標籤
+        this.statusLabels = generateStatusLabels();
     }
 
+    /**
+     * ✅ 生成狀態標籤字串
+     * 按指定順序: 1.暫停 2.作廢 3.不計價 4.重製 5.修整
+     */
+    private String generateStatusLabels() {
+        List<String> labels = new ArrayList<>();
 
-    public String getTaskType() {
-        return taskType;
+        if (isPaused) labels.add("暫停");
+        if (isVoided) labels.add("作廢");
+        if (isNoCharge) labels.add("不計價");
+        if (isRemake) labels.add("重製");
+        if (isReFix) labels.add("修整");
+
+        return labels.isEmpty() ? "" : String.join(" ", labels);
     }
 
-    public void setTaskType(String taskType) {
-        taskType = taskType;
+    // ✅ Getter for statusLabels
+    public String getStatusLabels() {
+        if (statusLabels == null) {
+            statusLabels = generateStatusLabels();
+        }
+        return statusLabels;
     }
+
+    // ============= Getter/Setter =============
 
     public String getWorkOrderNum() {
         return workOrderNum;
@@ -158,14 +175,6 @@ public class NLDProdUnitDTO {
 
     public void setDeliveryDate(Date deliveryDate) {
         this.deliveryDate = deliveryDate;
-    }
-
-    public String getSalesName() {
-        return salesName;
-    }
-
-    public void setSalesName(String salesName) {
-        this.salesName = salesName;
     }
 
     public String getToothPosition() {
@@ -216,28 +225,13 @@ public class NLDProdUnitDTO {
         this.estTryInDate = estTryInDate;
     }
 
-    public boolean isRemake() {
-        return isRemake;
-    }
-
-    public void setRemake(boolean remake) {
-        isRemake = remake;
-    }
-
-    public boolean isNoCharge() {
-        return isNoCharge;
-    }
-
-    public void setNoCharge(boolean noCharge) {
-        isNoCharge = noCharge;
-    }
-
     public boolean isPaused() {
         return isPaused;
     }
 
     public void setPaused(boolean paused) {
         isPaused = paused;
+        this.statusLabels = generateStatusLabels(); // ✅ 更新時重新生成
     }
 
     public boolean isVoided() {
@@ -246,6 +240,34 @@ public class NLDProdUnitDTO {
 
     public void setVoided(boolean voided) {
         isVoided = voided;
+        this.statusLabels = generateStatusLabels(); // ✅ 更新時重新生成
+    }
+
+    public boolean isNoCharge() {
+        return isNoCharge;
+    }
+
+    public void setNoCharge(boolean noCharge) {
+        isNoCharge = noCharge;
+        this.statusLabels = generateStatusLabels(); // ✅ 更新時重新生成
+    }
+
+    public boolean isRemake() {
+        return isRemake;
+    }
+
+    public void setRemake(boolean remake) {
+        isRemake = remake;
+        this.statusLabels = generateStatusLabels(); // ✅ 更新時重新生成
+    }
+
+    public boolean isReFix() {
+        return isReFix;
+    }
+
+    public void setReFix(boolean reFix) {
+        isReFix = reFix;
+        this.statusLabels = generateStatusLabels(); // ✅ 更新時重新生成
     }
 
     public Date getTryInReceivedDate() {
@@ -262,5 +284,13 @@ public class NLDProdUnitDTO {
 
     public void setRemarks(String remarks) {
         this.remarks = remarks;
+    }
+
+    public String getSalesName() {
+        return salesName;
+    }
+
+    public void setSalesName(String salesName) {
+        this.salesName = salesName;
     }
 }

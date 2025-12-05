@@ -2,10 +2,12 @@ package com.zj.nld;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.security.Security;
 
 @SpringBootApplication
+@EnableScheduling  // ✅ 啟用排程功能
 public class NldApplication {
 
     //開發時註解

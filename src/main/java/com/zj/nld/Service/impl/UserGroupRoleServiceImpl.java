@@ -104,14 +104,46 @@ public class UserGroupRoleServiceImpl implements UserGroupRoleService {
 
         // 2. 透過 LINE API 驗證 Token 並取得真實的 User ID
         String lineID = lineVerificationService.verifyAccessTokenAndGetUserId(accessToken);
-
-
-
-
+        
         if (roleManagerService.isRoleManagerByLineID(lineID)) {
             return true;
         }else{
             return false;
+        }
+    }
+    /**
+     * 取得所有不重複的群組 ID
+     */
+    @Override
+    public List<String> getAllGroupIds() {
+        return userGroupRoleRepository.findAllDistinctGroupIds();
+    }
+
+    /**
+     * 更新指定群組的名稱
+     */
+    @Override
+    @Transactional
+    public boolean updateGroupName(String groupId, String newGroupName) {
+        try {
+            int updatedCount = userGroupRoleRepository.updateGroupNameByGroupId(groupId, newGroupName);
+            return updatedCount > 0;
+        } catch (Exception e) {
+            System.err.println("更新群組名稱失敗: " + groupId + " - " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * 從資料庫取得群組名稱
+     */
+    @Override
+    public String getGroupNameFromDB(String groupId) {
+        try {
+            return userGroupRoleRepository.findGroupNameByGroupId(groupId);
+        } catch (Exception e) {
+            System.err.println("從資料庫取得群組名稱失敗: " + groupId + " - " + e.getMessage());
+            return null;
         }
     }
 

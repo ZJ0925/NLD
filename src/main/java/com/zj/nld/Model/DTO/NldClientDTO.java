@@ -1,63 +1,101 @@
 package com.zj.nld.Model.DTO;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-
 import java.util.Date;
 
 public class NldClientDTO {
 
-    private String workOrderNum; // 1.技工單號
+    private String workOrderNum;
+    private String clinicName;
+    private String docName;
+    private String patientName;
 
-    private String clinicName; // 2.診所名稱
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")
+    private Date deliveryDate;
 
-    private String docName; // 3.醫師名稱
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")
+    private Date receivedDate;
 
-    private String patientName; // 4.患者名稱
+    private String toothPosition;
+    private String prodName;
 
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date deliveryDate; // 6.完成交件日
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")
+    private Date tryInDate;
 
-    private String toothPosition; //8.齒位
+    private String workOrderStatus;
 
-    private String prodName; // 9-2. 產品名稱日
+    // ✅ 布林欄位 - 按正確順序
+    private boolean isPaused;    // 1.暫停 (UN3E_DH)
+    private boolean isVoided;    // 2.作廢 (UN2_DH)
+    private boolean isNoCharge;  // 3.不計價 (CRM_DH)
+    private boolean isRemake;    // 4.重製 (MODE3_DH)
+    private boolean isReFix;     // 5.修整 (FIX_DH)
 
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Taipei")//將後端格式轉換方便與前端對接
-    private Date tryInDate; // 10.試戴交件
+    private String remarks;
+    private String salesName;
 
-    private String workOrderStatus; // 13.工單現況;
-
-    private boolean isRemake; // 16.重製
-
-    private boolean isNoCharge; // 17.不計價
-
-    private boolean isPaused; // 18.暫停
-
-    private boolean isVoided; // 19.作廢
-
-    private String remarks; // 21.備註
-
-    // 空的建構子
+    // 空建構子
     public NldClientDTO() {
     }
 
-    public NldClientDTO(String workOrderNum, String clinicName, String docName, String patientName, Date deliveryDate, String toothPosition, String prodName, Date tryInDate, String workOrderStatus, boolean isRemake, boolean isNoCharge, boolean isPaused, boolean isVoided, String remarks) {
+    /**
+     * ✅ 完整建構子 - 16個參數
+     * 順序必須與 Repository 查詢一致!
+     */
+    public NldClientDTO(
+            String workOrderNum,      // 1
+            String clinicName,        // 2
+            String docName,           // 3
+            String patientName,       // 4
+            Date deliveryDate,        // 5
+            Date receivedDate,        // 6 ✅ 新增
+            String toothPosition,     // 7
+            String prodName,          // 8
+            Date tryInDate,           // 9
+            String workOrderStatus,   // 10
+            boolean isPaused,         // 11
+            boolean isVoided,         // 12
+            boolean isNoCharge,       // 13
+            boolean isRemake,         // 14
+            boolean isReFix,          // 15
+            String remarks,           // 16
+            String salesName          // 17
+    ) {
         this.workOrderNum = workOrderNum;
         this.clinicName = clinicName;
         this.docName = docName;
         this.patientName = patientName;
         this.deliveryDate = deliveryDate;
+        this.receivedDate = receivedDate;  // ✅ 新增
         this.toothPosition = toothPosition;
         this.prodName = prodName;
         this.tryInDate = tryInDate;
         this.workOrderStatus = workOrderStatus;
-        this.isRemake = isRemake;
-        this.isNoCharge = isNoCharge;
         this.isPaused = isPaused;
         this.isVoided = isVoided;
+        this.isNoCharge = isNoCharge;
+        this.isRemake = isRemake;
+        this.isReFix = isReFix;
         this.remarks = remarks;
+        this.salesName = salesName;
     }
 
+    // Getter/Setter
+    public Date getReceivedDate() {
+        return receivedDate;
+    }
 
+    public void setReceivedDate(Date receivedDate) {
+        this.receivedDate = receivedDate;
+    }
+
+    public String getSalesName() {
+        return salesName;
+    }
+
+    public void setSalesName(String salesName) {
+        this.salesName = salesName;
+    }
 
     public String getWorkOrderNum() {
         return workOrderNum;
@@ -131,22 +169,6 @@ public class NldClientDTO {
         this.workOrderStatus = workOrderStatus;
     }
 
-    public boolean isRemake() {
-        return isRemake;
-    }
-
-    public void setRemake(boolean remake) {
-        isRemake = remake;
-    }
-
-    public boolean isNoCharge() {
-        return isNoCharge;
-    }
-
-    public void setNoCharge(boolean noCharge) {
-        isNoCharge = noCharge;
-    }
-
     public boolean isPaused() {
         return isPaused;
     }
@@ -163,6 +185,30 @@ public class NldClientDTO {
         isVoided = voided;
     }
 
+    public boolean isNoCharge() {
+        return isNoCharge;
+    }
+
+    public void setNoCharge(boolean noCharge) {
+        isNoCharge = noCharge;
+    }
+
+    public boolean isRemake() {
+        return isRemake;
+    }
+
+    public void setRemake(boolean remake) {
+        isRemake = remake;
+    }
+
+    public boolean isReFix() {
+        return isReFix;
+    }
+
+    public void setReFix(boolean reFix) {
+        isReFix = reFix;
+    }
+
     public String getRemarks() {
         return remarks;
     }
@@ -171,5 +217,3 @@ public class NldClientDTO {
         this.remarks = remarks;
     }
 }
-
-

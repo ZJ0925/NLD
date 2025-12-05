@@ -179,6 +179,33 @@
 
             console.log('✅ LIFF 初始化成功');
 
+            // 🔐 檢查登入狀態與 token 是否仍有效
+            try {
+                if (!liff.isLoggedIn()) {
+                    console.warn("⚠️ 尚未登入，重新導向登入頁");
+                    liff.login({ redirectUri: window.location.href });
+                    return;
+                }
+
+                // ⚠️ 若 token 遺失（例如過期被清空）
+                const idToken = liff.getIDToken();
+                if (!idToken) {
+                    console.warn("⚠️ Token 已失效，重新登入中...");
+                    liff.logout();
+                    liff.login({ redirectUri: window.location.href });
+                    return;
+                }
+
+                console.log("✅ 登入有效，繼續流程");
+            } catch (authError) {
+                console.error("❌ LIFF 驗證錯誤:", authError);
+                // 若發生例外（例如 session 壞掉），強制重新登入
+                liff.logout();
+                liff.login({ redirectUri: window.location.href });
+                return;
+            }
+
+
             const isInLineClient = liff.isInClient();
             console.log('📱 是否在 LINE 客戶端:', isInLineClient);
 
@@ -258,9 +285,40 @@
     })();
 
     // 共用的驗證流程
+    // 共用的驗證流程
     async function processUserAuth(storage, accessToken, groupId) {
         updateStatus('查詢權限中...');
 
+        // ✅✅✅ 第一步：先獲取並保存 LINE 用戶資料 ✅✅✅
+        console.log('📱 步驟 1: 開始獲取 LINE 用戶資料');
+        try {
+            const profile = await liff.getProfile();
+            console.log('👤 LINE 用戶資料:', profile);
+
+            // ✅ 保存用戶顯示名稱
+            if (profile.displayName) {
+                localStorage.setItem('lineDisplayName', profile.displayName);
+                console.log('💾 [步驟 1] 已保存用戶名稱:', profile.displayName);
+            } else {
+                localStorage.setItem('lineDisplayName', '未命名');
+                console.warn('⚠️ [步驟 1] LIFF 未返回 displayName，設置為未命名');
+            }
+
+            // ✅ 也保存其他資訊（選用）
+            if (profile.userId) {
+                localStorage.setItem('lineUserId', profile.userId);
+            }
+            if (profile.pictureUrl) {
+                localStorage.setItem('linePictureUrl', profile.pictureUrl);
+            }
+
+        } catch (profileError) {
+            console.error('⚠️ [步驟 1] 無法獲取 LINE 用戶資料:', profileError);
+            localStorage.setItem('lineDisplayName', '未命名');
+        }
+
+        // ✅ 第二步：查詢用戶角色
+        console.log('📱 步驟 2: 開始查詢用戶角色');
         const protocol = window.location.protocol;
         const host = window.location.host;
         const apiUrl = `${protocol}//${host}/NLD/user/role`;
@@ -286,8 +344,21 @@
         }
 
         const userData = await response.json();
-        console.log('✅ 權限查詢成功:', userData);
+        console.log('✅ [步驟 2] 權限查詢成功:', userData);
 
+        // ✅ 如果後端有返回 displayName，作為備用（但優先使用 LIFF 的）
+        if (!localStorage.getItem('lineDisplayName') || localStorage.getItem('lineDisplayName') === '未命名') {
+            if (userData.displayName) {
+                localStorage.setItem('lineDisplayName', userData.displayName);
+                console.log('💾 [步驟 2] 使用後端用戶名稱:', userData.displayName);
+            }
+        }
+
+        // ✅ 驗證是否成功保存
+        const savedDisplayName = localStorage.getItem('lineDisplayName');
+        console.log('✅ 最終保存的用戶名稱:', savedDisplayName);
+
+        // ✅ 角色配置
         const roleConfig = {
             1: { page: '/page/Admin.html', api: '/NLD/admin/workOrders', name: 'Admin' },
             2: { page: '/page/Doc.html', api: '/NLD/Doc/workOrders', name: 'Doc' },
@@ -298,19 +369,20 @@
 
         const config = roleConfig[userData.roleID];
         if (!config) {
-            // 特別處理 roleID = 0 的情況
             if (userData.roleID === 0) {
                 showError('此帳號或網址已失效，無法使用系統');
             } else {
                 showError('網址已失效無法使用');
             }
-            return; // 終止執行
+            return;
         }
 
         console.log('👤 用戶角色:', config.name);
 
         updateStatus('載入資料中...');
 
+        // ✅ 第三步：載入工單資料
+        console.log('📱 步驟 3: 開始載入工單資料');
         const dataUrl = `${protocol}//${host}${config.api}`;
         console.log('📥 開始載入數據:', dataUrl);
 
@@ -329,7 +401,7 @@
         }
 
         const workOrders = await dataResponse.json();
-        console.log('✅ 數據載入成功，共', workOrders.length, '筆工單');
+        console.log('✅ [步驟 3] 數據載入成功，共', workOrders.length, '筆工單');
 
         await storage.saveData(workOrders);
 
@@ -338,7 +410,12 @@
         localStorage.setItem('groupId', groupId);
         localStorage.setItem('userRole', config.name);
 
-        console.log('💾 用戶信息已保存');
+        console.log('💾 [步驟 3] 用戶信息已保存');
+        console.log('📋 localStorage 內容檢查:');
+        console.log('  - lineDisplayName:', localStorage.getItem('lineDisplayName'));
+        console.log('  - liffAccessToken:', localStorage.getItem('liffAccessToken') ? '已保存' : '未保存');
+        console.log('  - groupId:', localStorage.getItem('groupId'));
+        console.log('  - userRole:', localStorage.getItem('userRole'));
 
         updateStatus('跳轉中...');
 
@@ -348,7 +425,7 @@
         // ✅ 添加延遲確保數據已保存
         setTimeout(() => {
             window.location.href = redirectUrl;
-        }, 100);
+        }, 200); // 增加延遲時間到 200ms
     }
 
 </script>

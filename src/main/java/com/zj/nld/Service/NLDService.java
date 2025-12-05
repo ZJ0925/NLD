@@ -1,13 +1,16 @@
 package com.zj.nld.Service;
 
-import com.zj.nld.Model.DTO.NldDTO;
-import com.zj.nld.Model.DTO.NLDProdUnitDTO;
-import com.zj.nld.Model.DTO.NldClientDTO;
-import com.zj.nld.Model.DTO.NldSalesDTO;
+import com.zj.nld.Model.DTO.*;
 
 import java.util.List;
 
 public interface NLDService {
+
+    /**
+     * 根據 Access Token 取得使用者角色資訊
+     */
+    UserGroupRoleDTO getUserRoleByAccessToken(String authHeader, String groupIdFromClient);
+
 
     List<?> getWorkOrdersByAccessToken(String authHeader, String roleType, String groupId);
 
